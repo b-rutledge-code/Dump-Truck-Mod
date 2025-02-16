@@ -1,0 +1,28 @@
+module Base
+{
+	template vehicle TruckBedDumpTruck
+	{
+		part TruckBed
+		{
+			area = TruckBed,
+			category = bodywork,
+			itemType = Base.BigTrunk,
+			mechanicRequireKey = true,
+			repairMechanic = true,
+
+			container
+			{
+				capacity = 550,
+				conditionAffectsCapacity = false,
+				test = Vehicles.ContainerAccess.TruckBed,
+			}
+			lua
+			{
+				create = DumpTruck_part.Create.TruckBedDumpTruck,
+				init = DumpTruck_part.Init.TruckBedDumpTruck,
+				update = DumpTruck_part.Update.TruckBedDumpTruck,
+			}
+		}
+	}
+}
+
