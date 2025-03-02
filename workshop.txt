@@ -1,0 +1,12 @@
+version=1
+id=3433311021
+title=Road Builder [BETA]
+description=[Beta] This mod will eventually require Filibuster Rhyme's Used Cars! when it is oficially released for B42.  He has a great Dump Tuck model.  Until then its just using the vanilla pickup truck script so I can go ahead and release it and get feedback. Road Builder is a work in progress until the stable branch is released.
+description=
+description=Road Builder adds a Dump Truck to Project Zomboid capable of laying a two-tile-wide gravel road.  Use the vehicle menu or press (G) to start dumping gravel.
+description=
+description=To load a Dump Truck place sacks of gravel in the bed of the truck.  50% of Dump Trucks will spawn with a full load and a shovel, the other half spawn with an empty bed.
+description=
+description=The vehicle type is Base.DumpTruck
+tags=Build 42;Map;Vehicles
+visibility=public
