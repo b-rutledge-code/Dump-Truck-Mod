@@ -34,4 +34,11 @@ wheels/
 
 # Logs and databases
 *.log
-*.sqlite 
+*.sqlite
+
+# Ignore Project Zomboid game file symlinks
+GameLua/
+GameScripts/
+
+# Development scripts
+deploy.sh 
