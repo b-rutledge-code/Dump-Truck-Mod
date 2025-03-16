@@ -23,14 +23,12 @@ end
 -- Add functions as methods of ISShovelGround
 function ISShovelGround:HandleTileChange(square)
     if not square then 
-        print("[DEBUG] HandleTileChange: square is nil")
         return 
     end
     
     -- Get the IsoGridSquare first
     local isoSquare = square:getSquare()
     if not isoSquare then
-        print("[DEBUG] HandleTileChange: Could not get IsoGridSquare")
         return
     end
     

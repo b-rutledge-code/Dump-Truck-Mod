@@ -22,7 +22,6 @@ function ISVehicleMenu.showRadialMenu(playerObj)
             getTexture("media/ui/vehicles/dumpbed.png"), -- Replace with a better icon if available
             function()
                 data.dumpingGravelActive = not isDumping
-                print("Dumping Gravel Active:", data.dumpingGravelActive)
             end
         )
     end

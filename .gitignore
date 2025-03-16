@@ -41,4 +41,5 @@ GameLua/
 GameScripts/
 
 # Development scripts
-deploy.sh 
+deploy.sh
+deploy_workshop.sh
