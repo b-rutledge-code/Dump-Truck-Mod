@@ -1,7 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
 DumpTruck = {}
-DumpTruck.debugMode = true
+DumpTruck.debugMode = false
 
 -- Utility function for debug printing
 function DumpTruck.debugPrint(...)
