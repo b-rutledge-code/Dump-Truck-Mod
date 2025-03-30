@@ -119,34 +119,37 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                 local obj = objects:get(i)
                 if obj then
                     local spriteName = obj:getSpriteName()
-                    DumpTruck.debugPrint(string.format("Checking sprite: %s", spriteName))
-                    
-                    -- Extract the base number from the sprite name
-                    if spriteName:find("^blends_natural_01_") then
-                        local baseNumber = tonumber(spriteName:match("blends_natural_01_(%d+)"))
-                        if baseNumber then
-                            local baseRow = math.floor(baseNumber / 16)
-                            local rowStartTile = baseRow * 16
-                            
-                            -- Check if the sprite matches any of the opposite sprites we want to remove
-                            local shouldRemove = false
-                            for _, oppositeOffset in ipairs(check.oppositeSprites) do
-                                local oppositeSprite = rowStartTile + oppositeOffset
-                                if baseNumber == oppositeSprite then
-                                    shouldRemove = true
+
+                    if spriteName then
+                        DumpTruck.debugPrint(string.format("Checking sprite: %s", spriteName))
+
+                        -- Extract the base number from the sprite name
+                        if spriteName:find("^blends_natural_01_") then
+                            local baseNumber = tonumber(spriteName:match("blends_natural_01_(%d+)"))
+                            if baseNumber then
+                                local baseRow = math.floor(baseNumber / 16)
+                                local rowStartTile = baseRow * 16
+                                
+                                -- Check if the sprite matches any of the opposite sprites we want to remove
+                                local shouldRemove = false
+                                for _, oppositeOffset in ipairs(check.oppositeSprites) do
+                                    local oppositeSprite = rowStartTile + oppositeOffset
+                                    if baseNumber == oppositeSprite then
+                                        shouldRemove = true
+                                        break
+                                    end
+                                end
+                                
+                                if shouldRemove then
+                                    DumpTruck.debugPrint(string.format("Removing opposite blend sprite from square (%d, %d)", check.square:getX(), check.square:getY()))
+                                    check.square:RemoveTileObject(obj)
+                                    check.square:RecalcProperties()
+                                    check.square:DirtySlice()
+                                    if isClient() then
+                                        check.square:transmitFloor()
+                                    end
                                     break
                                 end
-                            end
-                            
-                            if shouldRemove then
-                                DumpTruck.debugPrint(string.format("Removing opposite blend sprite from square (%d, %d)", check.square:getX(), check.square:getY()))
-                                check.square:RemoveTileObject(obj)
-                                check.square:RecalcProperties()
-                                check.square:DirtySlice()
-                                if isClient() then
-                                    check.square:transmitFloor()
-                                end
-                                break
                             end
                         end
                     end
