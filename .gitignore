@@ -43,3 +43,6 @@ GameScripts/
 # Development scripts
 deploy.sh
 deploy_workshop.sh
+
+# Cursor files
+.cursor/
