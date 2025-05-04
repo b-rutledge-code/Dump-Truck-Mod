@@ -1,7 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
 DumpTruck = {}
-DumpTruck.debugMode = false
+DumpTruck.debugMode = true
 
 -- Utility function for debug printing
 function DumpTruck.debugPrint(...)
@@ -489,43 +489,68 @@ end
 
 -- ROAD BUILDING
 
+local oldDirection = nil
+local startX, startY = nil, nil  -- Initialize to nil so we know it's not set yet
+local directionStabilityCount = 0
+local DIRECTION_STABILITY_THRESHOLD = 3  -- Number of cycles direction must be stable
+local hasUpdatedStartPoint = false
+
 function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
     DumpTruck.debugPrint(string.format("Vehicle Position: cx=%.3f, cy=%.3f, cz=%d.", cx, cy, cz))
 
-    local halfWidth = width / 2
-    local backDistance = length / 2
+    local currentDirection = DumpTruck.getDirection(fx, fy)
+    DumpTruck.debugPrint(string.format("Current direction: %s", currentDirection))
 
-    -- Floor the position first
-    local flooredX = math.floor(cx)
-    local flooredY = math.floor(cy)
+    -- Initialize start point if not set
+    if startX == nil or startY == nil then
+        startX = cx
+        startY = cy
+        hasUpdatedStartPoint = false
+        DumpTruck.debugPrint(string.format("Initializing start point to (%d, %d)", startX, startY))
+    end
 
-    local backSquares = {}
-    -- Check if more east/west or north/south
-    if DumpTruck.getPrimaryAxis(fx, fy) == DumpTruckConstants.AXIS.X then
-        -- Facing East/West
-        local offsetX = (fx > 0) and -backDistance or backDistance
-        DumpTruck.debugPrint(string.format("Direction: East/West. OffsetX=%d.", offsetX))
-        for i = -halfWidth, halfWidth - 1 do
-            local tileX = flooredX + offsetX
-            local tileY = flooredY + i
-            local square = getCell():getGridSquare(tileX, tileY, cz)
-            if square then
-                table.insert(backSquares, square)
-            end
-        end
+    -- Check if direction has changed
+    if currentDirection ~= oldDirection then
+        directionStabilityCount = 0
+        oldDirection = currentDirection
+        -- Update start point immediately when direction changes
+        startX = cx
+        startY = cy
+        hasUpdatedStartPoint = false
+        DumpTruck.debugPrint(string.format("Direction changed to %s, updating start point to (%d, %d)", currentDirection, startX, startY))
     else
-        -- North/South
-        local offsetY = (fy > 0) and -backDistance or backDistance
-        DumpTruck.debugPrint(string.format("Direction: North/South. OffsetY=%d.", offsetY))
-        for i = -halfWidth, halfWidth - 1 do
-            local tileX = flooredX + i
-            local tileY = flooredY + offsetY
-            local square = getCell():getGridSquare(tileX, tileY, cz)
-            if square then
-                table.insert(backSquares, square)
-            end
+        directionStabilityCount = directionStabilityCount + 1
+        DumpTruck.debugPrint(string.format("Direction stable for %d cycles", directionStabilityCount))
+        -- Update start point every few cycles when direction is stable
+        if directionStabilityCount >= 3 then
+            startX = cx
+            startY = cy
+            hasUpdatedStartPoint = false
+            directionStabilityCount = 0
+            DumpTruck.debugPrint(string.format("Updating start point to (%d, %d)", startX, startY))
         end
     end
+
+    local halfWidth = width / 2
+
+    -- Use current vehicle position as end point
+    local endX = cx
+    local endY = cy
+
+    -- Get points along the thick line
+    local points = DumpTruck.drawThickLineCircle(startX, startY, endX, endY, halfWidth)
+
+    -- Convert points to squares
+    local backSquares = {}
+    for _, point in ipairs(points) do
+        local square = getCell():getGridSquare(point.x, point.y, cz)
+        if square then
+            DumpTruck.debugPrint(string.format("Placing tile at (%d, %d)", point.x, point.y))
+            table.insert(backSquares, square)
+        end
+    end
+
+    hasUpdatedStartPoint = true
     return backSquares
 end
 
@@ -552,25 +577,17 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     
     local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
     
-    -- First check if all tiles are valid
-    for _, square in ipairs(currentSquares) do
-        if not square or not DumpTruck.isSquareValidForGravel(square) then
-            return -- If any tile is invalid, don't place any gravel
-        end
-    end
-
-    -- If we got here, all tiles are valid, so place gravel on them
+    -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
-        if DumpTruck.getGravelCount(vehicle) <= 0 then
-            data.dumpingGravelActive = false
-            return
+        if sq and DumpTruck.isSquareValidForGravel(sq) then
+            if DumpTruck.getGravelCount(vehicle) <= 0 then
+                data.dumpingGravelActive = false
+                return
+            end
+            DumpTruck.placeGravelFloorOnTile(DumpTruckConstants.GRAVEL_SPRITE, sq)
+            DumpTruck.consumeGravelFromTruckBed(vehicle)
         end
-        DumpTruck.placeGravelFloorOnTile(DumpTruckConstants.GRAVEL_SPRITE, sq)
-        DumpTruck.consumeGravelFromTruckBed(vehicle)
     end
-
-    -- Check and place blend tiles if there are previous tiles
-    DumpTruck.smoothRoad(currentSquares, fx, fy)
 end
 
 -- Update function for player actions
@@ -613,6 +630,140 @@ function DumpTruck.toggleGravelDumping(key)
 end
 -- Event bindings
 Events.OnKeyPressed.Add(DumpTruck.toggleGravelDumping)
+
+function DumpTruck.drawLine(x0, y0, x1, y1)
+    -- Convert to integers for consistent behavior
+    x0, y0, x1, y1 = math.floor(x0), math.floor(y0), math.floor(x1), math.floor(y1)
+    
+    DumpTruck.debugPrint(string.format("drawLine: start=(%d, %d), end=(%d, %d)", x0, y0, x1, y1))
+    
+    -- Early validation
+    if x0 == x1 and y0 == y1 then
+        DumpTruck.debugPrint("Zero-length line detected, returning single point")
+        return {{x = x0, y = y0}}
+    end
+    
+    local points = {}
+    local dx = math.abs(x1 - x0)
+    local dy = math.abs(y1 - y0)
+    local sx = x0 < x1 and 1 or -1
+    local sy = y0 < y1 and 1 or -1
+    local err = dx - dy
+    
+    -- Calculate maximum possible points to prevent infinite loops
+    local maxPoints = dx + dy + 1
+    local iterations = 0
+    
+    while true do
+        iterations = iterations + 1
+        if iterations > maxPoints then
+            DumpTruck.debugPrint("Too many iterations, breaking")
+            break
+        end
+        
+        table.insert(points, {x = x0, y = y0})
+        
+        if x0 == x1 and y0 == y1 then
+            break
+        end
+        
+        local e2 = 2 * err
+        if e2 > -dy then
+            err = err - dy
+            x0 = x0 + sx
+        end
+        if e2 < dx then
+            err = err + dx
+            y0 = y0 + sy
+        end
+    end
+    
+    DumpTruck.debugPrint(string.format("drawLine complete: %d points", #points))
+    return points
+end
+
+function DumpTruck.drawThickLineCircle(x0, y0, x1, y1, thickness)
+    -- Convert to integers for consistent behavior
+    x0, y0, x1, y1 = math.floor(x0), math.floor(y0), math.floor(x1), math.floor(y1)
+    thickness = math.floor(thickness)
+    
+    DumpTruck.debugPrint(string.format("drawThickLineCircle: start=(%d, %d), end=(%d, %d), thickness=%d", x0, y0, x1, y1, thickness))
+    
+    -- Early validation
+    if thickness <= 0 then
+        DumpTruck.debugPrint("Invalid thickness, returning single point")
+        return {{x = x0, y = y0}}
+    end
+    
+    if x0 == x1 and y0 == y1 then
+        DumpTruck.debugPrint("Zero-length line detected, returning single point")
+        return {{x = x0, y = y0}}
+    end
+    
+    -- First get the base line points
+    local baseLine = DumpTruck.drawLine(x0, y0, x1, y1)
+    if #baseLine == 0 then
+        DumpTruck.debugPrint("No base line points generated")
+        return {{x = x0, y = y0}}
+    end
+    
+    local radius = math.ceil(thickness / 2)
+    local thickPoints = {}
+    local seen = {}
+    
+    -- Optimize circle generation by only checking points within the square bounds
+    for i, point in ipairs(baseLine) do
+        for dx = -radius, radius do
+            for dy = -radius, radius do
+                -- Use squared distance for better performance
+                if dx*dx + dy*dy <= radius*radius then
+                    local newX = point.x + dx
+                    local newY = point.y + dy
+                    local key = newX .. "," .. newY
+                    
+                    if not seen[key] then
+                        seen[key] = true
+                        table.insert(thickPoints, {x = newX, y = newY})
+                    end
+                end
+            end
+        end
+    end
+    
+    DumpTruck.debugPrint(string.format("Total thick points: %d", #thickPoints))
+    return thickPoints
+end
+
+function DumpTruck.getDirection(fx, fy)
+    local angle = math.atan2(fx, -fy)  -- This will give us 0 degrees at North
+    local degrees = math.deg(angle)
+    if degrees < 0 then degrees = degrees + 360 end
+    
+    -- Convert to 8 directions with 0 degrees at North
+    local directions = {
+        [0] = "N",    -- 0 degrees (North)
+        [45] = "NE",  -- 45 degrees
+        [90] = "E",   -- 90 degrees
+        [135] = "SE", -- 135 degrees
+        [180] = "S",  -- 180 degrees
+        [225] = "SW", -- 225 degrees
+        [270] = "W",  -- 270 degrees
+        [315] = "NW"  -- 315 degrees
+    }
+    
+    -- Find the closest direction
+    local closest = 0
+    local minDiff = 360
+    for dir, _ in pairs(directions) do
+        local diff = math.abs(degrees - dir)
+        if diff < minDiff then
+            minDiff = diff
+            closest = dir
+        end
+    end
+    
+    return directions[closest]
+end
 
 
 
