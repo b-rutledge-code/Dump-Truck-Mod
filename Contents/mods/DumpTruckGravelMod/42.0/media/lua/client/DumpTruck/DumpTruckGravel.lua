@@ -3,6 +3,34 @@ local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 DumpTruck = {}
 DumpTruck.debugMode = true
 
+-- Constants
+local DIRECTION_STABILITY_THRESHOLD = 2  -- Number of consistent direction checks needed
+local directionHistory = {}  -- Will store {direction, x, y} entries
+local stableDirection = nil  -- Our current stable direction
+local startX, startY = nil, nil  -- Initialize to nil so we know it's not set yet
+local hasUpdatedStartPoint = false
+
+-- Data structure to track the current line of gravel
+local currentLine = {
+    squares = {}  -- Will store {square, originalSprite} entries
+}
+
+-- Function to clear the current line data
+function DumpTruck.clearCurrentLine()
+    currentLine.squares = {}
+    DumpTruck.debugPrint("Cleared current line data")
+end
+
+-- Function to add a square to the current line
+function DumpTruck.addToCurrentLine(square, originalSprite)
+    table.insert(currentLine.squares, {
+        square = square,
+        originalSprite = originalSprite
+    })
+    DumpTruck.debugPrint(string.format("Added square (%d, %d) to current line with original sprite: %s", 
+        square:getX(), square:getY(), originalSprite or "nil"))
+end
+
 -- Utility function for debug printing
 function DumpTruck.debugPrint(...)
     if DumpTruck.debugMode then
@@ -26,11 +54,11 @@ function DumpTruck.isSquareValidForGravel(sq)
         return false
     end
     if CFarmingSystem and CFarmingSystem.instance:getLuaObjectOnSquare(sq) then
-        DumpTruck.debugPrint(string.format("Farming system object on square (%d, %d, %d).", sq:getX(), sq:getY(), sq:getZ()))
+        -- DumpTruck.debugPrint(string.format("Farming system object on square (%d, %d, %d).", sq:getX(), sq:getY(), sq:getZ()))
         return false
     end
     if sq:getProperties() and sq:getProperties():Is(IsoFlagType.water) then
-        DumpTruck.debugPrint(string.format("Square (%d, %d, %d) is water.", sq:getX(), sq:getY(), sq:getZ()))
+        -- DumpTruck.debugPrint(string.format("Square (%d, %d, %d) is water.", sq:getX(), sq:getY(), sq:getZ()))
         return false
     end
     if DumpTruck.isPouredGravel(sq) then
@@ -40,28 +68,28 @@ function DumpTruck.isSquareValidForGravel(sq)
     return true
 end
 
-function DumpTruck.getPrimaryAxis(fx, fy)
-    -- Calculate the angle for debugging
-    local angle = math.deg(math.atan2(-fy, fx))
-    if angle < 0 then angle = angle + 360 end
-    DumpTruck.debugPrint(string.format("Movement angle: %.2f degrees", angle))
+-- function DumpTruck.getPrimaryAxis(fx, fy)
+--     -- Calculate the angle for debugging
+--     local angle = math.deg(math.atan2(-fy, fx))
+--     if angle < 0 then angle = angle + 360 end
+--     DumpTruck.debugPrint(string.format("Movement angle: %.2f degrees", angle))
     
-    -- Original logic
-    if math.abs(fx) > math.abs(fy) * (1 + .2) then
-        return DumpTruckConstants.AXIS.X
-    else
-        return DumpTruckConstants.AXIS.Y
-    end
-end
+--     -- Original logic
+--     if math.abs(fx) > math.abs(fy) * (1 + .2) then
+--         return DumpTruckConstants.AXIS.X
+--     else
+--         return DumpTruckConstants.AXIS.Y
+--     end
+-- end
 
 -- get vehicle vector 
-function DumpTruck.getVector(vehicle)
-    local dir = vehicle:getDir()
-    local fx = dir:dx()
-    local fy = dir:dy()
-    DumpTruck.debugPrint(string.format("Vehicle Vector: fx=%.3f, fy=%.3f.", fx, fy))
-    return fx, fy
-end
+-- function DumpTruck.getVector(vehicle)
+--     local dir = vehicle:getDir()
+--     local fx = dir:dx()
+--     local fy = dir:dy()
+--     DumpTruck.debugPrint(string.format("Vehicle Vector: fx=%.3f, fy=%.3f.", fx, fy))
+--     return fx, fy
+-- end
 
 function DumpTruck.getVectorFromPlayer(vehicle)
     -- Get the driver of the vehicle
@@ -160,6 +188,7 @@ function DumpTruck.removeOppositeEdgeBlends(square)
 end
 
 function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
+    DumpTruck.debugPrint("getBlendOverlayFromOffset ENTERED")
     if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^blends_natural_01_") then
         DumpTruck.debugPrint("Invalid terrainBlock. Must be a blends_natural_01_ tile.")
         return nil
@@ -231,174 +260,86 @@ function DumpTruck.placeTileOverlay(mainTile, offsetX, offsetY, cz, sprite)
 end
 
 
+--[[
+    smoothRoad: Adds blend tiles to smooth the transition between gravel and other terrain
+    Input:
+        currentSquares: array of IsoGridSquare - The current row of gravel tiles
+        fx: number - Forward vector X component (direction of travel)
+        fy: number - Forward vector Y component (direction of travel)
+    Output: None (modifies tiles directly)
+]]
 function DumpTruck.smoothRoad(currentSquares, fx, fy)
-    if #currentSquares ~= 2 then
-        DumpTruck.debugPrint("Error: Expected exactly two tiles in the current set.")
+    if #currentSquares < 2 then
+        DumpTruck.debugPrint("Error: Need at least 2 tiles to smooth.")
         return
     end
 
-    local currTile1, currTile2 = currentSquares[1], currentSquares[2]
-    DumpTruck.debugPrint(string.format("Smoothing road for tiles: (%d,%d) and (%d,%d)", currTile1:getX(), currTile1:getY(), currTile2:getX(), currTile2:getY()))
-
-    local cz = currTile1:getZ()
-
-    if DumpTruck.getPrimaryAxis(fx, fy) == DumpTruckConstants.AXIS.X then
-        DumpTruck.debugPrint("Smoothing East/West")
-        if fx > 0 then
-            local westTile1HasGravel = DumpTruck.isPouredGravel(currTile1:getW())
-            local westTile2HasGravel = DumpTruck.isPouredGravel(currTile2:getW())
-            DumpTruck.debugPrint(string.format("West tiles gravel status: %s, %s", tostring(westTile1HasGravel), tostring(westTile2HasGravel)))
-
-            if westTile1HasGravel and not westTile2HasGravel then
-                DumpTruck.debugPrint("Top tile has west gravel, bottom doesn't")
-                DumpTruck.placeTileOverlay(currTile2, -1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.EAST)
-                DumpTruck.placeTileOverlay(currTile1, 0, -1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.WEST)
-            elseif not westTile1HasGravel and westTile2HasGravel then
-                DumpTruck.debugPrint("Bottom tile has west gravel, top doesn't")
-                DumpTruck.placeTileOverlay(currTile1, -1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.SOUTH)
-                DumpTruck.placeTileOverlay(currTile2, 0, 1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.NORTH)
-            else
-                DumpTruck.debugPrint("No fillers needed. Both west tiles are consistent.")
-                -- Add terrain blending for aligned E/W road
-                local northSq = currTile1:getN()
-                local southSq = currTile2:getS()
-                
-                local northTerrain = DumpTruck.getBlendNaturalSprite(northSq)
-                local southTerrain = DumpTruck.getBlendNaturalSprite(southSq)
-
-                if northTerrain then
-                    local northBlend = DumpTruck.getBlendOverlayFromOffset("NORTH", northTerrain)
-                    if northBlend then
-                        local obj = IsoObject.new(getCell(), currTile1, northBlend)
-                        currTile1:AddTileObject(obj)
-                    end
-                end
-
-                if southTerrain then
-                    local southBlend = DumpTruck.getBlendOverlayFromOffset("SOUTH", southTerrain)
-                    if southBlend then
-                        local obj = IsoObject.new(getCell(), currTile2, southBlend)
-                        currTile2:AddTileObject(obj)
-                    end
-                end
-            end
-        else
-            local eastTile1HasGravel = DumpTruck.isPouredGravel(currTile1:getE())
-            local eastTile2HasGravel = DumpTruck.isPouredGravel(currTile2:getE())
-            DumpTruck.debugPrint(string.format("East tiles gravel status: %s, %s", tostring(eastTile1HasGravel), tostring(eastTile2HasGravel)))
-
-            if eastTile1HasGravel and not eastTile2HasGravel then
-                DumpTruck.debugPrint("Top tile has east gravel, bottom doesn't")
-                DumpTruck.placeTileOverlay(currTile2, 1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.NORTH)
-                DumpTruck.placeTileOverlay(currTile1, 0, -1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.SOUTH)
-            elseif not eastTile1HasGravel and eastTile2HasGravel then
-                DumpTruck.debugPrint("Bottom tile has east gravel, top doesn't")
-                DumpTruck.placeTileOverlay(currTile1, 1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.WEST)
-                DumpTruck.placeTileOverlay(currTile2, 0, 1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.EAST)
-            else
-                DumpTruck.debugPrint("No fillers needed. Both east tiles are consistent.")
-                -- Add terrain blending for aligned E/W road
-                local northSq = currTile1:getN()
-                local southSq = currTile2:getS()
-                
-                local northTerrain = DumpTruck.getBlendNaturalSprite(northSq)
-                local southTerrain = DumpTruck.getBlendNaturalSprite(southSq)
-
-                if northTerrain then
-                    local northBlend = DumpTruck.getBlendOverlayFromOffset("NORTH", northTerrain)
-                    if northBlend then
-                        local obj = IsoObject.new(getCell(), currTile1, northBlend)
-                        currTile1:AddTileObject(obj)
-                    end
-                end
-
-                if southTerrain then
-                    local southBlend = DumpTruck.getBlendOverlayFromOffset("SOUTH", southTerrain)
-                    if southBlend then
-                        local obj = IsoObject.new(getCell(), currTile2, southBlend)
-                        currTile2:AddTileObject(obj)
-                    end
-                end
-            end
-        end
+    local cz = currentSquares[1]:getZ()
+    
+    -- Use forward vector to determine if we're going more horizontally or vertically
+    local isEastWest = math.abs(fx) > math.abs(fy)
+    
+    -- Determine which cardinal direction we're going
+    local primaryDir
+    if isEastWest then
+        primaryDir = fx > 0 and "WEST" or "EAST"  -- If going East (positive X), check West tiles
     else
-        DumpTruck.debugPrint("Smoothing North/South")
-        if fy > 0 then
-            local northTile1HasGravel = DumpTruck.isPouredGravel(currTile1:getN())
-            local northTile2HasGravel = DumpTruck.isPouredGravel(currTile2:getN())
-            DumpTruck.debugPrint(string.format("North tiles gravel status: %s, %s", tostring(northTile1HasGravel), tostring(northTile2HasGravel)))
-
-            if northTile1HasGravel and not northTile2HasGravel then
-                DumpTruck.debugPrint("Left tile has north gravel, right doesn't")
-                DumpTruck.placeTileOverlay(currTile2, 0, -1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.WEST)
-                DumpTruck.placeTileOverlay(currTile1, -1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.EAST)
-            elseif not northTile1HasGravel and northTile2HasGravel then
-                DumpTruck.debugPrint("Right tile has north gravel, left doesn't")
-                DumpTruck.placeTileOverlay(currTile1, 0, -1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.SOUTH)
-                DumpTruck.placeTileOverlay(currTile2, 1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.NORTH)
-            else
-                DumpTruck.debugPrint("No fillers needed. Both north tiles are consistent.")
-                -- Add terrain blending for aligned N/S road
-                local westSq = currTile1:getW()
-                local eastSq = currTile2:getE()
-                
-                local westTerrain = DumpTruck.getBlendNaturalSprite(westSq)
-                local eastTerrain = DumpTruck.getBlendNaturalSprite(eastSq)
-
-                if westTerrain then
-                    local westBlend = DumpTruck.getBlendOverlayFromOffset("WEST", westTerrain)
-                    if westBlend then
-                        local obj = IsoObject.new(getCell(), currTile1, westBlend)
-                        currTile1:AddTileObject(obj)
-                    end
-                end
-
-                if eastTerrain then
-                    local eastBlend = DumpTruck.getBlendOverlayFromOffset("EAST", eastTerrain)
-                    if eastBlend then
-                        local obj = IsoObject.new(getCell(), currTile2, eastBlend)
-                        currTile2:AddTileObject(obj)
-                    end
+        primaryDir = fy > 0 and "NORTH" or "SOUTH"  -- If going South (positive Y), check North tiles
+    end
+    local secondaryDir = isEastWest and {"NORTH", "SOUTH"} or {"EAST", "WEST"}
+    
+    -- Get the adjacent tiles to check
+    local getAdjacentTile = function(tile, dir) return tile["get" .. dir:sub(1,1)](tile) end
+    
+    -- Only check the outer edges of the road
+    local leftTile = currentSquares[1]
+    local rightTile = currentSquares[#currentSquares]
+    
+    -- Check gravel status for outer edges
+    local leftAdjacent = getAdjacentTile(leftTile, primaryDir)
+    local rightAdjacent = getAdjacentTile(rightTile, primaryDir)
+    local leftHasGravel = DumpTruck.isPouredGravel(leftAdjacent)
+    local rightHasGravel = DumpTruck.isPouredGravel(rightAdjacent)
+    
+    DumpTruck.debugPrint(string.format("Left edge: %s adjacent has gravel: %s", primaryDir, tostring(leftHasGravel)))
+    DumpTruck.debugPrint(string.format("Right edge: %s adjacent has gravel: %s", primaryDir, tostring(rightHasGravel)))
+    
+    -- Handle gap filling for left edge
+    if leftHasGravel then
+        DumpTruck.debugPrint(string.format("Left edge has %s gravel, applying blend", primaryDir))
+        DumpTruck.placeTileOverlay(leftTile, 0, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES[primaryDir])
+    end
+    
+    -- Handle gap filling for right edge
+    if rightHasGravel then
+        DumpTruck.debugPrint(string.format("Right edge has %s gravel, applying blend", primaryDir))
+        DumpTruck.placeTileOverlay(rightTile, 0, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES[primaryDir])
+    end
+    
+    -- Add terrain blending for the sides
+    local leftSideTile = getAdjacentTile(leftTile, secondaryDir[1])
+    local rightSideTile = getAdjacentTile(rightTile, secondaryDir[2])
+    
+    -- Add terrain blends for outer edges
+    for i, tile in ipairs({leftTile, rightTile}) do
+        local sideTile = i == 1 and leftSideTile or rightSideTile
+        local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
+        DumpTruck.debugPrint(string.format("Checking side tile %d at (%d, %d)", i, sideTile:getX(), sideTile:getY()))
+        local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
+        if terrain then
+            DumpTruck.debugPrint(string.format("About to call getBlendOverlayFromOffset with dir=%s, terrain=%s", sideDir, terrain))
+            local blend = DumpTruck.getBlendOverlayFromOffset(sideDir, terrain)
+            DumpTruck.debugPrint(string.format("blend is nil: %s", tostring(blend == nil)))
+            if blend then
+                local obj = IsoObject.new(getCell(), tile, blend)
+                if obj then
+                    tile:AddTileObject(obj)
+                    tile:RecalcProperties()
+                    tile:DirtySlice()
                 end
             end
         else
-            local southTile1HasGravel = DumpTruck.isPouredGravel(currTile1:getS())
-            local southTile2HasGravel = DumpTruck.isPouredGravel(currTile2:getS())
-            DumpTruck.debugPrint(string.format("South tiles gravel status: %s, %s", tostring(southTile1HasGravel), tostring(southTile2HasGravel)))
-
-            if southTile1HasGravel and not southTile2HasGravel then
-                DumpTruck.debugPrint("Left tile has south gravel, right doesn't")
-                DumpTruck.placeTileOverlay(currTile2, 0, 1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.NORTH)
-                DumpTruck.placeTileOverlay(currTile1, -1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.SOUTH)
-            elseif not southTile1HasGravel and southTile2HasGravel then
-                DumpTruck.debugPrint("Right tile has south gravel, left doesn't")
-                DumpTruck.placeTileOverlay(currTile1, 0, 1, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.EAST)
-                DumpTruck.placeTileOverlay(currTile2, 1, 0, cz, DumpTruckConstants.GRAVEL_BLEND_TILES.WEST)
-            else
-                DumpTruck.debugPrint("No fillers needed. Both south tiles are consistent.")
-                -- Add terrain blending for aligned N/S road
-                local westSq = currTile1:getW()
-                local eastSq = currTile2:getE()
-                
-                local westTerrain = DumpTruck.getBlendNaturalSprite(westSq)
-                local eastTerrain = DumpTruck.getBlendNaturalSprite(eastSq)
-
-                if westTerrain then
-                    local westBlend = DumpTruck.getBlendOverlayFromOffset("WEST", westTerrain)
-                    if westBlend then
-                        local obj = IsoObject.new(getCell(), currTile1, westBlend)
-                        currTile1:AddTileObject(obj)
-                    end
-                end
-
-                if eastTerrain then
-                    local eastBlend = DumpTruck.getBlendOverlayFromOffset("EAST", eastTerrain)
-                    if eastBlend then
-                        local obj = IsoObject.new(getCell(), currTile2, eastBlend)
-                        currTile2:AddTileObject(obj)
-                    end
-                end
-            end
+            DumpTruck.debugPrint(string.format("No natural terrain found on side %d", i))
         end
     end
 end
@@ -407,7 +348,15 @@ end
 -- GRAVEL
 
 function DumpTruck.placeGravelFloorOnTile(sprite, sq)
-    DumpTruck.removeOppositeEdgeBlends(sq)
+    -- Store the original floor sprite before replacing it
+    local originalSprite = nil
+    local originalFloor = sq:getFloor()
+    if originalFloor then
+        originalSprite = originalFloor:getSprite():getName()
+    end
+    
+    -- Add to our current line tracking before placing new floor
+    DumpTruck.addToCurrentLine(sq, originalSprite)
     
     local newFloor = sq:addFloor(sprite)
     
@@ -449,9 +398,9 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
             if currentUses > 0 then
                 local newCount = currentUses - 1
                 item:setCurrentUses(newCount)
-                DumpTruck.debugPrint(string.format("Consumed gravel from bag. Remaining uses: %d.", newCount))
+                -- DumpTruck.debugPrint(string.format("Consumed gravel from bag. Remaining uses: %d.", newCount))
                 if newCount <= 0 then
-                    DumpTruck.debugPrint("Bag is empty. Replacing with an EmptySandbag.")
+                    -- DumpTruck.debugPrint("Bag is empty. Replacing with an EmptySandbag.")
                     container:Remove(item)
                     container:AddItem("Base.EmptySandbag")
                 end
@@ -461,7 +410,7 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
         end
     end
 
-    DumpTruck.debugPrint("No gravel bag found or all bags are empty.")
+    -- DumpTruck.debugPrint("No gravel bag found or all bags are empty.")
     return false
 end
 
@@ -483,24 +432,86 @@ function DumpTruck.getGravelCount(vehicle)
             totalUses = totalUses + currentUses
         end
     end
-    DumpTruck.debugPrint(string.format("Total gravel uses available: %d.", totalUses))
+    -- DumpTruck.debugPrint(string.format("Total gravel uses available: %d.", totalUses))
     return totalUses
 end
 
 -- ROAD BUILDING
 
-local oldDirection = nil
-local startX, startY = nil, nil  -- Initialize to nil so we know it's not set yet
-local directionStabilityCount = 0
-local DIRECTION_STABILITY_THRESHOLD = 3  -- Number of cycles direction must be stable
-local hasUpdatedStartPoint = false
+
+--[[
+    getBackSquares2: Gets the squares behind the truck for gravel placement
+    Input:
+        fx: number - Forward vector X component
+        fy: number - Forward vector Y component
+        cx: number - Current X position
+        cy: number - Current Y position
+        cz: number - Z level (usually 0)
+        width: number - Width of gravel road in tiles
+        length: number - Length of truck in tiles
+    Output: array of IsoGridSquare - The squares where gravel should be placed
+]]
+function DumpTruck.getBackSquares2(fx, fy, cx, cy, cz, width, length)
+    DumpTruck.debugPrint(string.format("Input vector: fx=%.3f, fy=%.3f", fx, fy))
+    
+    -- Calculate offset backwards along forward vector
+    local offsetDistance = (length/2)  -- Half truck length plus 1 tile
+    local offsetX = -fx * offsetDistance  -- Negative forward vector
+    local offsetY = -fy * offsetDistance
+    
+    -- Apply offset to center point
+    local centerX = cx + math.floor(offsetX + 0.5)  -- Round to nearest integer
+    local centerY = cy + math.floor(offsetY + 0.5)
+    
+    DumpTruck.debugPrint(string.format("Original center: (%d, %d), Offset: (%.2f, %.2f), New center: (%d, %d)", 
+        cx, cy, offsetX, offsetY, centerX, centerY))
+    
+    -- Calculate perpendicular vector (90 degrees) for road width
+    -- For a vector (x,y) in Zomboid's inverted Y coordinate system
+    -- We use (-y,x) because Y is inverted, so this gives us a vector to the right of the truck
+    local perpX = -fy   -- In inverted Y, this gives us right
+    local perpY = fx
+    
+    -- Find the dominant axis and snap to it
+    -- This ensures we get a clean cardinal direction
+    if math.abs(perpX) > math.abs(perpY) then
+        -- Snap to East/West
+        perpX = perpX > 0 and 1 or -1
+        perpY = 0
+    else
+        -- Snap to North/South
+        perpX = 0
+        perpY = perpY > 0 and 1 or -1
+    end
+    
+    DumpTruck.debugPrint(string.format("Rounded perp vector: perpX=%d, perpY=%d", perpX, perpY))
+    
+    -- Generate points based on width
+    local points = {}
+    for i = 0, width - 1 do
+        table.insert(points, {
+            x = centerX + (perpX * i),
+            y = centerY + (perpY * i),
+            z = cz
+        })
+        DumpTruck.debugPrint(string.format("Point %d: (%d, %d)", i, centerX + (perpX * i), centerY + (perpY * i)))
+    end
+    
+    -- Convert points to squares
+    local squares = {}
+    for _, point in ipairs(points) do
+        local square = getCell():getGridSquare(point.x, point.y, point.z)
+        if square then
+            table.insert(squares, square)
+        end
+    end
+    
+    return squares
+end
 
 function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
-    DumpTruck.debugPrint(string.format("Vehicle Position: cx=%.3f, cy=%.3f, cz=%d.", cx, cy, cz))
-
     local currentDirection = DumpTruck.getDirection(fx, fy)
-    DumpTruck.debugPrint(string.format("Current direction: %s", currentDirection))
-
+    
     -- Initialize start point if not set
     if startX == nil or startY == nil then
         startX = cx
@@ -509,37 +520,56 @@ function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
         DumpTruck.debugPrint(string.format("Initializing start point to (%d, %d)", startX, startY))
     end
 
-    -- Check if direction has changed
-    if currentDirection ~= oldDirection then
-        directionStabilityCount = 0
-        oldDirection = currentDirection
-        -- Update start point immediately when direction changes
-        startX = cx
-        startY = cy
-        hasUpdatedStartPoint = false
-        DumpTruck.debugPrint(string.format("Direction changed to %s, updating start point to (%d, %d)", currentDirection, startX, startY))
-    else
-        directionStabilityCount = directionStabilityCount + 1
-        DumpTruck.debugPrint(string.format("Direction stable for %d cycles", directionStabilityCount))
-        -- Update start point every few cycles when direction is stable
-        if directionStabilityCount >= 3 then
-            startX = cx
-            startY = cy
+    -- Add new direction check to history
+    table.insert(directionHistory, {direction = currentDirection, x = cx, y = cy})
+    -- Keep only last N entries
+    while #directionHistory > DIRECTION_STABILITY_THRESHOLD do
+        table.remove(directionHistory, 1)
+    end
+
+    -- Debug log the current history
+    DumpTruck.debugPrint(string.format("Current direction history (%d entries):", #directionHistory))
+    for i, entry in ipairs(directionHistory) do
+        DumpTruck.debugPrint(string.format("  Entry %d: direction=%s, pos=(%d, %d)", 
+            i, entry.direction, entry.x, entry.y))
+    end
+    DumpTruck.debugPrint(string.format("Current stable direction: %s", stableDirection or "nil"))
+
+    -- Only check for direction change if we have enough history
+    if #directionHistory == DIRECTION_STABILITY_THRESHOLD then
+        -- Check if all N entries in history are the same direction
+        local allSameDirection = true
+        local firstDirection = directionHistory[1].direction
+        for i = 2, DIRECTION_STABILITY_THRESHOLD do
+            if directionHistory[i].direction ~= firstDirection then
+                allSameDirection = false
+                DumpTruck.debugPrint(string.format("Direction mismatch: entry %d is %s, first entry is %s", 
+                    i, directionHistory[i].direction, firstDirection))
+                break
+            end
+        end
+
+        -- If all N entries are the same direction and different from stable direction, update
+        if allSameDirection and firstDirection ~= stableDirection then
+            DumpTruck.debugPrint(string.format("Found new stable direction: %s (was %s)", 
+                firstDirection, stableDirection or "nil"))
+            stableDirection = firstDirection
+            -- Use the position from the first entry in history
+            startX = directionHistory[1].x
+            startY = directionHistory[1].y
             hasUpdatedStartPoint = false
-            directionStabilityCount = 0
-            DumpTruck.debugPrint(string.format("Updating start point to (%d, %d)", startX, startY))
+            -- Clear the current line data when direction changes
+            DumpTruck.clearCurrentLine()
+            DumpTruck.debugPrint(string.format("New stable direction %s, updating start point to (%d, %d)", 
+                stableDirection, startX, startY))
         end
     end
 
     local halfWidth = width / 2
-
-    -- Use current vehicle position as end point
     local endX = cx
     local endY = cy
-
-    -- Get points along the thick line
     local points = DumpTruck.drawThickLineCircle(startX, startY, endX, endY, halfWidth)
-
+    
     -- Convert points to squares
     local backSquares = {}
     for _, point in ipairs(points) do
@@ -575,7 +605,10 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local width = math.floor(extents:x() + 0.5)
     local length = math.floor(extents:z() + 0.5)
     
-    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
+    local currentSquares = DumpTruck.getBackSquares2(fx, fy, cx, cy, cz, 3, length)
+    
+    -- -- Restore the old line before pouring new gravel
+    -- DumpTruck.restoreCurrentLine()
     
     -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
@@ -588,6 +621,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
             DumpTruck.consumeGravelFromTruckBed(vehicle)
         end
     end
+    DumpTruck.smoothRoad(currentSquares, fx, fy)
 end
 
 -- Update function for player actions
@@ -617,6 +651,8 @@ function DumpTruck.toggleGravelDumping(key)
         local vehicle = playerObj:getVehicle()
         if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
             local data = vehicle:getModData()
+            startX, startY = nil, nil  -- Reset start point
+            DumpTruck.clearCurrentLine()
             data.dumpingGravelActive = not data.dumpingGravelActive
             
             -- Set speed limit based on dumping state
@@ -707,25 +743,34 @@ function DumpTruck.drawThickLineCircle(x0, y0, x1, y1, thickness)
         return {{x = x0, y = y0}}
     end
     
-    local radius = math.ceil(thickness / 2)
+    local halfWidth = math.ceil(thickness / 2)
     local thickPoints = {}
     local seen = {}
     
-    -- Optimize circle generation by only checking points within the square bounds
+    -- Calculate direction vector
+    local dx = x1 - x0
+    local dy = y1 - y0
+    local len = math.sqrt(dx * dx + dy * dy)
+    if len > 0 then
+        dx = dx / len
+        dy = dy / len
+    end
+    
+    -- Calculate perpendicular vector
+    local perpX = -dy
+    local perpY = dx
+    
+    -- For each point in the base line
     for i, point in ipairs(baseLine) do
-        for dx = -radius, radius do
-            for dy = -radius, radius do
-                -- Use squared distance for better performance
-                if dx*dx + dy*dy <= radius*radius then
-                    local newX = point.x + dx
-                    local newY = point.y + dy
-                    local key = newX .. "," .. newY
-                    
-                    if not seen[key] then
-                        seen[key] = true
-                        table.insert(thickPoints, {x = newX, y = newY})
-                    end
-                end
+        -- Add points perpendicular to the line direction
+        for w = -halfWidth, halfWidth do
+            local newX = point.x + math.floor(perpX * w)
+            local newY = point.y + math.floor(perpY * w)
+            local key = newX .. "," .. newY
+            
+            if not seen[key] then
+                seen[key] = true
+                table.insert(thickPoints, {x = newX, y = newY})
             end
         end
     end
@@ -763,6 +808,44 @@ function DumpTruck.getDirection(fx, fy)
     end
     
     return directions[closest]
+end
+
+-- Function to restore original floor sprites from current line
+function DumpTruck.restoreCurrentLine()
+    DumpTruck.debugPrint(string.format("Restoring %d squares from current line", #currentLine.squares))
+    
+    for _, entry in ipairs(currentLine.squares) do
+        local sq = entry.square
+        if sq then
+            -- Remove the current floor (gravel)
+            local currentFloor = sq:getFloor()
+            if currentFloor then
+                sq:RemoveTileObject(currentFloor)
+            end
+            
+            -- Restore original floor if it existed
+            if entry.originalSprite then
+                local newFloor = sq:addFloor(entry.originalSprite)
+                if newFloor then
+                    -- Copy any original modData if needed
+                    local modData = newFloor:getModData()
+                    modData.pourable = true
+                    modData.removable = true
+                end
+            end
+            
+            sq:RecalcProperties()
+            sq:DirtySlice()
+            if isClient() then
+                sq:transmitFloor()
+            end
+            DumpTruck.debugPrint(string.format("Restored square (%d, %d) to original sprite: %s", 
+                sq:getX(), sq:getY(), entry.originalSprite or "none"))
+        end
+    end
+    
+    -- Clear the current line after restoring
+    DumpTruck.clearCurrentLine()
 end
 
 
