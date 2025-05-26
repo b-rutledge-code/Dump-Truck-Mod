@@ -15,7 +15,7 @@ DumpTruckConstants.AXIS = {
 
 --Sprite Information
 DumpTruckConstants.POURED_FLOOR_TYPE = "gravel"
-DumpTruckConstants.VEHICLE_SCRIPT_NAME = "Base.DumpTruck"
+DumpTruckConstants.VEHICLE_SCRIPT_NAME = "Base.VolvoFE6Dump"
 DumpTruckConstants.BAG_TYPE = "Base.Gravelbag"
 DumpTruckConstants.PART_NAME = "TruckBed"
 DumpTruckConstants.GRAVEL_BLEND_TILES = {
@@ -24,6 +24,28 @@ DumpTruckConstants.GRAVEL_BLEND_TILES = {
     WEST = "blends_street_01_51",
     EAST = "blends_street_01_52"
 }
+
+-- Maps pairs of adjacent gravel tile directions to the appropriate blend tile direction
+-- Each entry is {adjacent_directions = {dir1, dir2}, blend_direction = "DIRECTION"}
+DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING = {
+    {
+        adjacent_directions = {"EAST", "SOUTH"},
+        blend_direction = "SOUTH"
+    },
+    {
+        adjacent_directions = {"WEST", "SOUTH"},
+        blend_direction = "WEST"
+    },
+    {
+        adjacent_directions = {"NORTH", "EAST"},
+        blend_direction = "EAST"
+    },
+    {
+        adjacent_directions = {"WEST", "NORTH"},
+        blend_direction = "NORTH"
+    }
+}
+
 DumpTruckConstants.GRAVEL_SPRITE = "blends_street_01_55"
 
 DumpTruckConstants.DIRECTION_OFFSETS = {
