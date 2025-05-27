@@ -193,14 +193,10 @@ function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
     return "blends_natural_01_" .. overlayTile
 end
 
-function DumpTruck.placeTileOverlay(mainTile, offsetX, offsetY, cz, sprite)
-    local cell = getCell()
-    -- For direct square placement, mainTile will be the square itself
-    local targetSquare = cell:getGridSquare(mainTile:getX() + offsetX, mainTile:getY() + offsetY, cz)
-   
+function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
     if not targetSquare then
         DumpTruck.debugPrint(string.format("placeTileOverlay: Target square is nil at (%d,%d)", 
-            mainTile:getX() + offsetX, mainTile:getY() + offsetY))
+            targetSquare:getX(), targetSquare:getY()))
         return
     end
     
@@ -234,7 +230,7 @@ function DumpTruck.placeTileOverlay(mainTile, offsetX, offsetY, cz, sprite)
     end
 
     -- Add the overlay
-    local overlay = IsoObject.new(cell, targetSquare, sprite)
+    local overlay = IsoObject.new(getCell(), targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
     targetSquare:RecalcProperties()
     targetSquare:DirtySlice()
@@ -253,26 +249,100 @@ end
         fy: number - Forward vector Y component (direction of travel)
     Output: None (modifies tiles directly)
 ]]
-function DumpTruck.addEdgeBlends(leftTile, rightTile, secondaryDir)
+function DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
+    if not leftTile or not rightTile then 
+        DumpTruck.debugPrint("addEdgeBlends: Invalid input tiles")
+        return 
+    end
+    
+    DumpTruck.debugPrint(string.format("addEdgeBlends: Checking tiles - left(%d,%d) right(%d,%d)", 
+        leftTile:getX(), leftTile:getY(), rightTile:getX(), rightTile:getY()))
+    
+    local secondaryDir
+    if leftTile:getX() == rightTile:getX() then
+        -- For east-west roads, determine which direction to use based on Y coordinates
+        if leftTile:getY() > rightTile:getY() then
+            -- Going west: left tile is south, right tile is north
+            secondaryDir = {"SOUTH", "NORTH"}
+            DumpTruck.debugPrint("addEdgeBlends: Going west - left tile is south, right tile is north")
+        else
+            -- Going east: left tile is north, right tile is south
+            secondaryDir = {"NORTH", "SOUTH"}
+            DumpTruck.debugPrint("addEdgeBlends: Going east - left tile is north, right tile is south")
+        end
+    else
+        -- For north-south roads, determine which direction to use based on X coordinates
+        if leftTile:getX() < rightTile:getX() then
+            -- Going south: left tile is west, right tile is east
+            secondaryDir = {"WEST", "EAST"}
+            DumpTruck.debugPrint("addEdgeBlends: Going south - left tile is west, right tile is east")
+        else
+            -- Going north: left tile is east, right tile is west
+            secondaryDir = {"EAST", "WEST"}
+            DumpTruck.debugPrint("addEdgeBlends: Going north - left tile is east, right tile is west")
+        end
+    end
+    
     -- Get the adjacent tiles for edge blending
-    local leftSideTile = leftTile["get" .. secondaryDir[1]:sub(1,1)](leftTile)
-    local rightSideTile = rightTile["get" .. secondaryDir[2]:sub(1,1)](rightTile)
+    local leftSideTile, rightSideTile
+    if secondaryDir[1] == "NORTH" then
+        leftSideTile = leftTile:getN()
+    elseif secondaryDir[1] == "SOUTH" then
+        leftSideTile = leftTile:getS()
+    elseif secondaryDir[1] == "EAST" then
+        leftSideTile = leftTile:getE()
+    elseif secondaryDir[1] == "WEST" then
+        leftSideTile = leftTile:getW()
+    end
+    
+    if secondaryDir[2] == "NORTH" then
+        rightSideTile = rightTile:getN()
+    elseif secondaryDir[2] == "SOUTH" then
+        rightSideTile = rightTile:getS()
+    elseif secondaryDir[2] == "EAST" then
+        rightSideTile = rightTile:getE()
+    elseif secondaryDir[2] == "WEST" then
+        rightSideTile = rightTile:getW()
+    end
+    
+    DumpTruck.debugPrint(string.format("addEdgeBlends: Adjacent tiles - leftSide(%d,%d) rightSide(%d,%d)", 
+        leftSideTile and leftSideTile:getX() or -1, leftSideTile and leftSideTile:getY() or -1,
+        rightSideTile and rightSideTile:getX() or -1, rightSideTile and rightSideTile:getY() or -1))
     
     -- Add terrain blends for outer edges
     for i, tile in ipairs({leftTile, rightTile}) do
         local sideTile = i == 1 and leftSideTile or rightSideTile
         local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
-        local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
-        if terrain then
-            local blend = DumpTruck.getBlendOverlayFromOffset(sideDir, terrain)
-            if blend then
-                local obj = IsoObject.new(getCell(), tile, blend)
-                if obj then
-                    tile:AddTileObject(obj)
-                    tile:RecalcProperties()
-                    tile:DirtySlice()
+        
+        DumpTruck.debugPrint(string.format("addEdgeBlends: Processing %s edge - tile(%d,%d) sideTile(%d,%d) direction %s", 
+            i == 1 and "left" or "right",
+            tile:getX(), tile:getY(),
+            sideTile and sideTile:getX() or -1, sideTile and sideTile:getY() or -1,
+            sideDir))
+        
+        if sideTile then
+            local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
+            DumpTruck.debugPrint(string.format("addEdgeBlends: Found terrain sprite: %s", terrain or "none"))
+            
+            if terrain then
+                local blend = DumpTruck.getBlendOverlayFromOffset(sideDir, terrain)
+                DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
+                
+                if blend then
+                    local obj = IsoObject.new(getCell(), tile, blend)
+                    if obj then
+                        tile:AddTileObject(obj)
+                        tile:RecalcProperties()
+                        tile:DirtySlice()
+                        DumpTruck.debugPrint(string.format("addEdgeBlends: Successfully placed blend tile %s at (%d,%d)", 
+                            blend, tile:getX(), tile:getY()))
+                    else
+                        DumpTruck.debugPrint("addEdgeBlends: Failed to create IsoObject")
+                    end
                 end
             end
+        else
+            DumpTruck.debugPrint(string.format("addEdgeBlends: No side tile found for %s edge", i == 1 and "left" or "right"))
         end
     end
 end
@@ -371,25 +441,20 @@ function DumpTruck.checkForCornerPattern(gravelTile)
     return nil, nil
 end
 
-function DumpTruck.fillGaps(leftTile, rightTile, primaryDir, cz)
-    -- For now, only handle EAST travel
-    -- if primaryDir ~= "WEST" then  -- Remember, primaryDir is opposite of travel
-    --     return
-    -- end
-
+function DumpTruck.fillGaps(leftTile, rightTile, cz)
     local adjacentTile1, blendTile1 = DumpTruck.checkForCornerPattern(leftTile)
     local adjacentTile2, blendTile2 = DumpTruck.checkForCornerPattern(rightTile)
 
     if adjacentTile1 and blendTile1 then
         DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for left tile, using blend tile %s", 
             adjacentTile1:getX(), adjacentTile1:getY(), blendTile1))
-        DumpTruck.placeTileOverlay(adjacentTile1, 0, 0, cz, blendTile1)
+        DumpTruck.placeTileOverlay(adjacentTile1, cz, blendTile1)
     end
 
     if adjacentTile2 and blendTile2 then
         DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for right tile, using blend tile %s", 
             adjacentTile2:getX(), adjacentTile2:getY(), blendTile2))
-        DumpTruck.placeTileOverlay(adjacentTile2, 0, 0, cz, blendTile2)
+        DumpTruck.placeTileOverlay(adjacentTile2, cz, blendTile2)
     end
 end
 
@@ -401,25 +466,15 @@ function DumpTruck.smoothRoad(currentSquares, fx, fy)
 
     local cz = currentSquares[1]:getZ()
     
-    -- Use forward vector to determine if we're going more horizontally or vertically
-    local isEastWest = math.abs(fx) > math.abs(fy)
-    
-    -- Determine which cardinal direction we're going
-    local primaryDir
-    if isEastWest then
-        primaryDir = fx > 0 and "WEST" or "EAST"  -- If going East (positive X), check West tiles
-    else
-        primaryDir = fy > 0 and "NORTH" or "SOUTH"  -- If going South (positive Y), check North tiles
-    end
-    local secondaryDir = isEastWest and {"NORTH", "SOUTH"} or {"EAST", "WEST"}
+
     
     -- Only check the outer edges of the road
     local leftTile = currentSquares[1]
     local rightTile = currentSquares[#currentSquares]
     
     -- Fill gaps and add edge blends
-    DumpTruck.fillGaps(leftTile, rightTile, primaryDir, cz)
-    DumpTruck.addEdgeBlends(leftTile, rightTile, secondaryDir)
+    DumpTruck.fillGaps(leftTile, rightTile, cz)
+    DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
 end
 
 
