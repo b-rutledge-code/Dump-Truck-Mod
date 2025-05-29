@@ -54,7 +54,7 @@ function ISShovelGround:RemoveBlendTile(square)
     end
 
     local floor = square:getFloor()
-    if floor and floor:getModData().gravelOverlay then
+    if floor and floor:getModData().edgeBlend then
         local objects = square:getObjects()
         for i = 0, objects:size() - 1 do
             local obj = objects:get(i)

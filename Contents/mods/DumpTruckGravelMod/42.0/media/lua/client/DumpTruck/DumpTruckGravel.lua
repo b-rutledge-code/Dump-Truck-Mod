@@ -49,8 +49,9 @@ end
 function DumpTruck.isFullGravelFloor(tile)
     if not tile then return false end
     local floor = tile:getFloor()
-    return floor and floor:getModData().pouredFloor == DumpTruckConstants.POURED_FLOOR_TYPE and 
-           not floor:getModData().gravelOverlay
+    return floor and 
+           floor:getSprite():getName() == DumpTruckConstants.GRAVEL_SPRITE and
+           floor:getModData().pouredFloor == DumpTruckConstants.POURED_FLOOR_TYPE
 end
 
 -- Check if square is valid for gravel
@@ -115,6 +116,8 @@ function DumpTruck.removeOppositeEdgeBlends(square)
         return 
     end
     
+    DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Checking square (%d,%d)", square:getX(), square:getY()))
+    
     -- Check each direction
     local adjacentChecks = {
         {square = square:getN(), oppositeSprites = DumpTruckConstants.DIRECTION_OFFSETS.SOUTH, dir = "North"},
@@ -125,6 +128,8 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     
     for _, check in ipairs(adjacentChecks) do
         if check and check.square then
+            DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Checking %s tile at (%d,%d)", 
+                check.dir, check.square:getX(), check.square:getY()))
             local objects = check.square:getObjects()
             for i = 0, objects:size() - 1 do
                 local obj = objects:get(i)
@@ -139,12 +144,18 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                                 local baseRow = math.floor(baseNumber / 16)
                                 local rowStartTile = baseRow * 16
                                 
+                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Found blend sprite %s (baseNumber=%d, rowStartTile=%d)", 
+                                    spriteName, baseNumber, rowStartTile))
+                                
                                 -- Check if the sprite matches any of the opposite sprites we want to remove
                                 local shouldRemove = false
                                 for _, oppositeOffset in ipairs(check.oppositeSprites) do
                                     local oppositeSprite = rowStartTile + oppositeOffset
+                                    DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Comparing baseNumber %d with oppositeSprite %d (rowStartTile %d + offset %d)", 
+                                        baseNumber, oppositeSprite, rowStartTile, oppositeOffset))
                                     if baseNumber == oppositeSprite then
                                         shouldRemove = true
+                                        DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", spriteName))
                                         break
                                     end
                                 end
@@ -200,10 +211,13 @@ function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
         return
     end
     
-    if not DumpTruck.isSquareValidForGravel(targetSquare) then
-        DumpTruck.debugPrint(string.format("placeTileOverlay: Square not valid for gravel at (%d,%d)", 
-            targetSquare:getX(), targetSquare:getY()))
-        return
+    -- Only check for valid gravel placement if this is not a blend tile
+    if not sprite:find("blends_natural_01") then
+        if not DumpTruck.isSquareValidForGravel(targetSquare) then
+            DumpTruck.debugPrint(string.format("placeTileOverlay: Square not valid for gravel at (%d,%d)", 
+                targetSquare:getX(), targetSquare:getY()))
+            return
+        end
     end
 
     -- Check for existing overlay
@@ -220,13 +234,16 @@ function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
     DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
 
-    DumpTruck.removeOppositeEdgeBlends(targetSquare)
+
 
     -- Set floor metadata
     local floor = targetSquare:getFloor()
     if floor then
-        floor:getModData().gravelOverlay = true
-        floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+        if sprite:find("blends_natural_01") then
+            floor:getModData().edgeBlend = true
+        else
+            floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+        end
     end
 
     -- Add the overlay
@@ -234,6 +251,8 @@ function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
     targetSquare:AddTileObject(overlay)
     targetSquare:RecalcProperties()
     targetSquare:DirtySlice()
+
+    DumpTruck.removeOppositeEdgeBlends(targetSquare)
     
     -- Log successful placement
     DumpTruck.debugPrint(string.format("placeTileOverlay: Successfully placed tile %s at (%d,%d)", 
@@ -329,16 +348,7 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
                 DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
                 
                 if blend then
-                    local obj = IsoObject.new(getCell(), tile, blend)
-                    if obj then
-                        tile:AddTileObject(obj)
-                        tile:RecalcProperties()
-                        tile:DirtySlice()
-                        DumpTruck.debugPrint(string.format("addEdgeBlends: Successfully placed blend tile %s at (%d,%d)", 
-                            blend, tile:getX(), tile:getY()))
-                    else
-                        DumpTruck.debugPrint("addEdgeBlends: Failed to create IsoObject")
-                    end
+                    DumpTruck.placeTileOverlay(tile, cz, blend)
                 end
             end
         else
@@ -473,8 +483,9 @@ function DumpTruck.smoothRoad(currentSquares, fx, fy)
     local rightTile = currentSquares[#currentSquares]
     
     -- Fill gaps and add edge blends
-    DumpTruck.fillGaps(leftTile, rightTile, cz)
+
     DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
+    DumpTruck.fillGaps(leftTile, rightTile, cz)
 end
 
 
