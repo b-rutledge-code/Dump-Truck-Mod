@@ -240,9 +240,10 @@ function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
     local floor = targetSquare:getFloor()
     if floor then
         if sprite:find("blends_natural_01") then
-            floor:getModData().edgeBlend = true
+            floor:getModData().isEdgeBlend = true
         else
             floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+            floor:getModData().isGapFiller = true
         end
     end
 

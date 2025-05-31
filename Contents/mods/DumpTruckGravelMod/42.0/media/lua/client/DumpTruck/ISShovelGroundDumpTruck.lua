@@ -54,7 +54,7 @@ function ISShovelGround:RemoveBlendTile(square)
     end
 
     local floor = square:getFloor()
-    if floor and floor:getModData().edgeBlend then
+    if floor and floor:getModData().isEdgeBlend then
         local objects = square:getObjects()
         for i = 0, objects:size() - 1 do
             local obj = objects:get(i)
@@ -75,17 +75,25 @@ end
 
 function ISShovelGround:removeEdgeBlends(isoObject)
     if not isoObject then return end
-    
     local square = isoObject:getSquare()
     if not square then return end
     
-    local objects = square:getObjects()
-    for i = 0, objects:size() - 1 do
-        local obj = objects:get(i)
-        if obj:getSprite() then
-            local spriteName = obj:getSprite():getName()
-            if isEdgeBlendTile(spriteName) then
-                square:RemoveTileObject(obj)
+    local floor = square:getFloor()
+    if floor and floor:getModData().isEdgeBlend then
+        local objects = square:getObjects()
+        for i = 0, objects:size() - 1 do
+            local obj = objects:get(i)
+            if obj then
+                local spriteName = obj:getSpriteName()
+                if isEdgeBlendTile(spriteName) then
+                    square:RemoveTileObject(obj)
+                    square:RecalcProperties()
+                    square:DirtySlice()
+                    if isClient() then
+                        square:transmitFloor()
+                    end
+                    break
+                end
             end
         end
     end
