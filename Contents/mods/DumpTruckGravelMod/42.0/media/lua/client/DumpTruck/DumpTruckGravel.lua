@@ -204,7 +204,7 @@ function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
     return "blends_natural_01_" .. overlayTile
 end
 
-function DumpTruck.placeTileOverlay(targetSquare, cz, sprite)
+function DumpTruck.placeTileOverlay(targetSquare, sprite)
     if not targetSquare then
         DumpTruck.debugPrint(string.format("placeTileOverlay: Target square is nil at (%d,%d)", 
             targetSquare:getX(), targetSquare:getY()))
@@ -269,7 +269,7 @@ end
         fy: number - Forward vector Y component (direction of travel)
     Output: None (modifies tiles directly)
 ]]
-function DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
+function DumpTruck.addEdgeBlends(leftTile, rightTile)
     if not leftTile or not rightTile then 
         DumpTruck.debugPrint("addEdgeBlends: Invalid input tiles")
         return 
@@ -349,7 +349,7 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
                 DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
                 
                 if blend then
-                    DumpTruck.placeTileOverlay(tile, cz, blend)
+                    DumpTruck.placeTileOverlay(tile, blend)
                 end
             end
         else
@@ -452,20 +452,20 @@ function DumpTruck.checkForCornerPattern(gravelTile)
     return nil, nil
 end
 
-function DumpTruck.fillGaps(leftTile, rightTile, cz)
+function DumpTruck.fillGaps(leftTile, rightTile)
     local adjacentTile1, blendTile1 = DumpTruck.checkForCornerPattern(leftTile)
     local adjacentTile2, blendTile2 = DumpTruck.checkForCornerPattern(rightTile)
 
     if adjacentTile1 and blendTile1 then
         DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for left tile, using blend tile %s", 
             adjacentTile1:getX(), adjacentTile1:getY(), blendTile1))
-        DumpTruck.placeTileOverlay(adjacentTile1, cz, blendTile1)
+        DumpTruck.placeTileOverlay(adjacentTile1, blendTile1)
     end
 
     if adjacentTile2 and blendTile2 then
         DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for right tile, using blend tile %s", 
             adjacentTile2:getX(), adjacentTile2:getY(), blendTile2))
-        DumpTruck.placeTileOverlay(adjacentTile2, cz, blendTile2)
+        DumpTruck.placeTileOverlay(adjacentTile2, blendTile2)
     end
 end
 
@@ -477,16 +477,13 @@ function DumpTruck.smoothRoad(currentSquares, fx, fy)
 
     local cz = currentSquares[1]:getZ()
     
-
-    
     -- Only check the outer edges of the road
     local leftTile = currentSquares[1]
     local rightTile = currentSquares[#currentSquares]
     
     -- Fill gaps and add edge blends
-
-    DumpTruck.addEdgeBlends(leftTile, rightTile, cz)
-    DumpTruck.fillGaps(leftTile, rightTile, cz)
+    DumpTruck.addEdgeBlends(leftTile, rightTile)
+    DumpTruck.fillGaps(leftTile, rightTile)
 end
 
 
@@ -645,81 +642,6 @@ function DumpTruck.getBackSquares2(fx, fy, cx, cy, cz, width, length)
     return squares
 end
 
--- function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
---     local currentDirection = DumpTruck.getDirection(fx, fy)
-    
---     -- Initialize start point if not set
---     if startX == nil or startY == nil then
---         startX = cx
---         startY = cy
---         hasUpdatedStartPoint = false
---         DumpTruck.debugPrint(string.format("Initializing start point to (%d, %d)", startX, startY))
---     end
-
---     -- Add new direction check to history
---     table.insert(directionHistory, {direction = currentDirection, x = cx, y = cy})
---     -- Keep only last N entries
---     while #directionHistory > DIRECTION_STABILITY_THRESHOLD do
---         table.remove(directionHistory, 1)
---     end
-
---     -- Debug log the current history
---     DumpTruck.debugPrint(string.format("Current direction history (%d entries):", #directionHistory))
---     for i, entry in ipairs(directionHistory) do
---         DumpTruck.debugPrint(string.format("  Entry %d: direction=%s, pos=(%d, %d)", 
---             i, entry.direction, entry.x, entry.y))
---     end
---     DumpTruck.debugPrint(string.format("Current stable direction: %s", stableDirection or "nil"))
-
---     -- Only check for direction change if we have enough history
---     if #directionHistory == DIRECTION_STABILITY_THRESHOLD then
---         -- Check if all N entries in history are the same direction
---         local allSameDirection = true
---         local firstDirection = directionHistory[1].direction
---         for i = 2, DIRECTION_STABILITY_THRESHOLD do
---             if directionHistory[i].direction ~= firstDirection then
---                 allSameDirection = false
---                 DumpTruck.debugPrint(string.format("Direction mismatch: entry %d is %s, first entry is %s", 
---                     i, directionHistory[i].direction, firstDirection))
---                 break
---             end
---         end
-
---         -- If all N entries are the same direction and different from stable direction, update
---         if allSameDirection and firstDirection ~= stableDirection then
---             DumpTruck.debugPrint(string.format("Found new stable direction: %s (was %s)", 
---                 firstDirection, stableDirection or "nil"))
---             stableDirection = firstDirection
---             -- Use the position from the first entry in history
---             startX = directionHistory[1].x
---             startY = directionHistory[1].y
---             hasUpdatedStartPoint = false
---             -- Clear the current line data when direction changes
---             DumpTruck.clearCurrentLine()
---             DumpTruck.debugPrint(string.format("New stable direction %s, updating start point to (%d, %d)", 
---                 stableDirection, startX, startY))
---         end
---     end
-
---     local halfWidth = width / 2
---     local endX = cx
---     local endY = cy
---     local points = DumpTruck.drawThickLineCircle(startX, startY, endX, endY, halfWidth)
-    
---     -- Convert points to squares
---     local backSquares = {}
---     for _, point in ipairs(points) do
---         local square = getCell():getGridSquare(point.x, point.y, cz)
---         if square then
---             DumpTruck.debugPrint(string.format("Placing tile at (%d, %d)", point.x, point.y))
---             table.insert(backSquares, square)
---         end
---     end
-
---     hasUpdatedStartPoint = true
---     return backSquares
--- end
-
 local oldX, oldY = 0, 0
 -- Modify tryPourGravelUnderTruck to handle transitions
 function DumpTruck.tryPourGravelUnderTruck(vehicle)
@@ -805,175 +727,6 @@ function DumpTruck.toggleGravelDumping(key)
 end
 -- Event bindings
 Events.OnKeyPressed.Add(DumpTruck.toggleGravelDumping)
-
--- function DumpTruck.drawLine(x0, y0, x1, y1)
---     -- Convert to integers for consistent behavior
---     x0, y0, x1, y1 = math.floor(x0), math.floor(y0), math.floor(x1), math.floor(y1)
-    
-    
---     -- Early validation
---     if x0 == x1 and y0 == y1 then
---         return {{x = x0, y = y0}}
---     end
-    
---     local points = {}
---     local dx = math.abs(x1 - x0)
---     local dy = math.abs(y1 - y0)
---     local sx = x0 < x1 and 1 or -1
---     local sy = y0 < y1 and 1 or -1
---     local err = dx - dy
-    
---     -- Calculate maximum possible points to prevent infinite loops
---     local maxPoints = dx + dy + 1
---     local iterations = 0
-    
---     while true do
---         iterations = iterations + 1
---         if iterations > maxPoints then
---             break
---         end
-        
---         table.insert(points, {x = x0, y = y0})
-        
---         if x0 == x1 and y0 == y1 then
---             break
---         end
-        
---         local e2 = 2 * err
---         if e2 > -dy then
---             err = err - dy
---             x0 = x0 + sx
---         end
---         if e2 < dx then
---             err = err + dx
---             y0 = y0 + sy
---         end
---     end
-    
---     return points
--- end
-
--- function DumpTruck.drawThickLineCircle(x0, y0, x1, y1, thickness)
---     -- Convert to integers for consistent behavior
---     x0, y0, x1, y1 = math.floor(x0), math.floor(y0), math.floor(x1), math.floor(y1)
---     thickness = math.floor(thickness)
-    
-    
---     -- Early validation
---     if thickness <= 0 then
---         return {{x = x0, y = y0}}
---     end
-    
---     if x0 == x1 and y0 == y1 then
---         return {{x = x0, y = y0}}
---     end
-    
---     -- First get the base line points
---     local baseLine = DumpTruck.drawLine(x0, y0, x1, y1)
---     if #baseLine == 0 then
---         return {{x = x0, y = y0}}
---     end
-    
---     local halfWidth = math.ceil(thickness / 2)
---     local thickPoints = {}
---     local seen = {}
-    
---     -- Calculate direction vector
---     local dx = x1 - x0
---     local dy = y1 - y0
---     local len = math.sqrt(dx * dx + dy * dy)
---     if len > 0 then
---         dx = dx / len
---         dy = dy / len
---     end
-    
---     -- Calculate perpendicular vector
---     local perpX = -dy
---     local perpY = dx
-    
---     -- For each point in the base line
---     for i, point in ipairs(baseLine) do
---         -- Add points perpendicular to the line direction
---         for w = -halfWidth, halfWidth do
---             local newX = point.x + math.floor(perpX * w)
---             local newY = point.y + math.floor(perpY * w)
---             local key = newX .. "," .. newY
-            
---             if not seen[key] then
---                 seen[key] = true
---                 table.insert(thickPoints, {x = newX, y = newY})
---             end
---         end
---     end
-    
---     return thickPoints
--- end
-
--- function DumpTruck.getDirection(fx, fy)
---     local angle = math.atan2(fx, -fy)  -- This will give us 0 degrees at North
---     local degrees = math.deg(angle)
---     if degrees < 0 then degrees = degrees + 360 end
-    
---     -- Convert to 8 directions with 0 degrees at North
---     local directions = {
---         [0] = "N",    -- 0 degrees (North)
---         [45] = "NE",  -- 45 degrees
---         [90] = "E",   -- 90 degrees
---         [135] = "SE", -- 135 degrees
---         [180] = "S",  -- 180 degrees
---         [225] = "SW", -- 225 degrees
---         [270] = "W",  -- 270 degrees
---         [315] = "NW"  -- 315 degrees
---     }
-    
---     -- Find the closest direction
---     local closest = 0
---     local minDiff = 360
---     for dir, _ in pairs(directions) do
---         local diff = math.abs(degrees - dir)
---         if diff < minDiff then
---             minDiff = diff
---             closest = dir
---         end
---     end
-    
---     return directions[closest]
--- end
-
--- -- Function to restore original floor sprites from current line
--- function DumpTruck.restoreCurrentLine()
---     for _, entry in ipairs(currentLine.squares) do
---         local sq = entry.square
---         if sq then
---             -- Remove the current floor (gravel)
---             local currentFloor = sq:getFloor()
---             if currentFloor then
---                 sq:RemoveTileObject(currentFloor)
---             end
-            
---             -- Restore original floor if it existed
---             if entry.originalSprite then
---                 local newFloor = sq:addFloor(entry.originalSprite)
---                 if newFloor then
---                     -- Copy any original modData if needed
---                     local modData = newFloor:getModData()
---                     modData.pourable = true
---                     modData.removable = true
---                 end
---             end
-            
---             sq:RecalcProperties()
---             sq:DirtySlice()
---             if isClient() then
---                 sq:transmitFloor()
---             end
---         end
---     end
-    
---     -- Clear the current line after restoring
---     DumpTruck.clearCurrentLine()
--- end
-
 
 
 
