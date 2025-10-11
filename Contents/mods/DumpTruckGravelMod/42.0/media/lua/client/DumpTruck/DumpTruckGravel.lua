@@ -130,45 +130,42 @@ function DumpTruck.removeOppositeEdgeBlends(square)
         if check and check.square then
             DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Checking %s tile at (%d,%d)", 
                 check.dir, check.square:getX(), check.square:getY()))
-            local objects = check.square:getObjects()
-            for i = 0, objects:size() - 1 do
-                local obj = objects:get(i)
-                if obj then
-                    local spriteName = obj:getSpriteName()
-
-                    if spriteName then
-                        -- Extract the base number from the sprite name
-                        if spriteName:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
-                            local baseNumber = tonumber(spriteName:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
-                            if baseNumber then
-                                local baseRow = math.floor(baseNumber / 16)
-                                local rowStartTile = baseRow * 16
-                                
-                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Found blend sprite %s (baseNumber=%d, rowStartTile=%d)", 
-                                    spriteName, baseNumber, rowStartTile))
-                                
-                                -- Check if the sprite matches any of the opposite sprites we want to remove
-                                local shouldRemove = false
-                                for _, oppositeOffset in ipairs(check.oppositeSprites) do
-                                    local oppositeSprite = rowStartTile + oppositeOffset
-                                    DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Comparing baseNumber %d with oppositeSprite %d (rowStartTile %d + offset %d)", 
-                                        baseNumber, oppositeSprite, rowStartTile, oppositeOffset))
-                                    if baseNumber == oppositeSprite then
-                                        shouldRemove = true
-                                        DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", spriteName))
-                                        break
-                                    end
-                                end
-                                
-                                if shouldRemove then
-                                    check.square:RemoveTileObject(obj)
-                                    check.square:RecalcProperties()
-                                    check.square:DirtySlice()
-                                    if isClient() then
-                                        check.square:transmitFloor()
-                                    end
-                                    break
-                                end
+            
+            -- Check if this square has gap filler metadata
+            local floor = check.square:getFloor()
+            if floor and floor:getModData().isGapFiller then
+                local gapFillerObject = floor:getModData().gapFillerObject
+                local gapFillerSprite = floor:getModData().gapFillerSprite
+                if gapFillerObject and gapFillerSprite then
+                    -- Extract the base number from the stored sprite name
+                    local baseNumber = tonumber(gapFillerSprite:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
+                    if baseNumber then
+                        local baseRow = math.floor(baseNumber / 16)
+                        local rowStartTile = baseRow * 16
+                        
+                        DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Found blend sprite %s (baseNumber=%d, rowStartTile=%d)", 
+                            gapFillerSprite, baseNumber, rowStartTile))
+                        
+                        -- Check if the sprite matches any of the opposite sprites we want to remove
+                        local shouldRemove = false
+                        for _, oppositeOffset in ipairs(check.oppositeSprites) do
+                            local oppositeSprite = rowStartTile + oppositeOffset
+                            DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Comparing baseNumber %d with oppositeSprite %d (rowStartTile %d + offset %d)", 
+                                baseNumber, oppositeSprite, rowStartTile, oppositeOffset))
+                            if baseNumber == oppositeSprite then
+                                shouldRemove = true
+                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", gapFillerSprite))
+                                break
+                            end
+                        end
+                        
+                        if shouldRemove then
+                            -- Direct removal using stored object reference
+                            check.square:RemoveTileObject(gapFillerObject)
+                            check.square:RecalcProperties()
+                            check.square:DirtySlice()
+                            if isClient() then
+                                check.square:transmitFloor()
                             end
                         end
                     end
@@ -247,16 +244,18 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
 
 
 
-    -- Set floor metadata
+    -- Add the overlay
+    local overlay = IsoObject.new(getCell(), targetSquare, sprite)
+    targetSquare:AddTileObject(overlay)
+
+    -- Set floor metadata with direct object reference
     local floor = targetSquare:getFloor()
     if floor then
             floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
             floor:getModData().isGapFiller = true
+            floor:getModData().gapFillerSprite = sprite
+            floor:getModData().gapFillerObject = overlay  -- Direct reference to the object
     end
-
-    -- Add the overlay
-    local overlay = IsoObject.new(getCell(), targetSquare, sprite)
-    targetSquare:AddTileObject(overlay)
     targetSquare:RecalcProperties()
     targetSquare:DirtySlice()
 
@@ -443,7 +442,7 @@ function DumpTruck.checkForCornerPattern(gravelTile)
                     -- Check if our gravel directions match this mapping (order doesn't matter)
                     if (gravelDirections[1] == directions[1] and gravelDirections[2] == directions[2]) or
                        (gravelDirections[1] == directions[2] and gravelDirections[2] == directions[1]) then
-                        local blendTile = DumpTruckConstants.GRAVEL_BLEND_TILES[mapping.blend_direction]
+                        local blendTile = DumpTruckConstants.GAP_FILLER_TILES[mapping.blend_direction]
                         if not blendTile then
                             DumpTruck.debugPrint(string.format("ERROR: No blend tile found for direction %s", mapping.blend_direction))
                             return nil, nil

@@ -62,7 +62,7 @@ function ISShovelGround:RemoveBlendTile(square)
                 local spriteName = obj:getSprite():getName()
 
                 -- Check if the sprite matches one of the blend tile sprites
-                for _, spriteToRemove in pairs(DumpTruckConstants.GRAVEL_BLEND_TILES) do
+                for _, spriteToRemove in pairs(DumpTruckConstants.GAP_FILLER_TILES) do
                     if spriteName == spriteToRemove then
                         square:RemoveTileObject(obj)
                         break
