@@ -67,7 +67,12 @@ function DumpTruck.isSquareValidForGravel(sq)
         return false
     end
     if DumpTruck.isPouredGravel(sq) then
-        return false
+        -- Allow gap fillers to be upgraded to full gravel tiles
+        local floor = sq:getFloor()
+        if floor and floor:getModData().isGapFiller then
+            return true  -- Allow gap filler upgrade
+        end
+        return false  -- Reject full gravel tiles
     end
     return true
 end
@@ -498,9 +503,28 @@ end
 -- GRAVEL
 
 function DumpTruck.placeGravelFloorOnTile(sprite, sq)
+    -- Check if this is upgrading a gap filler to full gravel
+    local originalFloor = sq:getFloor()
+    local isGapFillerUpgrade = false
+    if originalFloor and originalFloor:getModData().isGapFiller then
+        isGapFillerUpgrade = true
+        
+        -- Clean up gap filler data before upgrading
+        local gapFillerObject = originalFloor:getModData().gapFillerObject
+        if gapFillerObject then
+            sq:RemoveTileObject(gapFillerObject)
+            DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Removed gap filler object at (%d,%d)", 
+                sq:getX(), sq:getY()))
+        end
+        
+        -- Clear gap filler metadata
+        originalFloor:getModData().isGapFiller = nil
+        originalFloor:getModData().gapFillerObject = nil
+        originalFloor:getModData().gapFillerSprite = nil
+    end
+    
     -- Store the original floor sprite before replacing it
     local originalSprite = nil
-    local originalFloor = sq:getFloor()
     if originalFloor then
         originalSprite = originalFloor:getSprite():getName()
     end
@@ -525,8 +549,13 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     end
 
     -- Log successful placement
-    DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Successfully placed gravel floor at (%d,%d)", 
-        sq:getX(), sq:getY()))
+    if isGapFillerUpgrade then
+        DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Successfully upgraded gap filler to full gravel at (%d,%d)", 
+            sq:getX(), sq:getY()))
+    else
+        DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Successfully placed gravel floor at (%d,%d)", 
+            sq:getX(), sq:getY()))
+    end
 end
 
 function DumpTruck.consumeGravelFromTruckBed(vehicle)
