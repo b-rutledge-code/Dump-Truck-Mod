@@ -104,7 +104,7 @@ function DumpTruck.getBlendNaturalSprite(sq)
     local floor = sq:getFloor()
     if floor then
         local spriteName = floor:getSprite():getName()
-        if spriteName and spriteName:find("^blends_natural_01_") then
+        if spriteName and spriteName:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
             return spriteName
         end
     end
@@ -138,8 +138,8 @@ function DumpTruck.removeOppositeEdgeBlends(square)
 
                     if spriteName then
                         -- Extract the base number from the sprite name
-                        if spriteName:find("^blends_natural_01_") then
-                            local baseNumber = tonumber(spriteName:match("blends_natural_01_(%d+)"))
+                        if spriteName:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
+                            local baseNumber = tonumber(spriteName:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
                             if baseNumber then
                                 local baseRow = math.floor(baseNumber / 16)
                                 local rowStartTile = baseRow * 16
@@ -178,13 +178,25 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     end
 end
 
+--[[
+    getBlendOverlayFromOffset: Generates the appropriate blend tile sprite based on direction and terrain
+    Input:
+        direction: string - The direction to blend ("NORTH", "SOUTH", "EAST", "WEST")
+        terrainBlock: string - The base terrain sprite name
+    Output: string - The blend tile sprite name, or nil if no blend is available
+    
+    Summary: This function takes a direction and terrain sprite, then calculates the appropriate
+    blend tile sprite to use for smoothing the transition between gravel and the terrain.
+    It uses offset calculations based on the direction to determine which blend variant
+    should be applied to create a natural-looking transition.
+]]
 function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
-    if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^blends_natural_01_") then
+    if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
         return nil
     end
     
     -- Extract the base number from the sprite name
-    local baseNumber = tonumber(terrainBlock:match("blends_natural_01_(%d+)"))
+    local baseNumber = tonumber(terrainBlock:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
     if not baseNumber then
         return nil
     end
@@ -201,35 +213,34 @@ function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
     -- Calculate final overlay tile ID using the base number
     local overlayTile = rowStartTile + offset
     
-    return "blends_natural_01_" .. overlayTile
+    return DumpTruckConstants.GAP_FILLER_SPRITES .. "_" .. overlayTile
 end
 
 function DumpTruck.placeTileOverlay(targetSquare, sprite)
     if not targetSquare then
         DumpTruck.debugPrint(string.format("placeTileOverlay: Target square is nil at (%d,%d)", 
             targetSquare:getX(), targetSquare:getY()))
-        return
+        return false
     end
     
     -- Only check for valid gravel placement if this is not a blend tile
-    if not sprite:find("blends_natural_01") then
-        if not DumpTruck.isSquareValidForGravel(targetSquare) then
-            DumpTruck.debugPrint(string.format("placeTileOverlay: Square not valid for gravel at (%d,%d)", 
-                targetSquare:getX(), targetSquare:getY()))
-            return
-        end
+    -- I DONT THINK THIS IS NEEDED but leaving it in for now
+    if not sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then   
+        DumpTruck.debugPrint(string.format("placeTileOverlay - not a gap filler sprite"))
+        return false
     end
 
-    -- Check for existing overlay
-    local existingObjects = targetSquare:getObjects()
-    for i = 0, existingObjects:size() - 1 do
-        local obj = existingObjects:get(i)
-        if obj:getSpriteName() == sprite then
-            DumpTruck.debugPrint(string.format("placeTileOverlay: Tile already exists at (%d,%d)", 
-                targetSquare:getX(), targetSquare:getY()))
-            return
-        end
-    end
+    -- Check for existing overlay 
+    -- I DONT THINK THIS IS NEEDED but leaving it in for now
+    -- local existingObjects = targetSquare:getObjects()
+    -- for i = 0, existingObjects:size() - 1 do
+    --     local obj = existingObjects:get(i)
+    --     if obj:getSpriteName() == sprite then
+    --         DumpTruck.debugPrint(string.format("placeTileOverlay: Tile already exists at (%d,%d)", 
+    --             targetSquare:getX(), targetSquare:getY()))
+    --         return false
+    --     end
+    -- end
 
     DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
@@ -239,12 +250,8 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     -- Set floor metadata
     local floor = targetSquare:getFloor()
     if floor then
-        if sprite:find("blends_natural_01") then
-            floor:getModData().isEdgeBlend = true
-        else
             floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
             floor:getModData().isGapFiller = true
-        end
     end
 
     -- Add the overlay
@@ -258,6 +265,8 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     -- Log successful placement
     DumpTruck.debugPrint(string.format("placeTileOverlay: Successfully placed tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
+    
+    return true
 end
 
 

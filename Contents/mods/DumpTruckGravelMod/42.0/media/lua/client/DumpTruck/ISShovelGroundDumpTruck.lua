@@ -5,12 +5,12 @@ local originalPerform = ISShovelGround.perform
 -- Helper function stays global since it's a utility
 function isEdgeBlendTile(spriteName)
     -- Check if it's a blends_natural tile
-    if not spriteName or type(spriteName) ~= "string" or not spriteName:find("^blends_natural_01_") then
+    if not spriteName or type(spriteName) ~= "string" or not spriteName:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
         return false
     end
     
     -- Extract the sprite number
-    local spriteNumber = tonumber(spriteName:match("blends_natural_01_(%d+)"))
+    local spriteNumber = tonumber(spriteName:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
     if not spriteNumber then return false end
     
     -- Get the relative offset within the row (0-15)
