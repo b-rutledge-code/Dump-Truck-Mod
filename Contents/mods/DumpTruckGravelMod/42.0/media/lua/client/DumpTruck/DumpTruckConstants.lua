@@ -48,8 +48,9 @@ DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING = {
 
 DumpTruckConstants.GRAVEL_SPRITE = "blends_street_01_55"
 DumpTruckConstants.GAP_FILLER_SPRITES = "blends_street_01"
+DumpTruckConstants.EDGE_BLEND_SPRITES = "blends_natural_01"
 
-DumpTruckConstants.DIRECTION_OFFSETS = {
+DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS = {
     NORTH = {8, 12},   -- Top edge + variation
     WEST = {9, 13},    -- Left edge + variation
     EAST = {10, 14},   -- Right edge + variation

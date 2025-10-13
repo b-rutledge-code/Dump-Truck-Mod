@@ -42,7 +42,7 @@ end
 function DumpTruck.isPouredGravel(tile)
     if not tile then return false end
     local floor = tile:getFloor()
-    return floor and floor:getModData().pouredFloor == DumpTruckConstants.POURED_FLOOR_TYPE
+    return floor and floor:getModData().isPouredFloor
 end
 
 -- Check if a tile is a full gravel floor (not a blend)
@@ -51,7 +51,7 @@ function DumpTruck.isFullGravelFloor(tile)
     local floor = tile:getFloor()
     return floor and 
            floor:getSprite():getName() == DumpTruckConstants.GRAVEL_SPRITE and
-           floor:getModData().pouredFloor == DumpTruckConstants.POURED_FLOOR_TYPE
+           floor:getModData().isPouredFloor
 end
 
 -- Check if square is valid for gravel
@@ -105,14 +105,29 @@ end
 
 
 function DumpTruck.getBlendNaturalSprite(sq)
-    if not sq then return nil end
-    local floor = sq:getFloor()
-    if floor then
-        local spriteName = floor:getSprite():getName()
-        if spriteName and spriteName:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
-            return spriteName
-        end
+    if not sq then 
+        DumpTruck.debugPrint("getBlendNaturalSprite: Square is nil")
+        return nil 
     end
+    
+    local floor = sq:getFloor()
+    if not floor then
+        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: No floor at (%d,%d)", sq:getX(), sq:getY()))
+        return nil
+    end
+    
+    local spriteName = floor:getSprite():getName()
+    DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Found sprite '%s' at (%d,%d)", 
+        spriteName or "nil", sq:getX(), sq:getY()))
+    
+    if spriteName and spriteName:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
+        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Valid edge blend sprite '%s'", spriteName))
+        return spriteName
+    else
+        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Sprite '%s' does not match pattern '%s_'", 
+            spriteName or "nil", DumpTruckConstants.EDGE_BLEND_SPRITES))
+    end
+    
     return nil
 end
 
@@ -125,10 +140,10 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     
     -- Check each direction
     local adjacentChecks = {
-        {square = square:getN(), oppositeSprites = DumpTruckConstants.DIRECTION_OFFSETS.SOUTH, dir = "North"},
-        {square = square:getS(), oppositeSprites = DumpTruckConstants.DIRECTION_OFFSETS.NORTH, dir = "South"},
-        {square = square:getE(), oppositeSprites = DumpTruckConstants.DIRECTION_OFFSETS.WEST, dir = "East"},
-        {square = square:getW(), oppositeSprites = DumpTruckConstants.DIRECTION_OFFSETS.EAST, dir = "West"}
+        {square = square:getN(), oppositeSprites = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.SOUTH, dir = "North"},
+        {square = square:getS(), oppositeSprites = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.NORTH, dir = "South"},
+        {square = square:getE(), oppositeSprites = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.WEST, dir = "East"},
+        {square = square:getW(), oppositeSprites = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.EAST, dir = "West"}
     }
     
     for _, check in ipairs(adjacentChecks) do
@@ -138,18 +153,19 @@ function DumpTruck.removeOppositeEdgeBlends(square)
             
             -- Check if this square has gap filler metadata
             local floor = check.square:getFloor()
-            if floor and floor:getModData().isGapFiller then
-                local gapFillerObject = floor:getModData().gapFillerObject
-                local gapFillerSprite = floor:getModData().gapFillerSprite
-                if gapFillerObject and gapFillerSprite then
+
+            if floor and floor:getModData().isEdgeBlend then
+                local edgeBlendObject = floor:getModData().edgeBlendObject
+                local edgeBlendSprite = floor:getModData().edgeBlendSprite
+                if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
-                    local baseNumber = tonumber(gapFillerSprite:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
+                    local baseNumber = tonumber(edgeBlendSprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
                     if baseNumber then
                         local baseRow = math.floor(baseNumber / 16)
                         local rowStartTile = baseRow * 16
                         
                         DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Found blend sprite %s (baseNumber=%d, rowStartTile=%d)", 
-                            gapFillerSprite, baseNumber, rowStartTile))
+                        edgeBlendSprite, baseNumber, rowStartTile))
                         
                         -- Check if the sprite matches any of the opposite sprites we want to remove
                         local shouldRemove = false
@@ -159,14 +175,14 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                                 baseNumber, oppositeSprite, rowStartTile, oppositeOffset))
                             if baseNumber == oppositeSprite then
                                 shouldRemove = true
-                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", gapFillerSprite))
+                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", edgeBlendSprite))
                                 break
                             end
                         end
                         
                         if shouldRemove then
                             -- Direct removal using stored object reference
-                            check.square:RemoveTileObject(gapFillerObject)
+                            check.square:RemoveTileObject(edgeBlendObject)
                             check.square:RecalcProperties()
                             check.square:DirtySlice()
                             if isClient() then
@@ -181,33 +197,44 @@ function DumpTruck.removeOppositeEdgeBlends(square)
 end
 
 --[[
-    getBlendOverlayFromOffset: Generates the appropriate blend tile sprite based on direction and terrain
+    getEdgeBlendSprite: Generates the appropriate edge blend sprite based on direction and terrain
     Input:
         direction: string - The direction to blend ("NORTH", "SOUTH", "EAST", "WEST")
         terrainBlock: string - The base terrain sprite name
-    Output: string - The blend tile sprite name, or nil if no blend is available
+    Output: string - The edge blend sprite name, or nil if no edge blend is available
     
     Summary: This function takes a direction and terrain sprite, then calculates the appropriate
-    blend tile sprite to use for smoothing the transition between gravel and the terrain.
-    It uses offset calculations based on the direction to determine which blend variant
-    should be applied to create a natural-looking transition.
+    edge blend sprite to use for blending gravel edges with terrain. It uses offset calculations 
+    based on the direction to determine which edge blend variant should be applied.
 ]]
-function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
-    if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^" .. DumpTruckConstants.GAP_FILLER_SPRITES .. "_") then
+function DumpTruck.getEdgeBlendSprite(direction, terrainBlock)
+    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Called with direction='%s', terrainBlock='%s'", 
+        direction or "nil", terrainBlock or "nil"))
+    
+    if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
+        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Invalid terrainBlock '%s' - not matching pattern '%s_'", 
+            terrainBlock or "nil", DumpTruckConstants.EDGE_BLEND_SPRITES))
         return nil
     end
     
     -- Extract the base number from the sprite name
-    local baseNumber = tonumber(terrainBlock:match(DumpTruckConstants.GAP_FILLER_SPRITES .. "_(%d+)"))
+    local baseNumber = tonumber(terrainBlock:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
     if not baseNumber then
+        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Could not extract base number from '%s'", terrainBlock))
         return nil
     end
     
     local baseRow = math.floor(baseNumber / 16)
     local rowStartTile = baseRow * 16
     
-    local offsets = DumpTruckConstants.DIRECTION_OFFSETS[direction]
-    if not offsets then return nil end
+    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: baseNumber=%d, baseRow=%d, rowStartTile=%d", 
+        baseNumber, baseRow, rowStartTile))
+    
+    local offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS[direction]
+    if not offsets then 
+        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: No offsets found for direction '%s'", direction))
+        return nil 
+    end
     
     -- Randomly choose between the two variations
     local offset = offsets[ZombRand(1, 3)] -- ZombRand(1,3) returns either 1 or 2
@@ -215,7 +242,10 @@ function DumpTruck.getBlendOverlayFromOffset(direction, terrainBlock)
     -- Calculate final overlay tile ID using the base number
     local overlayTile = rowStartTile + offset
     
-    return DumpTruckConstants.GAP_FILLER_SPRITES .. "_" .. overlayTile
+    local result = DumpTruckConstants.EDGE_BLEND_SPRITES .. "_" .. overlayTile
+    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Generated sprite '%s' (offset=%d)", result, offset))
+    
+    return result
 end
 
 function DumpTruck.placeTileOverlay(targetSquare, sprite)
@@ -227,10 +257,10 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     
     -- Only check for valid gravel placement if this is not a blend tile
     -- I DONT THINK THIS IS NEEDED but leaving it in for now
-    if not sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then   
-        DumpTruck.debugPrint(string.format("placeTileOverlay - not a gap filler sprite"))
-        return false
-    end
+    -- if not sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then   
+    --     DumpTruck.debugPrint(string.format("placeTileOverlay - not a gap filler sprite"))
+    --     return false
+    -- end
 
     -- Check for existing overlay 
     -- I DONT THINK THIS IS NEEDED but leaving it in for now
@@ -247,19 +277,29 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
 
-
-
     -- Add the overlay
     local overlay = IsoObject.new(getCell(), targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
 
-    -- Set floor metadata with direct object reference
-    local floor = targetSquare:getFloor()
-    if floor then
-            floor:getModData().pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+    -- Set floor metadata with direct object reference (only for gap filler sprites)
+    if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
+        local floor = targetSquare:getFloor()
+        if floor then
+            floor:getModData().isPouredFloor = true
             floor:getModData().isGapFiller = true
             floor:getModData().gapFillerSprite = sprite
             floor:getModData().gapFillerObject = overlay  -- Direct reference to the object
+        end
+    elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
+        local floor = targetSquare:getFloor()
+        if floor then
+            floor:getModData().isEdgeBlend = true
+            floor:getModData().edgeBlendSprite = sprite
+            floor:getModData().edgeBlendObject = overlay
+        end
+    else
+        DumpTruck.debugPrint(string.format("placeTileOverlay: Invalid sprite: %s", sprite))
+        return false    
     end
     targetSquare:RecalcProperties()
     targetSquare:DirtySlice()
@@ -358,7 +398,7 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile)
             DumpTruck.debugPrint(string.format("addEdgeBlends: Found terrain sprite: %s", terrain or "none"))
             
             if terrain then
-                local blend = DumpTruck.getBlendOverlayFromOffset(sideDir, terrain)
+                local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
                 DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
                 
                 if blend then
@@ -522,22 +562,11 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
         originalFloor:getModData().gapFillerObject = nil
         originalFloor:getModData().gapFillerSprite = nil
     end
-    
-    -- Store the original floor sprite before replacing it
-    local originalSprite = nil
-    if originalFloor then
-        originalSprite = originalFloor:getSprite():getName()
-    end
-    
-    -- Add to our current line tracking before placing new floor
-    DumpTruck.addToCurrentLine(sq, originalSprite)
-    
+
     local newFloor = sq:addFloor(sprite)
     
     local modData = newFloor:getModData()
-    modData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
-    modData.pourable = true
-    modData.removable = true
+    modData.isPouredFloor = true
     
     -- Disable erosion on this square (single player implementation)
     sq:disableErosion()
