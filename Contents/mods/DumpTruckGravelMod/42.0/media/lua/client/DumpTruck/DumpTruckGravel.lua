@@ -197,6 +197,150 @@ function DumpTruck.removeOppositeEdgeBlends(square)
 end
 
 --[[
+    removeEdgeBlendsBetweenPourableSquares: Removes edge blends between pourable squares
+    Input:
+        pourableSquare: IsoGridSquare - The pourable square to check around
+    Output: None (modifies tiles directly)
+    
+    Summary: This function checks all adjacent squares to the given pourable square.
+    If any adjacent square is also pourable (gravel), it removes any edge blends
+    that exist between them on either side of the connection.
+]]
+function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
+    if not pourableSquare or not DumpTruck.isPouredGravel(pourableSquare) then
+        DumpTruck.debugPrint("removeEdgeBlendsBetweenPourableSquares: Invalid or non-pourable square input")
+        return
+    end
+    
+    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Checking pourable square (%d,%d)", 
+        pourableSquare:getX(), pourableSquare:getY()))
+    
+    -- Check all four adjacent directions
+    local adjacentChecks = {
+        {square = pourableSquare:getN(), dir = "NORTH"},
+        {square = pourableSquare:getS(), dir = "SOUTH"},
+        {square = pourableSquare:getE(), dir = "EAST"},
+        {square = pourableSquare:getW(), dir = "WEST"}
+    }
+    
+    for _, check in ipairs(adjacentChecks) do
+        if check.square and DumpTruck.isPouredGravel(check.square) then
+            DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Found adjacent pourable square at (%d,%d) in direction %s", 
+                check.square:getX(), check.square:getY(), check.dir))
+            
+            -- Check both squares for edge blends that point toward each other
+            -- We need to check for edge blends on both sides of the connection
+            
+            -- Check the original square for edge blends pointing toward the adjacent square
+            local originalFloor = pourableSquare:getFloor()
+            if originalFloor and originalFloor:getModData().isEdgeBlend then
+                local edgeBlendObject = originalFloor:getModData().edgeBlendObject
+                local edgeBlendSprite = originalFloor:getModData().edgeBlendSprite
+                
+                if edgeBlendObject and edgeBlendSprite then
+                    -- Extract the base number from the stored sprite name
+                    local baseNumber = tonumber(edgeBlendSprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
+                    if baseNumber then
+                        local baseRow = math.floor(baseNumber / 16)
+                        local rowStartTile = baseRow * 16
+                        
+                        -- Check if this edge blend points toward the adjacent pourable square
+                        local directionOffsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS[check.dir]
+                        if directionOffsets then
+                            local shouldRemove = false
+                            for _, directionOffset in ipairs(directionOffsets) do
+                                local targetSprite = rowStartTile + directionOffset
+                                if baseNumber == targetSprite then
+                                    shouldRemove = true
+                                    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Removing edge blend %s from original square (%d,%d)", 
+                                        edgeBlendSprite, pourableSquare:getX(), pourableSquare:getY()))
+                                    break
+                                end
+                            end
+                            
+                            if shouldRemove then
+                                pourableSquare:RemoveTileObject(edgeBlendObject)
+                                
+                                -- Clear the metadata
+                                local floor = pourableSquare:getFloor()
+                                if floor then
+                                    floor:getModData().isEdgeBlend = nil
+                                    floor:getModData().edgeBlendSprite = nil
+                                    floor:getModData().edgeBlendObject = nil
+                                end
+                                
+                                pourableSquare:RecalcProperties()
+                                pourableSquare:DirtySlice()
+                                if isClient() then
+                                    pourableSquare:transmitFloor()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Check the adjacent square for edge blends pointing toward the original square
+            local adjacentFloor = check.square:getFloor()
+            if adjacentFloor and adjacentFloor:getModData().isEdgeBlend then
+                local edgeBlendObject = adjacentFloor:getModData().edgeBlendObject
+                local edgeBlendSprite = adjacentFloor:getModData().edgeBlendSprite
+                
+                if edgeBlendObject and edgeBlendSprite then
+                    -- Extract the base number from the stored sprite name
+                    local baseNumber = tonumber(edgeBlendSprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
+                    if baseNumber then
+                        local baseRow = math.floor(baseNumber / 16)
+                        local rowStartTile = baseRow * 16
+                        
+                        -- Get the opposite direction for checking
+                        local oppositeDir = nil
+                        if check.dir == "NORTH" then oppositeDir = "SOUTH"
+                        elseif check.dir == "SOUTH" then oppositeDir = "NORTH"
+                        elseif check.dir == "EAST" then oppositeDir = "WEST"
+                        elseif check.dir == "WEST" then oppositeDir = "EAST"
+                        end
+                        
+                        -- Check if this edge blend points toward the original pourable square
+                        local oppositeOffsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS[oppositeDir]
+                        if oppositeOffsets then
+                            local shouldRemove = false
+                            for _, oppositeOffset in ipairs(oppositeOffsets) do
+                                local oppositeSprite = rowStartTile + oppositeOffset
+                                if baseNumber == oppositeSprite then
+                                    shouldRemove = true
+                                    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Removing edge blend %s from adjacent square (%d,%d)", 
+                                        edgeBlendSprite, check.square:getX(), check.square:getY()))
+                                    break
+                                end
+                            end
+                            
+                            if shouldRemove then
+                                check.square:RemoveTileObject(edgeBlendObject)
+                                
+                                -- Clear the metadata
+                                local floor = check.square:getFloor()
+                                if floor then
+                                    floor:getModData().isEdgeBlend = nil
+                                    floor:getModData().edgeBlendSprite = nil
+                                    floor:getModData().edgeBlendObject = nil
+                                end
+                                
+                                check.square:RecalcProperties()
+                                check.square:DirtySlice()
+                                if isClient() then
+                                    check.square:transmitFloor()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+--[[
     getEdgeBlendSprite: Generates the appropriate edge blend sprite based on direction and terrain
     Input:
         direction: string - The direction to blend ("NORTH", "SOUTH", "EAST", "WEST")
@@ -394,15 +538,23 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile)
             sideDir))
         
         if sideTile then
-            local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
-            DumpTruck.debugPrint(string.format("addEdgeBlends: Found terrain sprite: %s", terrain or "none"))
-            
-            if terrain then
-                local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
-                DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
+            -- Check if the adjacent side tile already has poured gravel
+            if DumpTruck.isPouredGravel(sideTile) then
+                DumpTruck.debugPrint(string.format("addEdgeBlends: Skipping - side tile has gravel at (%d,%d)", 
+                    sideTile:getX(), sideTile:getY()))
+            else
+                local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
+                DumpTruck.debugPrint(string.format("addEdgeBlends: Found terrain sprite: %s", terrain or "none"))
                 
-                if blend then
-                    DumpTruck.placeTileOverlay(tile, blend)
+                if terrain then
+                    local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
+                    DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
+                    
+                    if blend then
+                        DumpTruck.debugPrint(string.format("addEdgeBlends: Placing edge blend - side tile is clear at (%d,%d)", 
+                            sideTile:getX(), sideTile:getY()))
+                        DumpTruck.placeTileOverlay(tile, blend)
+                    end
                 end
             end
         else
@@ -535,8 +687,14 @@ function DumpTruck.smoothRoad(currentSquares, fx, fy)
     local rightTile = currentSquares[#currentSquares]
     
     -- Fill gaps and add edge blends
-    DumpTruck.addEdgeBlends(leftTile, rightTile)
     DumpTruck.fillGaps(leftTile, rightTile)
+    
+    DumpTruck.addEdgeBlends(leftTile, rightTile)
+    
+    -- Clean up edge blends between pourable squares (after addEdgeBlends)
+    for _, square in ipairs(currentSquares) do
+        DumpTruck.removeEdgeBlendsBetweenPourableSquares(square)
+    end
 end
 
 
@@ -570,6 +728,10 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     
     -- Disable erosion on this square (single player implementation)
     sq:disableErosion()
+    
+    
+    DumpTruck.removeOppositeEdgeBlends(sq)
+
     
     sq:RecalcProperties()
     sq:DirtySlice()
