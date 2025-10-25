@@ -36,6 +36,34 @@ function DumpTruck.debugPrint(...)
     end
 end
 
+-- Initialize floor metadata with unified system
+function DumpTruck.initializeFloorMetadata(floor, tileType, sprite, object)
+    if not floor then return end
+    
+    local modData = floor:getModData()
+    modData.tileType = tileType
+    modData.sprite = sprite
+    modData.object = object
+    
+    -- Only set isPouredFloor for actual poured floors (gravel and gap fillers)
+    if tileType == DumpTruckConstants.TILE_TYPES.GRAVEL or tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        modData.isPouredFloor = true
+    else
+        modData.isPouredFloor = false
+    end
+end
+
+-- Reset floor metadata to clean state
+function DumpTruck.resetFloorMetadata(floor)
+    if not floor then return end
+    
+    local modData = floor:getModData()
+    modData.tileType = nil
+    modData.sprite = nil
+    modData.object = nil
+    modData.isPouredFloor = false
+end
+
 -- HELPERS
 
 -- Check if a tile is poured gravel
