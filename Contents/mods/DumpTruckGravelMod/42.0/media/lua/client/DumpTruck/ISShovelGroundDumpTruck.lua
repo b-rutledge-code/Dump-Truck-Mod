@@ -54,7 +54,7 @@ function ISShovelGround:RemoveBlendTile(square)
     end
 
     local floor = square:getFloor()
-    if floor and floor:getModData().isEdgeBlend then
+    if floor and floor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
         local objects = square:getObjects()
         for i = 0, objects:size() - 1 do
             local obj = objects:get(i)
@@ -79,7 +79,7 @@ function ISShovelGround:removeEdgeBlends(isoObject)
     if not square then return end
     
     local floor = square:getFloor()
-    if floor and floor:getModData().isEdgeBlend then
+    if floor and floor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
         local objects = square:getObjects()
         for i = 0, objects:size() - 1 do
             local obj = objects:get(i)

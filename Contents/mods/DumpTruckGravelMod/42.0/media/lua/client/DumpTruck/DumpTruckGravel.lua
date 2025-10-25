@@ -10,25 +10,6 @@ local stableDirection = nil  -- Our current stable direction
 local startX, startY = nil, nil  -- Initialize to nil so we know it's not set yet
 local hasUpdatedStartPoint = false
 
--- Data structure to track the current line of gravel
-local currentLine = {
-    squares = {}  -- Will store {square, originalSprite} entries
-}
-
--- Function to clear the current line data
-function DumpTruck.clearCurrentLine()
-    currentLine.squares = {}
-end
-
--- Function to add a square to the current line
-function DumpTruck.addToCurrentLine(square, originalSprite)
-    table.insert(currentLine.squares, {
-        square = square,
-        originalSprite = originalSprite
-    })
-
-end
-
 -- Utility function for debug printing
 function DumpTruck.debugPrint(...)
     if DumpTruck.debugMode then
@@ -36,8 +17,8 @@ function DumpTruck.debugPrint(...)
     end
 end
 
--- Initialize floor metadata with unified system
-function DumpTruck.initializeFloorMetadata(floor, tileType, sprite, object)
+-- Initialize overlay metadata (gap fillers and edge blends only)
+function DumpTruck.initializeOverlayMetadata(floor, tileType, sprite, object)
     if not floor then return end
     
     local modData = floor:getModData()
@@ -45,16 +26,16 @@ function DumpTruck.initializeFloorMetadata(floor, tileType, sprite, object)
     modData.sprite = sprite
     modData.object = object
     
-    -- Only set isPouredFloor for actual poured floors (gravel and gap fillers)
-    if tileType == DumpTruckConstants.TILE_TYPES.GRAVEL or tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+    -- Only set isPouredFloor for gap fillers (not gravel - we check sprite for gravel)
+    if tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         modData.isPouredFloor = true
     else
         modData.isPouredFloor = false
     end
 end
 
--- Reset floor metadata to clean state
-function DumpTruck.resetFloorMetadata(floor)
+-- Reset overlay metadata to clean state
+function DumpTruck.resetOverlayMetadata(floor)
     if not floor then return end
     
     local modData = floor:getModData()
@@ -70,16 +51,35 @@ end
 function DumpTruck.isPouredGravel(tile)
     if not tile then return false end
     local floor = tile:getFloor()
-    return floor and floor:getModData().isPouredFloor
+    if not floor then return false end
+    
+    -- Check if it's a full gravel floor
+    local isGravel = DumpTruck.isFullGravelFloor(tile)
+    
+    -- Check if it has a gap filler overlay
+    local modData = floor:getModData()
+    local hasGapFillerOverlay = modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    
+    local result = isGravel or hasGapFillerOverlay
+    
+    DumpTruck.debugPrint(string.format("isPouredGravel: tile at (%d,%d) - isGravel=%s, hasGapFillerOverlay=%s, result=%s", 
+        tile:getX(), tile:getY(), tostring(isGravel), tostring(hasGapFillerOverlay), tostring(result)))
+    return result
 end
 
 -- Check if a tile is a full gravel floor (not a blend)
 function DumpTruck.isFullGravelFloor(tile)
     if not tile then return false end
     local floor = tile:getFloor()
-    return floor and 
-           floor:getSprite():getName() == DumpTruckConstants.GRAVEL_SPRITE and
-           floor:getModData().isPouredFloor
+    if not floor then return false end
+    
+    -- Check sprite directly for gravel (no metadata needed)
+    local spriteName = floor:getSprite():getName()
+    local isGravelSprite = spriteName == DumpTruckConstants.GRAVEL_SPRITE
+    
+    DumpTruck.debugPrint(string.format("isFullGravelFloor: tile at (%d,%d) - sprite=%s, isGravel=%s", 
+        tile:getX(), tile:getY(), spriteName, tostring(isGravelSprite)))
+    return isGravelSprite
 end
 
 -- Check if square is valid for gravel
@@ -97,7 +97,7 @@ function DumpTruck.isSquareValidForGravel(sq)
     if DumpTruck.isPouredGravel(sq) then
         -- Allow gap fillers to be upgraded to full gravel tiles
         local floor = sq:getFloor()
-        if floor and floor:getModData().isGapFiller then
+        if floor and floor:getModData().tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
             return true  -- Allow gap filler upgrade
         end
         return false  -- Reject full gravel tiles
@@ -182,9 +182,9 @@ function DumpTruck.removeOppositeEdgeBlends(square)
             -- Check if this square has gap filler metadata
             local floor = check.square:getFloor()
 
-            if floor and floor:getModData().isEdgeBlend then
-                local edgeBlendObject = floor:getModData().edgeBlendObject
-                local edgeBlendSprite = floor:getModData().edgeBlendSprite
+            if floor and floor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
+                local edgeBlendObject = floor:getModData().object
+                local edgeBlendSprite = floor:getModData().sprite
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
                     local baseNumber = tonumber(edgeBlendSprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
@@ -211,6 +211,10 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                         if shouldRemove then
                             -- Direct removal using stored object reference
                             check.square:RemoveTileObject(edgeBlendObject)
+                            
+                            -- Clear edge blend metadata
+                            DumpTruck.resetOverlayMetadata(floor)
+                            
                             check.square:RecalcProperties()
                             check.square:DirtySlice()
                             if isClient() then
@@ -261,9 +265,9 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             
             -- Check the original square for edge blends pointing toward the adjacent square
             local originalFloor = pourableSquare:getFloor()
-            if originalFloor and originalFloor:getModData().isEdgeBlend then
-                local edgeBlendObject = originalFloor:getModData().edgeBlendObject
-                local edgeBlendSprite = originalFloor:getModData().edgeBlendSprite
+            if originalFloor and originalFloor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
+                local edgeBlendObject = originalFloor:getModData().object
+                local edgeBlendSprite = originalFloor:getModData().sprite
                 
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
@@ -289,12 +293,10 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                             if shouldRemove then
                                 pourableSquare:RemoveTileObject(edgeBlendObject)
                                 
-                                -- Clear the metadata
+                                -- Clear the metadata using unified system
                                 local floor = pourableSquare:getFloor()
                                 if floor then
-                                    floor:getModData().isEdgeBlend = nil
-                                    floor:getModData().edgeBlendSprite = nil
-                                    floor:getModData().edgeBlendObject = nil
+                                    DumpTruck.resetOverlayMetadata(floor)
                                 end
                                 
                                 pourableSquare:RecalcProperties()
@@ -310,9 +312,9 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             
             -- Check the adjacent square for edge blends pointing toward the original square
             local adjacentFloor = check.square:getFloor()
-            if adjacentFloor and adjacentFloor:getModData().isEdgeBlend then
-                local edgeBlendObject = adjacentFloor:getModData().edgeBlendObject
-                local edgeBlendSprite = adjacentFloor:getModData().edgeBlendSprite
+            if adjacentFloor and adjacentFloor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
+                local edgeBlendObject = adjacentFloor:getModData().object
+                local edgeBlendSprite = adjacentFloor:getModData().sprite
                 
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
@@ -346,12 +348,10 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                             if shouldRemove then
                                 check.square:RemoveTileObject(edgeBlendObject)
                                 
-                                -- Clear the metadata
+                                -- Clear the metadata using unified system
                                 local floor = check.square:getFloor()
                                 if floor then
-                                    floor:getModData().isEdgeBlend = nil
-                                    floor:getModData().edgeBlendSprite = nil
-                                    floor:getModData().edgeBlendObject = nil
+                                    DumpTruck.resetOverlayMetadata(floor)
                                 end
                                 
                                 check.square:RecalcProperties()
@@ -453,22 +453,12 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     local overlay = IsoObject.new(getCell(), targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
 
-    -- Set floor metadata with direct object reference (only for gap filler sprites)
+    -- Set floor metadata using unified system
+    local floor = targetSquare:getFloor()
     if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
-        local floor = targetSquare:getFloor()
-        if floor then
-            floor:getModData().isPouredFloor = true
-            floor:getModData().isGapFiller = true
-            floor:getModData().gapFillerSprite = sprite
-            floor:getModData().gapFillerObject = overlay  -- Direct reference to the object
-        end
+        DumpTruck.initializeOverlayMetadata(floor, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite, overlay)
     elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
-        local floor = targetSquare:getFloor()
-        if floor then
-            floor:getModData().isEdgeBlend = true
-            floor:getModData().edgeBlendSprite = sprite
-            floor:getModData().edgeBlendObject = overlay
-        end
+        DumpTruck.initializeOverlayMetadata(floor, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite, overlay)
     else
         DumpTruck.debugPrint(string.format("placeTileOverlay: Invalid sprite: %s", sprite))
         return false    
@@ -598,11 +588,8 @@ function DumpTruck.checkForCornerPattern(gravelTile)
         return nil, nil
     end
 
-    -- Verify mapping table is loaded
-    if not DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING then
-        DumpTruck.debugPrint("ERROR: ADJACENT_TO_BLEND_MAPPING is not loaded!")
-        return nil, nil
-    end
+    DumpTruck.debugPrint(string.format("checkForCornerPattern: Checking gravel tile at (%d,%d)", 
+        gravelTile:getX(), gravelTile:getY()))
 
     -- Check each adjacent tile
     local adjacentChecks = {
@@ -615,6 +602,9 @@ function DumpTruck.checkForCornerPattern(gravelTile)
     for _, check in ipairs(adjacentChecks) do
         local adjacentTile = check.tile
         if adjacentTile and not DumpTruck.isPouredGravel(adjacentTile) then
+            DumpTruck.debugPrint(string.format("checkForCornerPattern: Found non-gravel tile at (%d,%d) in direction %s", 
+                adjacentTile:getX(), adjacentTile:getY(), check.dir))
+            
             -- Found a non-gravel tile, check its other adjacent tiles
             local otherAdjacentChecks = {
                 {tile = adjacentTile:getN(), dir = "NORTH"},
@@ -645,6 +635,8 @@ function DumpTruck.checkForCornerPattern(gravelTile)
 
             -- If we found exactly one other gravel floor tile, we have a corner pattern
             if gravelCount == 1 then
+                DumpTruck.debugPrint(string.format("checkForCornerPattern: Found potential corner pattern at (%d,%d) - gravelCount=%d", 
+                    adjacentTile:getX(), adjacentTile:getY(), gravelCount))
                 DumpTruck.debugPrint(string.format("Total gravel directions: %s, %s", gravelDirections[1], gravelDirections[2]))
                 
                 -- Look up the appropriate blend tile in our mapping
@@ -678,10 +670,14 @@ function DumpTruck.checkForCornerPattern(gravelTile)
                     end
                 end
                 DumpTruck.debugPrint("No matching mapping found for directions")
+            else
+                DumpTruck.debugPrint(string.format("checkForCornerPattern: Not a corner pattern at (%d,%d) - gravelCount=%d (need exactly 1)", 
+                    adjacentTile:getX(), adjacentTile:getY(), gravelCount))
             end
         end
     end
 
+    DumpTruck.debugPrint("checkForCornerPattern: No corner pattern found")
     return nil, nil
 end
 
@@ -732,27 +728,22 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     -- Check if this is upgrading a gap filler to full gravel
     local originalFloor = sq:getFloor()
     local isGapFillerUpgrade = false
-    if originalFloor and originalFloor:getModData().isGapFiller then
+    if originalFloor and originalFloor:getModData().tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         isGapFillerUpgrade = true
         
         -- Clean up gap filler data before upgrading
-        local gapFillerObject = originalFloor:getModData().gapFillerObject
+        local gapFillerObject = originalFloor:getModData().object
         if gapFillerObject then
             sq:RemoveTileObject(gapFillerObject)
             DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Removed gap filler object at (%d,%d)", 
                 sq:getX(), sq:getY()))
+            
+            -- Clear gap filler metadata using unified system
+            DumpTruck.resetOverlayMetadata(originalFloor)
         end
-        
-        -- Clear gap filler metadata
-        originalFloor:getModData().isGapFiller = nil
-        originalFloor:getModData().gapFillerObject = nil
-        originalFloor:getModData().gapFillerSprite = nil
     end
 
     local newFloor = sq:addFloor(sprite)
-    
-    local modData = newFloor:getModData()
-    modData.isPouredFloor = true
     
     -- Disable erosion on this square (single player implementation)
     sq:disableErosion()
