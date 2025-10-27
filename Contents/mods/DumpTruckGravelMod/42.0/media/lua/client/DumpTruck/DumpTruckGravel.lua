@@ -39,6 +39,20 @@ function DumpTruck.resetOverlayMetadata(floor)
     if not floor then return end
     
     local modData = floor:getModData()
+    
+    -- TODO: REMOVE THIS DEBUG CODE - Get square coords and log metadata before clearing
+    local floorSprite = floor:getSprite() and floor:getSprite():getName() or "nil"
+    local square = floor:getSquare()
+    local x, y = 0, 0
+    if square then
+        x, y = square:getX(), square:getY()
+    end
+    if modData.tileType ~= nil then
+        DumpTruck.debugPrint(string.format("[RESET METADATA] (%d,%d) floorSprite:%s OLD tileType:%s sprite:%s",
+            x, y, floorSprite, tostring(modData.tileType), tostring(modData.sprite)))
+    end
+    
+    
     modData.tileType = nil
     modData.sprite = nil
     modData.object = nil
@@ -159,6 +173,24 @@ function DumpTruck.getBlendNaturalSprite(sq)
     return nil
 end
 
+
+function DumpTruck.removeOverlayObject(square, edgeBlendObject)
+    -- Direct removal using stored object reference
+    square:RemoveTileObject(edgeBlendObject)
+    
+    local floor = square:getFloor()
+    -- Clear edge blend metadata
+    DumpTruck.resetOverlayMetadata(floor)
+    
+    square:RecalcProperties()
+    square:DirtySlice()
+    if isClient() then
+        square:transmitFloor()
+    end
+end
+
+
+
 function DumpTruck.removeOppositeEdgeBlends(square)
     if not square then 
         return 
@@ -209,17 +241,7 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                         end
                         
                         if shouldRemove then
-                            -- Direct removal using stored object reference
-                            check.square:RemoveTileObject(edgeBlendObject)
-                            
-                            -- Clear edge blend metadata
-                            DumpTruck.resetOverlayMetadata(floor)
-                            
-                            check.square:RecalcProperties()
-                            check.square:DirtySlice()
-                            if isClient() then
-                                check.square:transmitFloor()
-                            end
+                            DumpTruck.removeOverlayObject(check.square, edgeBlendObject)
                         end
                     end
                 end
@@ -265,6 +287,15 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             
             -- Check the original square for edge blends pointing toward the adjacent square
             local originalFloor = pourableSquare:getFloor()
+            
+            if originalFloor then
+                local modData = originalFloor:getModData()
+                local floorSprite = originalFloor:getSprite() and originalFloor:getSprite():getName() or "nil"
+                local x = tostring(pourableSquare:getX())
+                local y = tostring(pourableSquare:getY())
+                DumpTruck.debugPrint("METADATA X:" .. x .. " Y:" .. y .. " floorSprite:" .. tostring(floorSprite) .. " tileType:" .. tostring(modData.tileType) .. " sprite:" .. tostring(modData.sprite) .. " object:" .. tostring(modData.object))
+            end
+            
             if originalFloor and originalFloor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
                 local edgeBlendObject = originalFloor:getModData().object
                 local edgeBlendSprite = originalFloor:getModData().sprite
@@ -291,19 +322,7 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                             end
                             
                             if shouldRemove then
-                                pourableSquare:RemoveTileObject(edgeBlendObject)
-                                
-                                -- Clear the metadata using unified system
-                                local floor = pourableSquare:getFloor()
-                                if floor then
-                                    DumpTruck.resetOverlayMetadata(floor)
-                                end
-                                
-                                pourableSquare:RecalcProperties()
-                                pourableSquare:DirtySlice()
-                                if isClient() then
-                                    pourableSquare:transmitFloor()
-                                end
+                                DumpTruck.removeOverlayObject(pourableSquare, edgeBlendObject)
                             end
                         end
                     end
@@ -346,19 +365,7 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                             end
                             
                             if shouldRemove then
-                                check.square:RemoveTileObject(edgeBlendObject)
-                                
-                                -- Clear the metadata using unified system
-                                local floor = check.square:getFloor()
-                                if floor then
-                                    DumpTruck.resetOverlayMetadata(floor)
-                                end
-                                
-                                check.square:RecalcProperties()
-                                check.square:DirtySlice()
-                                if isClient() then
-                                    check.square:transmitFloor()
-                                end
+                                DumpTruck.removeOverlayObject(check.square, edgeBlendObject)
                             end
                         end
                     end
@@ -426,26 +433,7 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
             targetSquare:getX(), targetSquare:getY()))
         return false
     end
-    
-    -- Only check for valid gravel placement if this is not a blend tile
-    -- I DONT THINK THIS IS NEEDED but leaving it in for now
-    -- if not sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then   
-    --     DumpTruck.debugPrint(string.format("placeTileOverlay - not a gap filler sprite"))
-    --     return false
-    -- end
-
-    -- Check for existing overlay 
-    -- I DONT THINK THIS IS NEEDED but leaving it in for now
-    -- local existingObjects = targetSquare:getObjects()
-    -- for i = 0, existingObjects:size() - 1 do
-    --     local obj = existingObjects:get(i)
-    --     if obj:getSpriteName() == sprite then
-    --         DumpTruck.debugPrint(string.format("placeTileOverlay: Tile already exists at (%d,%d)", 
-    --             targetSquare:getX(), targetSquare:getY()))
-    --         return false
-    --     end
-    -- end
-
+  
     DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
 
@@ -737,9 +725,6 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
             sq:RemoveTileObject(gapFillerObject)
             DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Removed gap filler object at (%d,%d)", 
                 sq:getX(), sq:getY()))
-            
-            -- Clear gap filler metadata using unified system
-            DumpTruck.resetOverlayMetadata(originalFloor)
         end
     end
 
@@ -915,7 +900,8 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     -- Debug print current squares
     DumpTruck.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
     for i, sq in ipairs(currentSquares) do
-        DumpTruck.debugPrint(string.format("  Square %d: (%d,%d)", i, sq:getX(), sq:getY()))
+        DumpTruck.debugPrint(string.format("[DEBUG] Current square %d - x: %d, y: %d", 
+            tostring(i), tostring(sq:getX()), tostring(sq:getY())))
     end
     
     -- Place gravel on valid squares, skipping ones that already have gravel
@@ -960,7 +946,6 @@ function DumpTruck.toggleGravelDumping(key)
         if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
             local data = vehicle:getModData()
             startX, startY = nil, nil  -- Reset start point
-            DumpTruck.clearCurrentLine()
             data.dumpingGravelActive = not data.dumpingGravelActive
             
             -- Set speed limit based on dumping state
