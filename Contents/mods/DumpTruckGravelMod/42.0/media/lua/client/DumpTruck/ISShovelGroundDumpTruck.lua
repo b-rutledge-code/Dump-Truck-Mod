@@ -33,27 +33,7 @@ function ISShovelGround:RemoveEdgeBlend(square)
             DumpTruck.removeOverlayObject(square, modData.object)
             return
         end
-    end
-    
-    -- Fallback: check objects directly in case metadata was lost
-    local objects = square:getObjects()
-    if objects then
-        for i = 0, objects:size() - 1 do
-            local obj = objects:get(i)
-            if obj and obj:getSprite() then
-                local spriteName = obj:getSprite():getName()
-                if spriteName and spriteName:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-                    square:RemoveTileObject(obj)
-                    square:RecalcProperties()
-                    square:DirtySlice()
-                    if isClient() then
-                        square:transmitFloor()
-                    end
-                    return
-                end
-            end
-        end
-    end
+    end  
 end 
 
 
