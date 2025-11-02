@@ -26,12 +26,17 @@ function DumpTruck.initializeOverlayMetadata(floor, tileType, sprite, object)
     modData.sprite = sprite
     modData.object = object
     
-    -- Only set isPouredFloor for gap fillers (not gravel - we check sprite for gravel)
-    if tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-        modData.isPouredFloor = true
-    else
-        modData.isPouredFloor = false
+    -- DEBUG CODE DELETE ME
+    local square = floor:getSquare()
+    local x, y = 0, 0
+    if square then
+        x, y = square:getX(), square:getY()
     end
+    DumpTruck.debugPrint("***initializeOverlayMetadata START***")
+    DumpTruck.debugPrint("(X,Y) = (" .. tostring(x) .. "," .. tostring(y) .. ")")
+    DumpTruck.debugPrint("TT = " .. tostring(tileType))
+    DumpTruck.debugPrint("SP = " .. tostring(sprite))
+    DumpTruck.debugPrint("***initializeOverlayMetadata END***")
 end
 
 -- Reset overlay metadata to clean state
@@ -48,15 +53,15 @@ function DumpTruck.resetOverlayMetadata(floor)
         x, y = square:getX(), square:getY()
     end
     if modData.tileType ~= nil then
-        DumpTruck.debugPrint(string.format("[RESET METADATA] (%d,%d) floorSprite:%s OLD tileType:%s sprite:%s",
-            x, y, floorSprite, tostring(modData.tileType), tostring(modData.sprite)))
+        DumpTruck.debugPrint("***resetOverlayMetadata START***")
+        DumpTruck.debugPrint("(X,Y) = (" .. tostring(x) .. "," .. tostring(y) .. ")")
+        DumpTruck.debugPrint("***resetOverlayMetadata END***")
     end
     
     
     modData.tileType = nil
     modData.sprite = nil
     modData.object = nil
-    modData.isPouredFloor = false
 end
 
 -- HELPERS
@@ -76,8 +81,12 @@ function DumpTruck.isPouredGravel(tile)
     
     local result = isGravel or hasGapFillerOverlay
     
-    DumpTruck.debugPrint(string.format("isPouredGravel: tile at (%d,%d) - isGravel=%s, hasGapFillerOverlay=%s, result=%s", 
-        tile:getX(), tile:getY(), tostring(isGravel), tostring(hasGapFillerOverlay), tostring(result)))
+    DumpTruck.debugPrint("***isPouredGravel START***")
+    DumpTruck.debugPrint("(X,Y) = (" .. tostring(tile:getX()) .. "," .. tostring(tile:getY()) .. ")")
+    DumpTruck.debugPrint("isGravel = " .. tostring(isGravel))
+    DumpTruck.debugPrint("hasGapFillerOverlay = " .. tostring(hasGapFillerOverlay))
+    DumpTruck.debugPrint("result = " .. tostring(result))
+    DumpTruck.debugPrint("***isPouredGravel END***")
     return result
 end
 
@@ -91,8 +100,7 @@ function DumpTruck.isFullGravelFloor(tile)
     local spriteName = floor:getSprite():getName()
     local isGravelSprite = spriteName == DumpTruckConstants.GRAVEL_SPRITE
     
-    DumpTruck.debugPrint(string.format("isFullGravelFloor: tile at (%d,%d) - sprite=%s, isGravel=%s", 
-        tile:getX(), tile:getY(), spriteName, tostring(isGravelSprite)))
+    DumpTruck.debugPrint("isFullGravelFloor tile at (" .. tostring(tile:getX()) .. "," .. tostring(tile:getY()) .. ") sprite=" .. spriteName .. " isGravel=" .. tostring(isGravelSprite))
     return isGravelSprite
 end
 
@@ -148,26 +156,18 @@ end
 
 function DumpTruck.getBlendNaturalSprite(sq)
     if not sq then 
-        DumpTruck.debugPrint("getBlendNaturalSprite: Square is nil")
         return nil 
     end
     
     local floor = sq:getFloor()
     if not floor then
-        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: No floor at (%d,%d)", sq:getX(), sq:getY()))
         return nil
     end
     
     local spriteName = floor:getSprite():getName()
-    DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Found sprite '%s' at (%d,%d)", 
-        spriteName or "nil", sq:getX(), sq:getY()))
     
     if spriteName and spriteName:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Valid edge blend sprite '%s'", spriteName))
         return spriteName
-    else
-        DumpTruck.debugPrint(string.format("getBlendNaturalSprite: Sprite '%s' does not match pattern '%s_'", 
-            spriteName or "nil", DumpTruckConstants.EDGE_BLEND_SPRITES))
     end
     
     return nil
@@ -196,7 +196,8 @@ function DumpTruck.removeOppositeEdgeBlends(square)
         return 
     end
     
-    DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Checking square (%d,%d)", square:getX(), square:getY()))
+    DumpTruck.debugPrint("***removeOppositeEdgeBlends START***")
+    DumpTruck.debugPrint("(X,Y) = (" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. ")")
     
     -- Check each direction
     local adjacentChecks = {
@@ -208,8 +209,9 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     
     for _, check in ipairs(adjacentChecks) do
         if check and check.square then
-            DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Checking %s tile at (%d,%d)", 
-                check.dir, check.square:getX(), check.square:getY()))
+            DumpTruck.debugPrint("***CHECK DIRECTION START***")
+            DumpTruck.debugPrint("dir = " .. check.dir)
+            DumpTruck.debugPrint("adjSquare (X,Y) = (" .. tostring(check.square:getX()) .. "," .. tostring(check.square:getY()) .. ")")
             
             -- Check if this square has gap filler metadata
             local floor = check.square:getFloor()
@@ -224,30 +226,40 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                         local baseRow = math.floor(baseNumber / 16)
                         local rowStartTile = baseRow * 16
                         
-                        DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Found blend sprite %s (baseNumber=%d, rowStartTile=%d)", 
-                        edgeBlendSprite, baseNumber, rowStartTile))
+                        DumpTruck.debugPrint("***FOUND EDGE BLEND START***")
+                        DumpTruck.debugPrint("sprite = " .. tostring(edgeBlendSprite))
+                        DumpTruck.debugPrint("baseNumber = " .. tostring(baseNumber))
+                        DumpTruck.debugPrint("rowStartTile = " .. tostring(rowStartTile))
                         
                         -- Check if the sprite matches any of the opposite sprites we want to remove
                         local shouldRemove = false
                         for _, oppositeOffset in ipairs(check.oppositeSprites) do
                             local oppositeSprite = rowStartTile + oppositeOffset
-                            DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Comparing baseNumber %d with oppositeSprite %d (rowStartTile %d + offset %d)", 
-                                baseNumber, oppositeSprite, rowStartTile, oppositeOffset))
+                            DumpTruck.debugPrint("***COMPARING START***")
+                            DumpTruck.debugPrint("baseNumber = " .. tostring(baseNumber))
+                            DumpTruck.debugPrint("oppositeSprite = " .. tostring(oppositeSprite))
+                            DumpTruck.debugPrint("oppositeOffset = " .. tostring(oppositeOffset))
+                            DumpTruck.debugPrint("***COMPARING END***")
                             if baseNumber == oppositeSprite then
                                 shouldRemove = true
-                                DumpTruck.debugPrint(string.format("removeOppositeEdgeBlends: Match found! Removing sprite %s", edgeBlendSprite))
+                                DumpTruck.debugPrint("***MATCH FOUND - REMOVING***")
+                                DumpTruck.debugPrint("sprite = " .. tostring(edgeBlendSprite))
+                                DumpTruck.debugPrint("***MATCH FOUND END***")
                                 break
                             end
                         end
                         
+                        DumpTruck.debugPrint("***FOUND EDGE BLEND END***")
                         if shouldRemove then
                             DumpTruck.removeOverlayObject(check.square, edgeBlendObject)
                         end
                     end
                 end
             end
+            DumpTruck.debugPrint("***CHECK DIRECTION END***")
         end
     end
+    DumpTruck.debugPrint("***removeOppositeEdgeBlends END***")
 end
 
 --[[
@@ -293,7 +305,12 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                 local floorSprite = originalFloor:getSprite() and originalFloor:getSprite():getName() or "nil"
                 local x = tostring(pourableSquare:getX())
                 local y = tostring(pourableSquare:getY())
-                DumpTruck.debugPrint("METADATA X:" .. x .. " Y:" .. y .. " floorSprite:" .. tostring(floorSprite) .. " tileType:" .. tostring(modData.tileType) .. " sprite:" .. tostring(modData.sprite) .. " object:" .. tostring(modData.object))
+                DumpTruck.debugPrint("***METADATA CHECK START***")
+                DumpTruck.debugPrint("(X,Y) = (" .. x .. "," .. y .. ")")
+                DumpTruck.debugPrint("FS = " .. tostring(floorSprite))
+                DumpTruck.debugPrint("TT = " .. tostring(modData.tileType))
+                DumpTruck.debugPrint("SP = " .. tostring(modData.sprite))
+                DumpTruck.debugPrint("***METADATA CHECK END***")
             end
             
             if originalFloor and originalFloor:getModData().tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
@@ -434,6 +451,24 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
         return false
     end
   
+    -- Check if this overlay already exists on this square
+    local floor = targetSquare:getFloor()
+    if floor and floor:getModData().sprite == sprite then
+        DumpTruck.debugPrint(string.format("placeTileOverlay: Overlay %s already exists at (%d,%d), skipping placement", 
+            sprite, targetSquare:getX(), targetSquare:getY()))
+        return false
+    end
+    
+    -- If placing an edge blend and there's already a different edge blend, remove the old one first
+    if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
+        local modData = floor:getModData()
+        if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.object and modData.sprite ~= sprite then
+            DumpTruck.debugPrint("placeTileOverlay: Removing old edge blend " .. tostring(modData.sprite) .. " before placing " .. sprite)
+            targetSquare:RemoveTileObject(modData.object)
+            DumpTruck.resetOverlayMetadata(floor)
+        end
+    end
+  
     DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
         sprite, targetSquare:getX(), targetSquare:getY()))
 
@@ -442,7 +477,6 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
 
     -- Set floor metadata using unified system
-    local floor = targetSquare:getFloor()
     if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
         DumpTruck.initializeOverlayMetadata(floor, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite, overlay)
     elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
@@ -576,8 +610,7 @@ function DumpTruck.checkForCornerPattern(gravelTile)
         return nil, nil
     end
 
-    DumpTruck.debugPrint(string.format("checkForCornerPattern: Checking gravel tile at (%d,%d)", 
-        gravelTile:getX(), gravelTile:getY()))
+    DumpTruck.debugPrint("checkForCornerPattern at (" .. tostring(gravelTile:getX()) .. "," .. tostring(gravelTile:getY()) .. ")")
 
     -- Check each adjacent tile
     local adjacentChecks = {
