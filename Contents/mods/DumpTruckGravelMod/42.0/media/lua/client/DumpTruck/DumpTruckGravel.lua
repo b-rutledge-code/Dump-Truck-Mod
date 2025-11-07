@@ -31,8 +31,8 @@ function DumpTruck.initializeOverlayMetadata(square, tileType, sprite, object)
     DumpTruck.debugPrint("***initializeOverlayMetadata END***")
 end
 
--- Find overlay object when modData.object is nil (e.g., after save/load)
--- Only loops through objects if metadata indicates an overlay exists
+-- Find overlay object by sprite name
+-- Loops through square objects to find the one matching the sprite
 function DumpTruck.findOverlayObject(square, sprite)
     if not square or not sprite then return nil end
     
@@ -322,8 +322,8 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             DumpTruck.debugPrint("***METADATA CHECK END***")
             
             if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
-                local edgeBlendObject = modData.object
                 local edgeBlendSprite = modData.sprite
+                local edgeBlendObject = DumpTruck.findOverlayObject(pourableSquare, edgeBlendSprite)
                 
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
@@ -357,8 +357,8 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             -- Check the adjacent square for edge blends pointing toward the original square (metadata stored on square, not floor)
             local adjacentModData = check.square:getModData()
             if adjacentModData and adjacentModData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
-                local edgeBlendObject = adjacentModData.object
                 local edgeBlendSprite = adjacentModData.sprite
+                local edgeBlendObject = DumpTruck.findOverlayObject(check.square, edgeBlendSprite)
                 
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
