@@ -43,6 +43,8 @@ function ISShovelGround:RemoveGapFillers(square)
         return
     end
 
+    print("[DUMPTRUCK] RemoveGapFillers (" .. square:getX() .. "," .. square:getY() .. ")")
+    
     -- Check adjacent squares (N, E, S, W) and remove gap fillers from them
     -- Leave the passed square alone
     local adjacentSquares = {
@@ -55,8 +57,18 @@ function ISShovelGround:RemoveGapFillers(square)
     for _, adjSquare in ipairs(adjacentSquares) do
         if adjSquare then
             local modData = adjSquare:getModData()
+            print("[DUMPTRUCK] ***GAP FILLER CHECK START***")
+            print("[DUMPTRUCK] (X,Y) = (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
+            print("[DUMPTRUCK] TT = " .. tostring(modData.tileType))
+            print("[DUMPTRUCK] OBJ = " .. tostring(modData.object))
+            print("[DUMPTRUCK] SP = " .. tostring(modData.sprite))
+            print("[DUMPTRUCK] ***GAP FILLER CHECK END***")
+            
             if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER and modData.object then
+                print("[DUMPTRUCK] Removing gapFiller (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
                 DumpTruck.removeOverlayObject(adjSquare, modData.object)
+            elseif modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+                print("[DUMPTRUCK] gapFiller NO OBJECT (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
             end
         end
     end

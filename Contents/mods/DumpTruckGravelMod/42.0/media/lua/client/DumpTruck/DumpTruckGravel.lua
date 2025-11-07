@@ -3,12 +3,6 @@ local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 DumpTruck = {}
 DumpTruck.debugMode = true
 
--- Constants
-local DIRECTION_STABILITY_THRESHOLD = 2  -- Number of consistent direction checks needed
-local directionHistory = {}  -- Will store {direction, x, y} entries
-local stableDirection = nil  -- Our current stable direction
-local startX, startY = nil, nil  -- Initialize to nil so we know it's not set yet
-local hasUpdatedStartPoint = false
 
 -- Utility function for debug printing
 function DumpTruck.debugPrint(...)
@@ -35,6 +29,24 @@ function DumpTruck.initializeOverlayMetadata(square, tileType, sprite, object)
     DumpTruck.debugPrint("SP = " .. tostring(sprite))
     DumpTruck.debugPrint("OBJ = " .. tostring(object))
     DumpTruck.debugPrint("***initializeOverlayMetadata END***")
+end
+
+-- Find overlay object when modData.object is nil (e.g., after save/load)
+-- Only loops through objects if metadata indicates an overlay exists
+function DumpTruck.findOverlayObject(square, sprite)
+    if not square or not sprite then return nil end
+    
+    -- Only loop if we know there's an overlay here (metadata tells us)
+    local objects = square:getObjects()
+    if not objects then return nil end
+    
+    for i = 0, objects:size() - 1 do
+        local obj = objects:get(i)
+        if obj and obj:getSprite() and obj:getSprite():getName() == sprite then
+            return obj
+        end
+    end
+    return nil
 end
 
 -- Reset overlay metadata to clean state
@@ -168,6 +180,8 @@ end
 
 
 function DumpTruck.removeOverlayObject(square, edgeBlendObject)
+    print("[DUMPTRUCK] removeOverlay (" .. square:getX() .. "," .. square:getY() .. ")")
+    
     -- Direct removal using stored object reference
     square:RemoveTileObject(edgeBlendObject)
     
@@ -971,7 +985,6 @@ function DumpTruck.toggleGravelDumping(key)
         local vehicle = playerObj:getVehicle()
         if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
             local data = vehicle:getModData()
-            startX, startY = nil, nil  -- Reset start point
             data.dumpingGravelActive = not data.dumpingGravelActive
             
             -- Set speed limit based on dumping state
