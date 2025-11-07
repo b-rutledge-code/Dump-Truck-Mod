@@ -223,8 +223,8 @@ function DumpTruck.removeOppositeEdgeBlends(square)
             local modData = check.square:getModData()
 
             if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
-                local edgeBlendObject = modData.object
                 local edgeBlendSprite = modData.sprite
+                local edgeBlendObject = DumpTruck.findOverlayObject(check.square, edgeBlendSprite)
                 if edgeBlendObject and edgeBlendSprite then
                     -- Extract the base number from the stored sprite name
                     local baseNumber = tonumber(edgeBlendSprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
@@ -318,7 +318,6 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             DumpTruck.debugPrint("FS = " .. tostring(floorSprite))
             DumpTruck.debugPrint("TT = " .. tostring(modData.tileType))
             DumpTruck.debugPrint("SP = " .. tostring(modData.sprite))
-            DumpTruck.debugPrint("OBJ = " .. tostring(modData.object))
             DumpTruck.debugPrint("***METADATA CHECK END***")
             
             if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
@@ -760,7 +759,8 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
         isGapFillerUpgrade = true
         
         -- Clean up gap filler data before upgrading
-        local gapFillerObject = modData.object
+        local gapFillerSprite = modData.sprite
+        local gapFillerObject = DumpTruck.findOverlayObject(sq, gapFillerSprite)
         if gapFillerObject then
             DumpTruck.removeOverlayObject(sq, gapFillerObject)
             DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Removed gap filler object at (%d,%d)", 
