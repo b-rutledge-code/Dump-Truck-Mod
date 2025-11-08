@@ -13,13 +13,12 @@ end
 
 -- Initialize overlay metadata (gap fillers and edge blends only)
 -- Store on square, not floor, since overlays are independent objects
-function DumpTruck.initializeOverlayMetadata(square, tileType, sprite, object)
+function DumpTruck.initializeOverlayMetadata(square, tileType, sprite)
     if not square then return end
     
     local modData = square:getModData()
     modData.tileType = tileType
     modData.sprite = sprite
-    modData.object = object
     
     -- DEBUG CODE DELETE ME
     local x, y = square:getX(), square:getY()
@@ -27,7 +26,6 @@ function DumpTruck.initializeOverlayMetadata(square, tileType, sprite, object)
     DumpTruck.debugPrint("(X,Y) = (" .. tostring(x) .. "," .. tostring(y) .. ")")
     DumpTruck.debugPrint("TT = " .. tostring(tileType))
     DumpTruck.debugPrint("SP = " .. tostring(sprite))
-    DumpTruck.debugPrint("OBJ = " .. tostring(object))
     DumpTruck.debugPrint("***initializeOverlayMetadata END***")
 end
 
@@ -36,16 +34,35 @@ end
 function DumpTruck.findOverlayObject(square, sprite)
     if not square or not sprite then return nil end
     
+    DumpTruck.debugPrint("***findOverlayObject START***")
+    DumpTruck.debugPrint("(X,Y) = (" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. ")")
+    DumpTruck.debugPrint("Looking for sprite: " .. tostring(sprite))
+    
     -- Only loop if we know there's an overlay here (metadata tells us)
     local objects = square:getObjects()
-    if not objects then return nil end
+    if not objects then 
+        DumpTruck.debugPrint("No objects on square")
+        DumpTruck.debugPrint("***findOverlayObject END***")
+        return nil 
+    end
+    
+    DumpTruck.debugPrint("Found " .. tostring(objects:size()) .. " objects on square")
     
     for i = 0, objects:size() - 1 do
         local obj = objects:get(i)
-        if obj and obj:getSprite() and obj:getSprite():getName() == sprite then
-            return obj
+        if obj and obj:getSprite() then
+            local objSprite = obj:getSprite():getName()
+            DumpTruck.debugPrint("Object " .. tostring(i) .. " sprite: " .. tostring(objSprite))
+            if objSprite == sprite then
+                DumpTruck.debugPrint("MATCH FOUND!")
+                DumpTruck.debugPrint("***findOverlayObject END***")
+                return obj
+            end
         end
     end
+    
+    DumpTruck.debugPrint("NO MATCH FOUND")
+    DumpTruck.debugPrint("***findOverlayObject END***")
     return nil
 end
 
@@ -67,7 +84,6 @@ function DumpTruck.resetOverlayMetadata(square)
     
     modData.tileType = nil
     modData.sprite = nil
-    modData.object = nil
 end
 
 -- HELPERS
@@ -468,10 +484,13 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     
     -- If placing an edge blend and there's already a different edge blend, remove the old one first
     if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
-        if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.object and modData.sprite ~= sprite then
-            DumpTruck.debugPrint("placeTileOverlay: Removing old edge blend " .. tostring(modData.sprite) .. " before placing " .. sprite)
-            targetSquare:RemoveTileObject(modData.object)
-            DumpTruck.resetOverlayMetadata(targetSquare)
+        if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.sprite and modData.sprite ~= sprite then
+            local oldEdgeBlendObject = DumpTruck.findOverlayObject(targetSquare, modData.sprite)
+            if oldEdgeBlendObject then
+                DumpTruck.debugPrint("placeTileOverlay: Removing old edge blend " .. tostring(modData.sprite) .. " before placing " .. sprite)
+                targetSquare:RemoveTileObject(oldEdgeBlendObject)
+                DumpTruck.resetOverlayMetadata(targetSquare)
+            end
         end
     end
   
@@ -484,9 +503,9 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
 
     -- Set square metadata using unified system (overlays are independent of floor)
     if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
-        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite, overlay)
+        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite)
     elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
-        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite, overlay)
+        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite)
     else
         DumpTruck.debugPrint(string.format("placeTileOverlay: Invalid sprite: %s", sprite))
         return false    

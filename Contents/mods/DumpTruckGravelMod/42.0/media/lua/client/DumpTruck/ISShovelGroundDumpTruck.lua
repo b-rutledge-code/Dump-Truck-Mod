@@ -1,4 +1,5 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
+require("DumpTruck/DumpTruckGravel") -- Ensure DumpTruck global is loaded
 
 local originalPerform = ISShovelGround.perform
 
@@ -14,14 +15,18 @@ function ISShovelGround:HandleTileChange(square)
         return
     end
 
+    -- Remove edge blend overlay from the square being changed
     self:RemoveEdgeBlend(isoSquare)
     
-    -- Remove edge blends between pourable squares
+    -- Remove edge blends between pourable squares (e.g., between two gravel tiles)
     DumpTruck.removeEdgeBlendsBetweenPourableSquares(isoSquare)
 
+    -- Remove gap filler overlays from adjacent squares (N, E, S, W)
     self:RemoveGapFillers(isoSquare)
 end
 
+-- Remove edge blend overlay from a square if it exists
+-- Uses metadata to find the overlay object by sprite name
 function ISShovelGround:RemoveEdgeBlend(square)
     if not square then
         return
@@ -29,21 +34,20 @@ function ISShovelGround:RemoveEdgeBlend(square)
 
     -- Check metadata (stored on square, not floor)
     local modData = square:getModData()
-    if modData.object == nil then
-        print("No object found SHOVEL (" .. square:getX() .. "," .. square:getY() .. ")")
-    end
-    if modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.object then
-        DumpTruck.removeOverlayObject(square, modData.object)
-        return
+    if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.sprite then
+        local edgeBlendObject = DumpTruck.findOverlayObject(square, modData.sprite)
+        if edgeBlendObject then
+            DumpTruck.removeOverlayObject(square, edgeBlendObject)
+        end
     end  
 end
 
+-- Remove gap filler overlays from adjacent squares (N, E, S, W)
+-- Called when a tile is changed to clean up gap fillers that are no longer valid
 function ISShovelGround:RemoveGapFillers(square)
     if not square then
         return
     end
-
-    print("[DUMPTRUCK] RemoveGapFillers (" .. square:getX() .. "," .. square:getY() .. ")")
     
     -- Check adjacent squares (N, E, S, W) and remove gap fillers from them
     -- Leave the passed square alone
@@ -57,25 +61,25 @@ function ISShovelGround:RemoveGapFillers(square)
     for _, adjSquare in ipairs(adjacentSquares) do
         if adjSquare then
             local modData = adjSquare:getModData()
-            print("[DUMPTRUCK] ***GAP FILLER CHECK START***")
-            print("[DUMPTRUCK] (X,Y) = (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
-            print("[DUMPTRUCK] TT = " .. tostring(modData.tileType))
-            print("[DUMPTRUCK] OBJ = " .. tostring(modData.object))
-            print("[DUMPTRUCK] SP = " .. tostring(modData.sprite))
-            print("[DUMPTRUCK] ***GAP FILLER CHECK END***")
             
-            if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER and modData.object then
-                print("[DUMPTRUCK] Removing gapFiller (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
-                DumpTruck.removeOverlayObject(adjSquare, modData.object)
-            elseif modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-                print("[DUMPTRUCK] gapFiller NO OBJECT (" .. adjSquare:getX() .. "," .. adjSquare:getY() .. ")")
+            if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+                if modData.sprite then
+                    local gapFillerObject = DumpTruck.findOverlayObject(adjSquare, modData.sprite)
+                    if gapFillerObject then
+                        DumpTruck.removeOverlayObject(adjSquare, gapFillerObject)
+                    end
+                end
             end
         end
     end
 end 
 
 
+-- Override perform to handle cleanup before the original game logic runs
+-- This ensures overlays are removed before the tile is changed
 function ISShovelGround:perform()
+
+
     if self.sandTile then
         self:HandleTileChange(self.sandTile)
     end
@@ -84,4 +88,5 @@ function ISShovelGround:perform()
     if originalPerform then
         originalPerform(self)
     end
+
 end
