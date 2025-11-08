@@ -12,6 +12,9 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
     if not vehicle then
         error("Vehicle is nil in TruckBedDumpTruck create logic")
     end
+    
+    -- Create the part inventory item (CRITICAL - without this the part doesn't exist!)
+    local invItem = VehicleUtils.createPartInventoryItem(part)
 
     local modData = vehicle:getModData()
     if modData.initialized == nil then

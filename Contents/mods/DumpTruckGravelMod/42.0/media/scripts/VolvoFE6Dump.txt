@@ -268,29 +268,37 @@ module Base
 
 		template = Trunk/part/TruckBed,
 
-		part TruckBed
+	part TruckBed
+	{
+		mechanicArea = Back,
+		area = TruckBed,
+		category = bodywork,
+		itemType = Base.BigTrunk,
+		mechanicRequireKey = true,
+		repairMechanic = true,
+		durability = 5,
+
+		container
 		{
-			itemType = Base.BigTrunk,
-
-			container
-			{
-				capacity = 200,
-			}
-
-			model Default
-			{
-				file = VolvoFE6Dump_Dump,
-				offset = 0.0000 0.0000 0.0000,
-				rotate = 0.0000 0.0000 0.0000,
-			}
-
-			lua
-			{
-				create = DumpTruck_part.Create.TruckBedDumpTruck,
-				init = DumpTruck_part.Init.TruckBedDumpTruck,
-				update = DumpTruck_part.Update.TruckBedDumpTruck,
-			}
+			capacity = 200,
+			conditionAffectsCapacity = false,
+			test = Vehicles.ContainerAccess.TruckBed,
 		}
+
+		model Default
+		{
+			file = VolvoFE6Dump_Dump,
+			offset = 0.0000 0.0000 0.0000,
+			rotate = 0.0000 0.0000 0.0000,
+		}
+
+		lua
+		{
+			create = DumpTruck_part.Create.TruckBedDumpTruck,
+			init = DumpTruck_part.Init.TruckBedDumpTruck,
+			update = DumpTruck_part.Update.TruckBedDumpTruck,
+		}
+	}
 
 		template = Seat/part/SeatFrontLeft,
 		template = Seat/part/SeatFrontRight,
