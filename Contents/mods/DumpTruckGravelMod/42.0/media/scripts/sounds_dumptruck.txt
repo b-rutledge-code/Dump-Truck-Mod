@@ -1,0 +1,12 @@
+module Base
+{
+    sound GravelDumpDry
+    {
+        category = Player,
+        clip
+        {
+            file = media/sound/gravel_dump_dry.ogg,
+        }
+    }
+}
+

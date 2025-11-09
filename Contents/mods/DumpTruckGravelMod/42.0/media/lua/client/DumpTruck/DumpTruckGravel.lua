@@ -887,7 +887,7 @@ end
 
 
 --[[
-    getBackSquares2: Gets the squares behind the truck for gravel placement
+    getBackSquares: Gets the squares behind the truck for gravel placement
     Input:
         fx: number - Forward vector X component
         fy: number - Forward vector Y component
@@ -898,7 +898,7 @@ end
         length: number - Length of truck in tiles
     Output: array of IsoGridSquare - The squares where gravel should be placed
 ]]
-function DumpTruck.getBackSquares2(fx, fy, cx, cy, cz, width, length)
+function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
     
     -- Calculate offset backwards along forward vector
     local offsetDistance = (length/2)  -- Half truck length plus 1 tile
@@ -970,7 +970,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local width = math.floor(extents:x() + 0.5)
     local length = math.floor(extents:z() + 0.5)
     
-    local currentSquares = DumpTruck.getBackSquares2(fx, fy, cx, cy, cz, 3, length)
+    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, 3, length)
     
     -- Debug print current squares
     DumpTruck.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
@@ -978,6 +978,9 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         DumpTruck.debugPrint(string.format("[DEBUG] Current square %d - x: %d, y: %d", 
             tostring(i), tostring(sq:getX()), tostring(sq:getY())))
     end
+    
+    -- Track if any gravel was placed this update
+    local gravelPlaced = false
     
     -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
@@ -988,9 +991,19 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
             end
             DumpTruck.placeGravelFloorOnTile(DumpTruckConstants.GRAVEL_SPRITE, sq)
             DumpTruck.consumeGravelFromTruckBed(vehicle)
+            gravelPlaced = true
         end
     end
     DumpTruck.smoothRoad(currentSquares, fx, fy)
+    
+    -- Play sound if gravel was placed
+    if gravelPlaced then
+        local driver = vehicle:getDriver()
+        if driver then
+            -- Use custom gravel dump sound
+            driver:getEmitter():playSound("GravelDumpDry")
+        end
+    end
 end
 
 -- Update function for player actions
