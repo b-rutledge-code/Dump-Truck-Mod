@@ -787,7 +787,23 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
         end
     end
 
+    -- Save original floor sprite so it can be restored when shoveled
+    local originalFloor = sq:getFloor()
+    local shovelledSprites = nil
+    if originalFloor and originalFloor:getSprite() then
+        shovelledSprites = {}
+        -- Save the main sprite only
+        table.insert(shovelledSprites, originalFloor:getSprite():getName())
+    end
+    
     local newFloor = sq:addFloor(sprite)
+    -- Set modData on the new floor so it can be restored when shoveled
+    if newFloor and shovelledSprites and #shovelledSprites > 0 then
+        local floorModData = newFloor:getModData()
+        floorModData.shovelledSprites = shovelledSprites
+        floorModData.pouredFloor = true
+        newFloor:transmitModData()
+    end
     
     -- Disable erosion on this square (single player implementation)
     sq:disableErosion()
