@@ -1,11 +1,39 @@
 module Base
 {
-    sound GravelDumpDry
+    sound HydraulicLiftRaised
     {
         category = Player,
         clip
         {
-            file = media/sound/gravel_dump_dry.ogg,
+            file = media/sound/hydraulic_lift_raised.ogg,
+        }
+    }
+
+    sound GravelDumpStart
+    {
+        category = Player,
+        clip
+        {
+            file = media/sound/gravel_start_fadein_2s.ogg,
+        }
+    }
+
+    sound GravelDumpLoop
+    {
+        category = Player,
+        loop = true,
+        clip
+        {
+            file = media/sound/gravel_loop_12s.ogg,
+        }
+    }
+
+    sound GravelDumpEnd
+    {
+        category = Player,
+        clip
+        {
+            file = media/sound/gravel_end_fadeout_2s.ogg,
         }
     }
 }

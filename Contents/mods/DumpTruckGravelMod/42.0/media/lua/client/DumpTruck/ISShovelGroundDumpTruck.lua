@@ -1,5 +1,5 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
-require("DumpTruck/DumpTruckGravel") -- Ensure DumpTruck global is loaded
+local DumpTruck = require("DumpTruck/DumpTruckGravel")
 
 local originalPerform = ISShovelGround.perform
 
