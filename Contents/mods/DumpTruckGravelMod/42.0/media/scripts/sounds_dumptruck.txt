@@ -9,6 +9,15 @@ module Base
         }
     }
 
+    sound HydraulicLiftDown
+    {
+        category = Player,
+        clip
+        {
+            file = media/sound/hydraulic_lift_down_natural.ogg,
+        }
+    }
+
     sound GravelDumpStart
     {
         category = Player,

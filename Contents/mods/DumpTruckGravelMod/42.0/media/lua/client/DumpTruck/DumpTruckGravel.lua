@@ -1034,7 +1034,9 @@ function DumpTruck.stopDumpingSounds(vehicle, soundID)
         DumpTruck.debugPrint("No valid soundID to stop")
     end
     
-    -- Play fade-out sound
+    -- Play hydraulic lift down and fade-out sounds
+    DumpTruck.debugPrint("Playing HydraulicLiftDown sound")
+    vehicle:playSound("HydraulicLiftDown")
     DumpTruck.debugPrint("Playing GravelDumpEnd fade-out sound")
     vehicle:playSound("GravelDumpEnd")
     
