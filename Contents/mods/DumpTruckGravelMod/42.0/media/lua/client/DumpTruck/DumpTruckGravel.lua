@@ -19,14 +19,6 @@ function DumpTruck.initializeOverlayMetadata(square, tileType, sprite)
     local modData = square:getModData()
     modData.tileType = tileType
     modData.sprite = sprite
-    
-    -- DEBUG CODE DELETE ME
-    local x, y = square:getX(), square:getY()
-    DumpTruck.debugPrint("***initializeOverlayMetadata START***")
-    DumpTruck.debugPrint("(X,Y) = (" .. tostring(x) .. "," .. tostring(y) .. ")")
-    DumpTruck.debugPrint("TT = " .. tostring(tileType))
-    DumpTruck.debugPrint("SP = " .. tostring(sprite))
-    DumpTruck.debugPrint("***initializeOverlayMetadata END***")
 end
 
 -- Find overlay object by sprite name
@@ -34,35 +26,23 @@ end
 function DumpTruck.findOverlayObject(square, sprite)
     if not square or not sprite then return nil end
     
-    DumpTruck.debugPrint("***findOverlayObject START***")
-    DumpTruck.debugPrint("(X,Y) = (" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. ")")
-    DumpTruck.debugPrint("Looking for sprite: " .. tostring(sprite))
-    
     -- Only loop if we know there's an overlay here (metadata tells us)
     local objects = square:getObjects()
     if not objects then 
-        DumpTruck.debugPrint("No objects on square")
-        DumpTruck.debugPrint("***findOverlayObject END***")
         return nil 
     end
     
-    DumpTruck.debugPrint("Found " .. tostring(objects:size()) .. " objects on square")
     
     for i = 0, objects:size() - 1 do
         local obj = objects:get(i)
         if obj and obj:getSprite() then
             local objSprite = obj:getSprite():getName()
-            DumpTruck.debugPrint("Object " .. tostring(i) .. " sprite: " .. tostring(objSprite))
             if objSprite == sprite then
-                DumpTruck.debugPrint("MATCH FOUND!")
-                DumpTruck.debugPrint("***findOverlayObject END***")
                 return obj
             end
         end
     end
     
-    DumpTruck.debugPrint("NO MATCH FOUND")
-    DumpTruck.debugPrint("***findOverlayObject END***")
     return nil
 end
 
@@ -75,12 +55,6 @@ function DumpTruck.resetOverlayMetadata(square)
     
     -- TODO: REMOVE THIS DEBUG CODE - Get square coords and log metadata before clearing
     local x, y = square:getX(), square:getY()
-    if modData.tileType ~= nil then
-        DumpTruck.debugPrint("***resetOverlayMetadata START***")
-        DumpTruck.debugPrint("(X,Y) = (" .. tostring(x) .. "," .. tostring(y) .. ")")
-        DumpTruck.debugPrint("***resetOverlayMetadata END***")
-    end
-    
     
     modData.tileType = nil
     modData.sprite = nil
@@ -102,12 +76,6 @@ function DumpTruck.isPouredGravel(square)
     
     local result = isGravel or hasGapFillerOverlay
     
-    DumpTruck.debugPrint("***isPouredGravel START***")
-    DumpTruck.debugPrint("(X,Y) = (" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. ")")
-    DumpTruck.debugPrint("isGravel = " .. tostring(isGravel))
-    DumpTruck.debugPrint("hasGapFillerOverlay = " .. tostring(hasGapFillerOverlay))
-    DumpTruck.debugPrint("result = " .. tostring(result))
-    DumpTruck.debugPrint("***isPouredGravel END***")
     return result
 end
 
@@ -121,14 +89,12 @@ function DumpTruck.isFullGravelFloor(tile)
     local spriteName = floor:getSprite():getName()
     local isGravelSprite = spriteName == DumpTruckConstants.GRAVEL_SPRITE
     
-    DumpTruck.debugPrint("isFullGravelFloor tile at (" .. tostring(tile:getX()) .. "," .. tostring(tile:getY()) .. ") sprite=" .. spriteName .. " isGravel=" .. tostring(isGravelSprite))
     return isGravelSprite
 end
 
 -- Check if square is valid for gravel
 function DumpTruck.isSquareValidForGravel(sq)
     if not sq then
-        DumpTruck.debugPrint("Square is nil.")
         return false
     end
     if CFarmingSystem and CFarmingSystem.instance:getLuaObjectOnSquare(sq) then
@@ -196,7 +162,6 @@ end
 
 
 function DumpTruck.removeOverlayObject(square, edgeBlendObject)
-    print("[DUMPTRUCK] removeOverlay (" .. square:getX() .. "," .. square:getY() .. ")")
     
     -- Direct removal using stored object reference
     square:RemoveTileObject(edgeBlendObject)
@@ -218,9 +183,6 @@ function DumpTruck.removeOppositeEdgeBlends(square)
         return 
     end
     
-    DumpTruck.debugPrint("***removeOppositeEdgeBlends START***")
-    DumpTruck.debugPrint("(X,Y) = (" .. tostring(square:getX()) .. "," .. tostring(square:getY()) .. ")")
-    
     -- Check each direction
     local adjacentChecks = {
         {square = square:getN(), oppositeSprites = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.SOUTH, dir = "North"},
@@ -231,10 +193,6 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     
     for _, check in ipairs(adjacentChecks) do
         if check and check.square then
-            DumpTruck.debugPrint("***CHECK DIRECTION START***")
-            DumpTruck.debugPrint("dir = " .. check.dir)
-            DumpTruck.debugPrint("adjSquare (X,Y) = (" .. tostring(check.square:getX()) .. "," .. tostring(check.square:getY()) .. ")")
-            
             -- Check if this square has edge blend metadata (stored on square, not floor)
             local modData = check.square:getModData()
 
@@ -248,40 +206,24 @@ function DumpTruck.removeOppositeEdgeBlends(square)
                         local baseRow = math.floor(baseNumber / 16)
                         local rowStartTile = baseRow * 16
                         
-                        DumpTruck.debugPrint("***FOUND EDGE BLEND START***")
-                        DumpTruck.debugPrint("sprite = " .. tostring(edgeBlendSprite))
-                        DumpTruck.debugPrint("baseNumber = " .. tostring(baseNumber))
-                        DumpTruck.debugPrint("rowStartTile = " .. tostring(rowStartTile))
-                        
                         -- Check if the sprite matches any of the opposite sprites we want to remove
                         local shouldRemove = false
                         for _, oppositeOffset in ipairs(check.oppositeSprites) do
                             local oppositeSprite = rowStartTile + oppositeOffset
-                            DumpTruck.debugPrint("***COMPARING START***")
-                            DumpTruck.debugPrint("baseNumber = " .. tostring(baseNumber))
-                            DumpTruck.debugPrint("oppositeSprite = " .. tostring(oppositeSprite))
-                            DumpTruck.debugPrint("oppositeOffset = " .. tostring(oppositeOffset))
-                            DumpTruck.debugPrint("***COMPARING END***")
                             if baseNumber == oppositeSprite then
                                 shouldRemove = true
-                                DumpTruck.debugPrint("***MATCH FOUND - REMOVING***")
-                                DumpTruck.debugPrint("sprite = " .. tostring(edgeBlendSprite))
-                                DumpTruck.debugPrint("***MATCH FOUND END***")
                                 break
                             end
                         end
                         
-                        DumpTruck.debugPrint("***FOUND EDGE BLEND END***")
                         if shouldRemove then
                             DumpTruck.removeOverlayObject(check.square, edgeBlendObject)
                         end
                     end
                 end
             end
-            DumpTruck.debugPrint("***CHECK DIRECTION END***")
         end
     end
-    DumpTruck.debugPrint("***removeOppositeEdgeBlends END***")
 end
 
 --[[
@@ -296,12 +238,8 @@ end
 ]]
 function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
     if not pourableSquare or not DumpTruck.isPouredGravel(pourableSquare) then
-        DumpTruck.debugPrint("removeEdgeBlendsBetweenPourableSquares: Invalid or non-pourable square input")
         return
     end
-    
-    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Checking pourable square (%d,%d)", 
-        pourableSquare:getX(), pourableSquare:getY()))
     
     -- Check all four adjacent directions
     local adjacentChecks = {
@@ -313,8 +251,6 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
     
     for _, check in ipairs(adjacentChecks) do
         if check.square and DumpTruck.isPouredGravel(check.square) then
-            DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Found adjacent pourable square at (%d,%d) in direction %s", 
-                check.square:getX(), check.square:getY(), check.dir))
             
             -- Check both squares for edge blends that point toward each other
             -- We need to check for edge blends on both sides of the connection
@@ -326,15 +262,6 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
             if floor then
                 floorSprite = floor:getSprite() and floor:getSprite():getName() or "nil"
             end
-            
-            local x = tostring(pourableSquare:getX())
-            local y = tostring(pourableSquare:getY())
-            DumpTruck.debugPrint("***METADATA CHECK START***")
-            DumpTruck.debugPrint("(X,Y) = (" .. x .. "," .. y .. ")")
-            DumpTruck.debugPrint("FS = " .. tostring(floorSprite))
-            DumpTruck.debugPrint("TT = " .. tostring(modData.tileType))
-            DumpTruck.debugPrint("SP = " .. tostring(modData.sprite))
-            DumpTruck.debugPrint("***METADATA CHECK END***")
             
             if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
                 local edgeBlendSprite = modData.sprite
@@ -355,8 +282,6 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                                 local targetSprite = rowStartTile + directionOffset
                                 if baseNumber == targetSprite then
                                     shouldRemove = true
-                                    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Removing edge blend %s from original square (%d,%d)", 
-                                        edgeBlendSprite, pourableSquare:getX(), pourableSquare:getY()))
                                     break
                                 end
                             end
@@ -398,8 +323,6 @@ function DumpTruck.removeEdgeBlendsBetweenPourableSquares(pourableSquare)
                                 local oppositeSprite = rowStartTile + oppositeOffset
                                 if baseNumber == oppositeSprite then
                                     shouldRemove = true
-                                    DumpTruck.debugPrint(string.format("removeEdgeBlendsBetweenPourableSquares: Removing edge blend %s from adjacent square (%d,%d)", 
-                                        edgeBlendSprite, check.square:getX(), check.square:getY()))
                                     break
                                 end
                             end
@@ -427,31 +350,21 @@ end
     based on the direction to determine which edge blend variant should be applied.
 ]]
 function DumpTruck.getEdgeBlendSprite(direction, terrainBlock)
-    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Called with direction='%s', terrainBlock='%s'", 
-        direction or "nil", terrainBlock or "nil"))
-    
     if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Invalid terrainBlock '%s' - not matching pattern '%s_'", 
-            terrainBlock or "nil", DumpTruckConstants.EDGE_BLEND_SPRITES))
         return nil
     end
     
     -- Extract the base number from the sprite name
     local baseNumber = tonumber(terrainBlock:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
     if not baseNumber then
-        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Could not extract base number from '%s'", terrainBlock))
         return nil
     end
     
     local baseRow = math.floor(baseNumber / 16)
     local rowStartTile = baseRow * 16
     
-    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: baseNumber=%d, baseRow=%d, rowStartTile=%d", 
-        baseNumber, baseRow, rowStartTile))
-    
     local offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS[direction]
     if not offsets then 
-        DumpTruck.debugPrint(string.format("getEdgeBlendSprite: No offsets found for direction '%s'", direction))
         return nil 
     end
     
@@ -462,23 +375,18 @@ function DumpTruck.getEdgeBlendSprite(direction, terrainBlock)
     local overlayTile = rowStartTile + offset
     
     local result = DumpTruckConstants.EDGE_BLEND_SPRITES .. "_" .. overlayTile
-    DumpTruck.debugPrint(string.format("getEdgeBlendSprite: Generated sprite '%s' (offset=%d)", result, offset))
     
     return result
 end
 
 function DumpTruck.placeTileOverlay(targetSquare, sprite)
     if not targetSquare then
-        DumpTruck.debugPrint(string.format("placeTileOverlay: Target square is nil at (%d,%d)", 
-            targetSquare:getX(), targetSquare:getY()))
         return false
     end
   
     -- Check if this overlay already exists on this square (metadata stored on square, not floor)
     local modData = targetSquare:getModData()
     if modData and modData.sprite == sprite then
-        DumpTruck.debugPrint(string.format("placeTileOverlay: Overlay %s already exists at (%d,%d), skipping placement", 
-            sprite, targetSquare:getX(), targetSquare:getY()))
         return false
     end
     
@@ -487,15 +395,11 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
         if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.sprite and modData.sprite ~= sprite then
             local oldEdgeBlendObject = DumpTruck.findOverlayObject(targetSquare, modData.sprite)
             if oldEdgeBlendObject then
-                DumpTruck.debugPrint("placeTileOverlay: Removing old edge blend " .. tostring(modData.sprite) .. " before placing " .. sprite)
                 targetSquare:RemoveTileObject(oldEdgeBlendObject)
                 DumpTruck.resetOverlayMetadata(targetSquare)
             end
         end
     end
-  
-    DumpTruck.debugPrint(string.format("placeTileOverlay: Placing tile %s at (%d,%d)", 
-        sprite, targetSquare:getX(), targetSquare:getY()))
 
     -- Add the overlay
     local overlay = IsoObject.new(getCell(), targetSquare, sprite)
@@ -507,17 +411,12 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
         DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite)
     else
-        DumpTruck.debugPrint(string.format("placeTileOverlay: Invalid sprite: %s", sprite))
         return false    
     end
     targetSquare:RecalcProperties()
     targetSquare:DirtySlice()
 
     DumpTruck.removeOppositeEdgeBlends(targetSquare)
-    
-    -- Log successful placement
-    DumpTruck.debugPrint(string.format("placeTileOverlay: Successfully placed tile %s at (%d,%d)", 
-        sprite, targetSquare:getX(), targetSquare:getY()))
     
     return true
 end
@@ -533,12 +432,8 @@ end
 ]]
 function DumpTruck.addEdgeBlends(leftTile, rightTile)
     if not leftTile or not rightTile then 
-        DumpTruck.debugPrint("addEdgeBlends: Invalid input tiles")
         return 
     end
-    
-    DumpTruck.debugPrint(string.format("addEdgeBlends: Checking tiles - left(%d,%d) right(%d,%d)", 
-        leftTile:getX(), leftTile:getY(), rightTile:getX(), rightTile:getY()))
     
     local secondaryDir
     if leftTile:getX() == rightTile:getX() then
@@ -546,22 +441,18 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile)
         if leftTile:getY() > rightTile:getY() then
             -- Going west: left tile is south, right tile is north
             secondaryDir = {"SOUTH", "NORTH"}
-            DumpTruck.debugPrint("addEdgeBlends: Going west - left tile is south, right tile is north")
         else
             -- Going east: left tile is north, right tile is south
             secondaryDir = {"NORTH", "SOUTH"}
-            DumpTruck.debugPrint("addEdgeBlends: Going east - left tile is north, right tile is south")
         end
     else
         -- For north-south roads, determine which direction to use based on X coordinates
         if leftTile:getX() < rightTile:getX() then
             -- Going south: left tile is west, right tile is east
             secondaryDir = {"WEST", "EAST"}
-            DumpTruck.debugPrint("addEdgeBlends: Going south - left tile is west, right tile is east")
         else
             -- Going north: left tile is east, right tile is west
             secondaryDir = {"EAST", "WEST"}
-            DumpTruck.debugPrint("addEdgeBlends: Going north - left tile is east, right tile is west")
         end
     end
     
@@ -587,43 +478,22 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile)
         rightSideTile = rightTile:getW()
     end
     
-    DumpTruck.debugPrint(string.format("addEdgeBlends: Adjacent tiles - leftSide(%d,%d) rightSide(%d,%d)", 
-        leftSideTile and leftSideTile:getX() or -1, leftSideTile and leftSideTile:getY() or -1,
-        rightSideTile and rightSideTile:getX() or -1, rightSideTile and rightSideTile:getY() or -1))
-    
     -- Add terrain blends for outer edges
     for i, tile in ipairs({leftTile, rightTile}) do
         local sideTile = i == 1 and leftSideTile or rightSideTile
         local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
         
-        DumpTruck.debugPrint(string.format("addEdgeBlends: Processing %s edge - tile(%d,%d) sideTile(%d,%d) direction %s", 
-            i == 1 and "left" or "right",
-            tile:getX(), tile:getY(),
-            sideTile and sideTile:getX() or -1, sideTile and sideTile:getY() or -1,
-            sideDir))
-        
         if sideTile then
-            -- Check if the adjacent side tile already has poured gravel
-            if DumpTruck.isPouredGravel(sideTile) then
-                DumpTruck.debugPrint(string.format("addEdgeBlends: Skipping - side tile has gravel at (%d,%d)", 
-                    sideTile:getX(), sideTile:getY()))
-            else
+            -- Check if the adjacent side tile doesn't have poured gravel
+            if not DumpTruck.isPouredGravel(sideTile) then
                 local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
-                DumpTruck.debugPrint(string.format("addEdgeBlends: Found terrain sprite: %s", terrain or "none"))
-                
                 if terrain then
                     local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
-                    DumpTruck.debugPrint(string.format("addEdgeBlends: Generated blend sprite: %s", blend or "none"))
-                    
                     if blend then
-                        DumpTruck.debugPrint(string.format("addEdgeBlends: Placing edge blend - side tile is clear at (%d,%d)", 
-                            sideTile:getX(), sideTile:getY()))
                         DumpTruck.placeTileOverlay(tile, blend)
                     end
                 end
             end
-        else
-            DumpTruck.debugPrint(string.format("addEdgeBlends: No side tile found for %s edge", i == 1 and "left" or "right"))
         end
     end
 end
@@ -631,11 +501,8 @@ end
 -- Check if a grass tile adjacent to a gravel tile forms a corner pattern
 function DumpTruck.checkForCornerPattern(gravelTile)
     if not gravelTile or not DumpTruck.isFullGravelFloor(gravelTile) then
-        DumpTruck.debugPrint("checkForCornerPattern: Invalid gravel tile input")
         return nil, nil
     end
-
-    DumpTruck.debugPrint("checkForCornerPattern at (" .. tostring(gravelTile:getX()) .. "," .. tostring(gravelTile:getY()) .. ")")
 
     -- Check each adjacent tile
     local adjacentChecks = {
@@ -648,8 +515,6 @@ function DumpTruck.checkForCornerPattern(gravelTile)
     for _, check in ipairs(adjacentChecks) do
         local adjacentTile = check.tile
         if adjacentTile and not DumpTruck.isPouredGravel(adjacentTile) then
-            DumpTruck.debugPrint(string.format("checkForCornerPattern: Found non-gravel tile at (%d,%d) in direction %s", 
-                adjacentTile:getX(), adjacentTile:getY(), check.dir))
             
             -- Found a non-gravel tile, check its other adjacent tiles
             local otherAdjacentChecks = {
@@ -665,7 +530,6 @@ function DumpTruck.checkForCornerPattern(gravelTile)
             -- First add the direction FROM the grass tile TO the original gravel tile
             -- This is the opposite of how we found the grass tile
             table.insert(gravelDirections, check.opposite)
-            DumpTruck.debugPrint(string.format("Added gravel direction %s (from grass to original gravel)", check.opposite))
 
             -- Then check other adjacent tiles from the grass tile's perspective
             for _, otherCheck in ipairs(otherAdjacentChecks) do
@@ -674,56 +538,36 @@ function DumpTruck.checkForCornerPattern(gravelTile)
                     if otherCheck.tile and DumpTruck.isFullGravelFloor(otherCheck.tile) then
                         gravelCount = gravelCount + 1
                         table.insert(gravelDirections, otherCheck.dir)
-                        DumpTruck.debugPrint(string.format("Found gravel tile in direction %s (from grass)", otherCheck.dir))
                     end
                 end
             end
 
             -- If we found exactly one other gravel floor tile, we have a corner pattern
             if gravelCount == 1 then
-                DumpTruck.debugPrint(string.format("checkForCornerPattern: Found potential corner pattern at (%d,%d) - gravelCount=%d", 
-                    adjacentTile:getX(), adjacentTile:getY(), gravelCount))
-                DumpTruck.debugPrint(string.format("Total gravel directions: %s, %s", gravelDirections[1], gravelDirections[2]))
-                
                 -- Look up the appropriate blend tile in our mapping
-                DumpTruck.debugPrint("Starting mapping lookup...")
                 for i, mapping in ipairs(DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING) do
-                    DumpTruck.debugPrint(string.format("Checking mapping entry %d", i))
                     if not mapping then
-                        DumpTruck.debugPrint("ERROR: mapping entry is nil!")
                         return nil, nil
                     end
                     if not mapping.adjacent_directions then
-                        DumpTruck.debugPrint("ERROR: mapping.adjacent_directions is nil!")
                         return nil, nil
                     end
                     local directions = mapping.adjacent_directions
-                    -- Only print debug info after we know directions exists
-                    DumpTruck.debugPrint(string.format("Checking mapping: %s, %s -> %s", 
-                        directions[1], directions[2], mapping.blend_direction))
                     
                     -- Check if our gravel directions match this mapping (order doesn't matter)
                     if (gravelDirections[1] == directions[1] and gravelDirections[2] == directions[2]) or
                        (gravelDirections[1] == directions[2] and gravelDirections[2] == directions[1]) then
                         local blendTile = DumpTruckConstants.GAP_FILLER_TILES[mapping.blend_direction]
                         if not blendTile then
-                            DumpTruck.debugPrint(string.format("ERROR: No blend tile found for direction %s", mapping.blend_direction))
                             return nil, nil
                         end
-                        DumpTruck.debugPrint(string.format("Found corner pattern at (%d,%d): gravel tiles to %s and %s, using blend tile %s", 
-                            adjacentTile:getX(), adjacentTile:getY(), gravelDirections[1], gravelDirections[2], blendTile))
                         return adjacentTile, blendTile
                     end
                 end
-                DumpTruck.debugPrint("No matching mapping found for directions")
-            else
-                DumpTruck.debugPrint(string.format("checkForCornerPattern: Not a corner pattern at (%d,%d) - gravelCount=%d (need exactly 1)", 
-                    adjacentTile:getX(), adjacentTile:getY(), gravelCount))
             end
         end
     end
 
-    DumpTruck.debugPrint("checkForCornerPattern: No corner pattern found")
     return nil, nil
 end
 
@@ -732,21 +576,16 @@ function DumpTruck.fillGaps(leftTile, rightTile)
     local adjacentTile2, blendTile2 = DumpTruck.checkForCornerPattern(rightTile)
 
     if adjacentTile1 and blendTile1 then
-        DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for left tile, using blend tile %s", 
-            adjacentTile1:getX(), adjacentTile1:getY(), blendTile1))
         DumpTruck.placeTileOverlay(adjacentTile1, blendTile1)
     end
 
     if adjacentTile2 and blendTile2 then
-        DumpTruck.debugPrint(string.format("fillGaps: Found corner pattern at (%d,%d) for right tile, using blend tile %s", 
-            adjacentTile2:getX(), adjacentTile2:getY(), blendTile2))
         DumpTruck.placeTileOverlay(adjacentTile2, blendTile2)
     end
 end
 
 function DumpTruck.smoothRoad(currentSquares, fx, fy)
     if #currentSquares < 2 then
-        DumpTruck.debugPrint("Error: Need at least 2 tiles to smooth.")
         return
     end
 
@@ -782,8 +621,6 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
         local gapFillerObject = DumpTruck.findOverlayObject(sq, gapFillerSprite)
         if gapFillerObject then
             DumpTruck.removeOverlayObject(sq, gapFillerObject)
-            DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Removed gap filler object at (%d,%d)", 
-                sq:getX(), sq:getY()))
         end
     end
 
@@ -816,15 +653,6 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     sq:DirtySlice()
     if isClient() then
         sq:transmitFloor()
-    end
-
-    -- Log successful placement
-    if isGapFillerUpgrade then
-        DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Successfully upgraded gap filler to full gravel at (%d,%d)", 
-            sq:getX(), sq:getY()))
-    else
-        DumpTruck.debugPrint(string.format("placeGravelFloorOnTile: Successfully placed gravel floor at (%d,%d)", 
-            sq:getX(), sq:getY()))
     end
 end
 
@@ -958,10 +786,16 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not data.dumpingGravelActive then return end  -- Only proceed if dumping is active
 
     local cx, cy, cz = vehicle:getX(), vehicle:getY(), vehicle:getZ()
+    DumpTruck.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
-    if math.floor(cx) == oldX and math.floor(cy) == oldY then return end
-    oldX, oldY = math.floor(cx), math.floor(cy)
+    -- Apply threshold so vehicle must be 0.3 units into the tile before registering
+    local threshold = 0.3
+    local tileX = math.floor(cx - threshold)
+    local tileY = math.floor(cy - threshold)
+    
+    if tileX == oldX and tileY == oldY then return end
+    oldX, oldY = tileX, tileY
 
     local fx, fy = DumpTruck.getVectorFromPlayer(vehicle)
 
@@ -986,15 +820,21 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     for _, sq in ipairs(currentSquares) do
         if sq and DumpTruck.isSquareValidForGravel(sq) then
             if DumpTruck.getGravelCount(vehicle) <= 0 then
+                DumpTruck.debugPrint("GRAVEL RAN OUT - stopping dump")
                 data.dumpingGravelActive = false
                 vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
                 -- Stop dumping sounds when gravel runs out
                 DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
                 return
             end
+            DumpTruck.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
             DumpTruck.placeGravelFloorOnTile(DumpTruckConstants.GRAVEL_SPRITE, sq)
             DumpTruck.consumeGravelFromTruckBed(vehicle)
             gravelPlaced = true
+        else
+            if sq then
+                DumpTruck.debugPrint("SKIPPED square (not valid): x=" .. sq:getX() .. ", y=" .. sq:getY())
+            end
         end
     end
     DumpTruck.smoothRoad(currentSquares, fx, fy)
@@ -1021,29 +861,22 @@ Events.OnPlayerUpdate.Add(DumpTruck.onPlayerUpdateFunc)
 
 -- Stop dumping sounds
 function DumpTruck.stopDumpingSounds(vehicle, soundID)
-    DumpTruck.debugPrint("stopDumpingSounds called with soundID: " .. tostring(soundID))
     
     -- Stop loop if playing
     if soundID and soundID ~= 0 then
-        DumpTruck.debugPrint("Stopping loop sound with ID: " .. tostring(soundID))
         local emitter = vehicle:getEmitter()
         if emitter then
             emitter:stopSound(soundID)
         end
-    else
-        DumpTruck.debugPrint("No valid soundID to stop")
     end
     
     -- Play hydraulic lift down and fade-out sounds
-    DumpTruck.debugPrint("Playing HydraulicLiftDown sound")
     vehicle:playSound("HydraulicLiftDown")
-    DumpTruck.debugPrint("Playing GravelDumpEnd fade-out sound")
     vehicle:playSound("GravelDumpEnd")
     
     -- Clear from modData
     local data = vehicle:getModData()
     data.gravelLoopSoundID = nil
-    DumpTruck.debugPrint("Cleared gravelLoopSoundID from modData")
 end
 
 -- Toggle gravel dumping based on key press
@@ -1067,12 +900,10 @@ function DumpTruck.toggleGravelDumping(key)
                 -- Start loop using emitter to get sound ID
                 local emitter = vehicle:getEmitter()
                 data.gravelLoopSoundID = emitter:playSound("GravelDumpLoop")
-                DumpTruck.debugPrint("GravelDumpLoop sound ID: " .. tostring(data.gravelLoopSoundID))
             else
                 vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
                 
                 -- Stop dumping sounds
-                DumpTruck.debugPrint("Stopping dumping sounds")
                 DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
             end
         end

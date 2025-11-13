@@ -33,7 +33,7 @@ module Base
         loop = true,
         clip
         {
-            file = media/sound/gravel_loop_12s.ogg,
+            file = media/sound/new_gravel_loop.ogg,
         }
     }
 
