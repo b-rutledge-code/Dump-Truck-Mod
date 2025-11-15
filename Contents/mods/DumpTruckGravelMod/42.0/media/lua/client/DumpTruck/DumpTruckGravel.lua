@@ -789,15 +789,22 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     DumpTruck.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
-    -- Apply threshold so vehicle must be 0.3 units into the tile before registering
+    -- Get forward vector first
+    local fx, fy = DumpTruck.getVectorFromPlayer(vehicle)
+    
+    -- Calculate perpendicular vector (90 degrees to forward)
+    local perpX = -fy
+    local perpY = fx
+    
+    -- Apply threshold only in perpendicular direction (sideways drift)
     local threshold = 0.3
-    local tileX = math.floor(cx - threshold)
-    local tileY = math.floor(cy - threshold)
+    local adjustedX = cx + (perpX * threshold)
+    local adjustedY = cy + (perpY * threshold)
+    local tileX = math.floor(adjustedX)
+    local tileY = math.floor(adjustedY)
     
     if tileX == oldX and tileY == oldY then return end
     oldX, oldY = tileX, tileY
-
-    local fx, fy = DumpTruck.getVectorFromPlayer(vehicle)
 
     local script = vehicle:getScript()
     local extents = script:getExtents()
