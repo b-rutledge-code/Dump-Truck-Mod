@@ -15,7 +15,7 @@ DumpTruckConstants.AXIS = {
 
 --Sprite Information
 DumpTruckConstants.POURED_FLOOR_TYPE = "gravel"
-DumpTruckConstants.VEHICLE_SCRIPT_NAME = "Base.VolvoFE6Dump"
+DumpTruckConstants.VEHICLE_SCRIPT_NAME = "Base.DumpTruck"
 DumpTruckConstants.BAG_TYPE = "Base.Gravelbag"
 DumpTruckConstants.PART_NAME = "TruckBed"
 DumpTruckConstants.GAP_FILLER_TILES = {

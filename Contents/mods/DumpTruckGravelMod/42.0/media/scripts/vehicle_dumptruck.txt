@@ -1,35 +1,165 @@
 module Base
 {
-	model Vehicles_DumpTruck
+	model VolvoFE6Dump_base
 	{
-		mesh = vehicles/Vehicles_PickUpTruck,
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6,
 		shader = vehicle_multiuv,
 		invertX = FALSE,
-		scale = 0.008,
+		scale = 0.59,
 	}
-	model Vehicles_DumpTruck_NoRandom
+	model VolvoFE6Dump_Dump
 	{
-		mesh = vehicles/Vehicles_PickUpTruck,
-		shader = vehicle_norandom_multiuv,
-		invertX = FALSE,
-		scale = 0.008,
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6Dump,
+		shader = vehicle_multiuv,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_LeafL
+	{
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6LeafL,
+		shader = vehicle_multiuv,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_LeafR
+	{
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6LeafR,
+		shader = vehicle_multiuv,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_GasTank
+	{
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6FuelTank,
+		shader = vehicle_multiuv,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Exhaust
+	{
+		mesh = vehicles/vehicle_FE6Dump|fhqFE6Exhaust,
+		shader = vehicle_multiuv,
+		scale = 0.59,
+	}
+	model WheelFE6Dump_FrontL
+	{
+		mesh = vehicles/vehicles_WheelFE6Dump,
+		texture = vehicles/vehicles_Wheel_FE6Dump,
+		scale = 0.59,
+	}
+	model WheelFE6Dump_FrontR
+	{
+		mesh = vehicles/vehicles_WheelFE6Dump,
+		texture = vehicles/vehicles_Wheel_FE6Dump,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model WheelFE6Dump_RearL
+	{
+		mesh = vehicles/vehicles_WheelFE6DumpDually,
+		texture = vehicles/vehicles_Wheel_FE6Dump,
+		scale = 0.59,
+	}
+	model WheelFE6Dump_RearR
+	{
+		mesh = vehicles/vehicles_WheelFE6DumpDually,
+		texture = vehicles/vehicles_Wheel_FE6Dump,
+		invertX = TRUE,
+		scale = 0.59,
 	}
 	vehicle DumpTruck
 	{
-		template! = PickUpTruck,
-	    specialKeyRing = KeyRing_Bass;KeyRing_EagleFlag;KeyRing_EightBall;KeyRing_Panther;KeyRing_PineTree;KeyRing_RabbitFoot;KeyRing_Sexy,
+		mechanicType = 2,
+		offRoadEfficiency = 1.0,
+		engineRepairLevel = 4,
+		playerDamageProtection = 0.8,
+		engineRPMType = van,
 
 		model
 		{
-			file = Vehicles_DumpTruck_NoRandom,
+			file = VolvoFE6Dump_base,
 			scale = 1.8200,
-			offset = 0.0000 0.3022 0.0000,
+			offset = 0.0000 0.0549 0.0165,
 		}
+
+		spawnOffsetY = 0.12999995,
 
 		skin
 		{
-			texture = Vehicles/vehicle_pickupshell,
-			skinIndex = 3,
+			texture = Vehicles/vehicle_FE6Dump_shell,
+		}
+
+		textureMask = Vehicles/vehicle_FE6Dump_mask,
+		textureLights = Vehicles/vehicle_FE6Dump_lights,
+		textureDamage1Overlay = Vehicles/Veh_Blood_Mask,
+		textureDamage2Overlay = Vehicles/Veh_Blood_Hvy,
+		textureDamage1Shell = Vehicles/Veh_Damage1,
+		textureDamage2Shell = Vehicles/Veh_Damage2,
+		textureRust = Vehicles/Veh_Rust,
+
+		sound
+		{
+			alarm = VehicleAlarmVan,
+			engine = VehicleEngineStepVan,
+			engineStart = VehicleEngineStepVan,
+			engineTurnOff = VehicleEngineStepVan,
+			horn = VehicleHornVan,
+			ignitionFail = VehicleIgnitionFailStepVan,
+			backSignal = VehicleBackUpBeeper,
+		}
+
+		extents = 1.1209 1.2198 3.0769,
+		mass = 1100,
+		physicsChassisShape = 1.1209 1.2198 3.0769,
+		centerOfMassOffset = 0.0000 0.6154 -0.0879,
+		shadowExtents = 1.2564 3.0554,
+		shadowOffset = 0.0000 0.0000,
+		engineForce = 4000,
+		engineLoudness = 100,
+		engineQuality = 70,
+		maxSpeed = 62f,
+		gearRatioCount = 4,
+		stoppingMovementForce = 4.0f,
+		rollInfluence = 0.7f,
+		steeringIncrement = 0.04,
+		steeringClamp = 0.3,
+		suspensionStiffness = 35,
+		suspensionCompression = 3.62,
+		suspensionDamping = 2.46,
+		maxSuspensionTravelCm = 15,
+		suspensionRestLength = 0.2f,
+		wheelFriction = 1.4f,
+		frontEndHealth = 150,
+		rearEndHealth = 150,
+		seats = 2,
+
+		wheel FrontLeft
+		{
+			front = true,
+			offset = 0.4451 -0.0385 0.7582,
+			radius = 0.21f,
+			width = 0.20f,
+		}
+
+		wheel FrontRight
+		{
+			front = true,
+			offset = -0.4451 -0.0385 0.7747,
+			radius = 0.21f,
+			width = 0.20f,
+		}
+
+		wheel RearLeft
+		{
+			front = false,
+			offset = 0.4065 -0.0385 -0.9725,
+			radius = 0.21f,
+			width = 0.35f,
+		}
+
+		wheel RearRight
+		{
+			front = false,
+			offset = -0.4065 -0.0385 -0.9725,
+			radius = 0.21f,
+			width = 0.35f,
 		}
 
 		template = PassengerSeat2,
@@ -38,13 +168,13 @@ module Base
 		{
 			position inside
 			{
-				offset = 0.1758 -0.1374 0.0659,
+				offset = 0.2473 0.4670 0.9670,
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
 			position outside
 			{
-				offset = 0.5934 -0.4670 0.1813,
+				offset = 0.7253 -0.2582 0.9670,
 				rotate = 0.0000 0.0000 0.0000,
 				area = SeatFrontLeft,
 			}
@@ -54,166 +184,122 @@ module Base
 		{
 			position inside
 			{
-				offset = -0.1758 -0.1374 0.0659,
+				offset = -0.2473 0.4670 0.9670,
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
 			position outside
 			{
-				offset = -0.5934 -0.4670 0.1813,
+				offset = -0.7253 -0.2582 0.9670,
 				rotate = 0.0000 0.0000 0.0000,
 				area = SeatFrontRight,
 			}
 		}
 
-		area SeatFrontLeft
-		{
-			xywh = 0.6703 0.1813 0.4725 0.4725,
-		}
-
-		area SeatFrontRight
-		{
-			xywh = -0.6703 0.1813 0.4725 0.4725,
-		}
-
-		extents = 0.8681 0.6593 2.1868,
-		physicsChassisShape = 0.8681 0.6593 2.1868,
-		centerOfMassOffset = 0.0000 0.3022 0.0000,
-		shadowExtents = 0.8681 2.1868,
-		shadowOffset = 0.0000 0.0000,
-		template = PickupTruckCollision,
-
-		attachment trailer
-		{
-			offset = 0.0000 -0.2747 -1.1813,
-			rotate = 0.0000 0.0000 0.0000,
-			zoffset = -1.0000,
-		}
-
-		attachment trailerfront
-		{
-			offset = 0.0000 -0.2747 1.1374,
-			rotate = 0.0000 0.0000 0.0000,
-			zoffset = 1.0000,
-		}
-	}
-	template vehicle PickUpTruck
-	{
-		mechanicType = 2,
-		offRoadEfficiency = 1.1,
-		engineRepairLevel = 5,
-		playerDamageProtection = 1.3,
-
-		spawnOffsetY = 0.5,
-
-		textureMask = Vehicles/vehicle_pickuptruck_mask,
-		textureLights = Vehicles/vehicle_pickuptruck_lightsy,
-		textureDamage1Overlay = Vehicles/Veh_Blood_Mask,
-		textureDamage2Overlay = Vehicles/Veh_Blood_Hvy,
-		textureDamage1Shell = Vehicles/Veh_Damage1,
-		textureDamage2Shell = Vehicles/Veh_Damage2,
-		textureRust = Vehicles/Veh_Rust,
-
-		sound
-		{
-			engine = VehicleEnginePickUpTruck,
-			engineStart = VehicleEnginePickUpTruck,
-			engineTurnOff = VehicleEnginePickUpTruck,
-			horn = VehicleHornStandard,
-			ignitionFail = VehicleIgnitionFailPickUpTruck,
-		}
-
-		extents = 0.8681 0.6593 2.1868,
-		mass = 1030,
-		physicsChassisShape = 0.8681 0.6593 2.1868,
-		centerOfMassOffset = 0.0000 0.3022 0.0000,
-		engineForce = 4000,
-		engineQuality = 80,
-		engineLoudness = 110,
-		maxSpeed = 70f,
-		brakingForce = 80,
-		rollInfluence = 0.8f,
-		steeringIncrement = 0.04,
-		steeringClamp = 0.3,
-		suspensionStiffness = 40,
-		suspensionCompression = 3.83,
-		suspensionDamping = 2.88,
-		maxSuspensionTravelCm = 10,
-		suspensionRestLength = 0.2,
-		wheelFriction = 1.5f,
-		frontEndHealth = 150,
-		rearEndHealth = 150,
-		seats = 2,
-
-		wheel FrontLeft
-		{
-			front = true,
-			offset = 0.3462 -0.3956 0.7582,
-			radius = 0.15f,
-			width = 0.2f,
-		}
-
-		wheel FrontRight
-		{
-			front = true,
-			offset = -0.3462 -0.3956 0.7582,
-			radius = 0.15f,
-			width = 0.2f,
-		}
-
-		wheel RearLeft
-		{
-			front = false,
-			offset = 0.3462 -0.3956 -0.5879,
-			radius = 0.15f,
-			width = 0.2f,
-		}
-
-		wheel RearRight
-		{
-			front = false,
-			offset = -0.3462 -0.3956 -0.5879,
-			radius = 0.15f,
-			width = 0.2f,
-		}
-
 		area Engine
 		{
-			xywh = 0.0000 1.3297 0.8681 0.4725,
+			xywh = 0.0000 1.6648 1.1209 0.4286,
 		}
 
 		area TruckBed
 		{
-			xywh = 0.0000 -0.7912 1.8132 1.4945,
+			xywh = 0.0000 -1.8352 1.1209 0.4286,
+		}
+
+		area SeatFrontLeft
+		{
+			xywh = 0.8077 1.0714 0.4945 0.4945,
+		}
+
+		area SeatFrontRight
+		{
+			xywh = -0.8077 1.0714 0.4945 0.4945,
 		}
 
 		area GasTank
 		{
-			xywh = 0.6703 -0.5879 0.4725 0.4725,
+			xywh = -0.7857 0.0549 0.4505 0.4505,
 		}
 
 		area TireFrontLeft
 		{
-			xywh = 0.6703 0.7582 0.4725 0.4725,
+			xywh = 0.7857 0.7912 0.4505 0.4505,
 		}
 
 		area TireFrontRight
 		{
-			xywh = -0.6703 0.7582 0.4725 0.4725,
+			xywh = -0.7857 0.7912 0.4505 0.4505,
 		}
 
 		area TireRearLeft
 		{
-			xywh = 0.6703 -0.5879 0.4725 0.4725,
+			xywh = 0.7857 -0.9615 0.4505 0.4505,
 		}
 
 		area TireRearRight
 		{
-			xywh = -0.6703 -0.5879 0.4725 0.4725,
+			xywh = -0.7857 -0.9615 0.4505 0.4505,
 		}
 
+		template = TrunkDoor,
 
-		template = TruckBedDumpTruck/part/TruckBed,
+		part TrunkDoor
+		{
+			anim Open
+			{
+				sound = VehicleTrunkOpenVan,
+			}
+
+			anim Close
+			{
+				sound = VehicleTrunkCloseVan,
+			}
+
+			anim Lock
+			{
+				sound = VehicleTrunkLockVan,
+			}
+
+			anim Unlock
+			{
+				sound = VehicleTrunkUnlockVan,
+			}
+		}
+
+		template = Trunk/part/TruckBed,
+
+	part TruckBed
+	{
+		mechanicArea = Back,
+		area = TruckBed,
+		category = bodywork,
+		itemType = Base.BigTrunk,
+		mechanicRequireKey = true,
+		repairMechanic = true,
+		durability = 5,
+
+		container
+		{
+			capacity = 200,
+			conditionAffectsCapacity = false,
+			test = Vehicles.ContainerAccess.TruckBed,
+		}
+
+		model Default
+		{
+			file = VolvoFE6Dump_Dump,
+			offset = 0.0000 0.0000 0.0000,
+			rotate = 0.0000 0.0000 0.0000,
+		}
+
+		lua
+		{
+			create = DumpTruck_part.Create.TruckBedDumpTruck,
+			init = DumpTruck_part.Init.TruckBedDumpTruck,
+			update = DumpTruck_part.Update.TruckBedDumpTruck,
+		}
+	}
+
 		template = Seat/part/SeatFrontLeft,
 		template = Seat/part/SeatFrontRight,
 
@@ -248,6 +334,13 @@ module Base
 				skills = Mechanics:7,
 				recipes = Intermediate Mechanics,
 			}
+
+			model Default
+			{
+				file = VolvoFE6Dump_GasTank,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
 		}
 
 		template = Battery,
@@ -265,6 +358,13 @@ module Base
 			{
 				recipes = Intermediate Mechanics,
 			}
+
+			model Default
+			{
+				file = VolvoFE6Dump_Exhaust,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
 		}
 
 		template = EngineDoor,
@@ -280,9 +380,18 @@ module Base
 			{
 				recipes = Intermediate Mechanics,
 			}
+
+			anim Open
+			{
+				sound = VehicleHoodOpenVan,
+			}
+
+			anim Close
+			{
+				sound = VehicleHoodCloseVan,
+			}
 		}
 
-		template = Heater,
 		part Heater
 		{
 			category = engine,
@@ -340,6 +449,31 @@ module Base
 
 		part Door*
 		{
+			anim Open
+			{
+				sound = VehicleDoorOpenVan,
+			}
+
+			anim Close
+			{
+				sound = VehicleDoorCloseVan,
+			}
+
+			anim Lock
+			{
+				sound = LockVehicleDoorVan,
+			}
+
+			anim Unlock
+			{
+				sound = UnlockVehicleDoorVan,
+			}
+
+			anim IsLocked
+			{
+				sound = VehicleDoorIsLockedVan,
+			}
+
 			table install
 			{
 				recipes = Intermediate Mechanics,
@@ -352,6 +486,47 @@ module Base
 		}
 
 		template = Tire,
+
+		part TireFrontLeft
+		{
+			model InflatedTirePlusWheel
+			{
+				file = WheelFE6Dump_FrontL,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
+		part TireFrontRight
+		{
+			model InflatedTirePlusWheel
+			{
+				file = WheelFE6Dump_FrontR,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
+		part TireRearLeft
+		{
+			model InflatedTirePlusWheel
+			{
+				file = WheelFE6Dump_RearL,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
+		part TireRearRight
+		{
+			model InflatedTirePlusWheel
+			{
+				file = WheelFE6Dump_RearR,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
 		template = Brake,
 
 		part Brake*
@@ -371,6 +546,26 @@ module Base
 
 		template = Suspension,
 
+		part SuspensionRearLeft
+		{
+			model Default
+			{
+				file = VolvoFE6Dump_LeafL,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
+		part SuspensionRearRight
+		{
+			model Default
+			{
+				file = VolvoFE6Dump_LeafR,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+		}
+
 		part Suspension*
 		{
 			table install
@@ -388,20 +583,19 @@ module Base
 
 		template = Radio,
 		template = Headlight,
-		template = PickupTruckCollision,
 
 		attachment trailer
 		{
-			offset = 0.0000 -0.2747 -1.1813,
+			offset = 0.0000 0.1367 -1.6386,
 			rotate = 0.0000 0.0000 0.0000,
-			zoffset = -1,
+			zoffset = -1.0000,
 		}
 
 		attachment trailerfront
 		{
-			offset = 0.0000 -0.2747 1.1374,
+			offset = 0.0000 0.0977 1.4315,
 			rotate = 0.0000 0.0000 0.0000,
-			zoffset = 1,
+			zoffset = 1.0000,
 		}
 	}
 }
