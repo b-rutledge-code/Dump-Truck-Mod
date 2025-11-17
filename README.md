@@ -35,7 +35,6 @@ This is a beta version of the mod. The core functionality is complete, with ongo
 
 - Build 42
 - Compatible with mods that disable vanilla vehicles
-- Will eventually require Filibuster Rhyme's Used Cars! when officially released for B42
 
 ## License
 
