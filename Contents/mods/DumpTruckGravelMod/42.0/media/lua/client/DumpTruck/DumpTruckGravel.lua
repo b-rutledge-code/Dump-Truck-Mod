@@ -1,7 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
 local DumpTruck = {}
-DumpTruck.debugMode = true
+DumpTruck.debugMode = false
 
 
 -- Utility function for debug printing
@@ -52,10 +52,6 @@ function DumpTruck.resetOverlayMetadata(square)
     if not square then return end
     
     local modData = square:getModData()
-    
-    -- TODO: REMOVE THIS DEBUG CODE - Get square coords and log metadata before clearing
-    local x, y = square:getX(), square:getY()
-    
     modData.tileType = nil
     modData.sprite = nil
 end
@@ -808,10 +804,18 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     local script = vehicle:getScript()
     local extents = script:getExtents()
-    local width = math.floor(extents:x() + 0.5)
+    local vehicleWidth = math.floor(extents:x() + 0.5)
     local length = math.floor(extents:z() + 0.5)
     
-    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, 3, length)
+    -- Determine road width based on vehicle width and user preference
+    local modData = vehicle:getModData()
+    local wideMode = modData.wideRoadMode or false
+    local roadWidth = vehicleWidth
+    if wideMode and vehicleWidth < 3 then
+        roadWidth = vehicleWidth + 1
+    end
+    
+    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
     
     -- Debug print current squares
     DumpTruck.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
@@ -828,10 +832,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         if sq and DumpTruck.isSquareValidForGravel(sq) then
             if DumpTruck.getGravelCount(vehicle) <= 0 then
                 DumpTruck.debugPrint("GRAVEL RAN OUT - stopping dump")
-                data.dumpingGravelActive = false
-                vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
-                -- Stop dumping sounds when gravel runs out
-                DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
+                DumpTruck.stopDumping(vehicle)
                 return
             end
             DumpTruck.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
@@ -886,6 +887,30 @@ function DumpTruck.stopDumpingSounds(vehicle, soundID)
     data.gravelLoopSoundID = nil
 end
 
+-- Start dumping
+function DumpTruck.startDumping(vehicle)
+    local data = vehicle:getModData()
+    data.dumpingGravelActive = true
+    vehicle:setMaxSpeed(DumpTruckConstants.MAX_DUMP_SPEED)
+    
+    -- Start dumping sounds
+    DumpTruck.debugPrint("Starting dumping sounds")
+    vehicle:playSound("HydraulicLiftRaised")
+    vehicle:playSound("GravelDumpStart")
+    local emitter = vehicle:getEmitter()
+    data.gravelLoopSoundID = emitter:playSound("GravelDumpLoop")
+end
+
+-- Stop dumping
+function DumpTruck.stopDumping(vehicle)
+    local data = vehicle:getModData()
+    data.dumpingGravelActive = false
+    vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
+    
+    -- Stop dumping sounds
+    DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
+end
+
 -- Toggle gravel dumping based on key press
 function DumpTruck.toggleGravelDumping(key)
     if key == DumpTruckConstants.DUMP_KEY then
@@ -894,24 +919,11 @@ function DumpTruck.toggleGravelDumping(key)
         local vehicle = playerObj:getVehicle()
         if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
             local data = vehicle:getModData()
-            data.dumpingGravelActive = not data.dumpingGravelActive
             
-            -- Set speed limit and handle sounds based on dumping state
             if data.dumpingGravelActive then
-                vehicle:setMaxSpeed(DumpTruckConstants.MAX_DUMP_SPEED)
-                
-                -- Start dumping sounds
-                DumpTruck.debugPrint("Starting dumping sounds")
-                vehicle:playSound("HydraulicLiftRaised")
-                vehicle:playSound("GravelDumpStart")
-                -- Start loop using emitter to get sound ID
-                local emitter = vehicle:getEmitter()
-                data.gravelLoopSoundID = emitter:playSound("GravelDumpLoop")
+                DumpTruck.stopDumping(vehicle)
             else
-                vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
-                
-                -- Stop dumping sounds
-                DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
+                DumpTruck.startDumping(vehicle)
             end
         end
     end

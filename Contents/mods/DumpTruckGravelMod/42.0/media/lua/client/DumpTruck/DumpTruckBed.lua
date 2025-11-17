@@ -1,6 +1,5 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
-FULL_LOAD_CHANCE = 5 -- 50% chance
 BAG_WEIGHT = 2.0
 
 DumpTruck_part = {}
@@ -36,20 +35,21 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
             return
         end
 
-        local vehicleIDStr = tostring(vehicleID)
-        local lastDigit = tonumber(vehicleIDStr:sub(-1)) or 0 -- Ensure it's a number
-
-
-        -- 50% chance logic for full gravel load
-        local zero_based_percentage = FULL_LOAD_CHANCE - 1
-        if lastDigit <= zero_based_percentage then
-            local _shovel = truckbedcontainer:AddItem("Base.Shovel2")
+        -- Random gravel load
+        -- Always add a shovel
+        local _shovel = truckbedcontainer:AddItem("Base.Shovel2")
+        
+        -- 50% chance to have gravel
+        if ZombRand(2) == 0 then
             local totalWeight = truckbedcontainer:getContentsWeight()
             local capacity = truckbedcontainer:getCapacity()
-
             local maxItems = math.floor((capacity - totalWeight) / BAG_WEIGHT)
-
-            for i = 1, maxItems do
+            
+            -- If truck gets gravel, it's 80-100% full (realistic load)
+            local fillPercentage = (80 + ZombRand(21)) / 100.0  -- 0.8 to 1.0
+            local numBags = math.floor(maxItems * fillPercentage)
+            
+            for i = 1, numBags do
                 local gravelBag = truckbedcontainer:AddItem("Base.Gravelbag")
                 gravelBag:setUseDelta(1.0) -- Set to full capacity
             end
