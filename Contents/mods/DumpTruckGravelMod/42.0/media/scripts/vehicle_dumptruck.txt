@@ -280,7 +280,7 @@ module Base
 
 		container
 		{
-			capacity = 200,
+			capacity = 600,
 			conditionAffectsCapacity = false,
 			test = Vehicles.ContainerAccess.TruckBed,
 		}
