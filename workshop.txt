@@ -1,6 +1,6 @@
 version=1
 id=3433311021
-title=Dump Truck Gravel Mod
+title=Road Builder
 description=A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads that wont erode.
 description=
 description=[h2]New features[/h2]
