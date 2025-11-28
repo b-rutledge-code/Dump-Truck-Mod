@@ -1,10 +1,10 @@
 version=1
 id=3433311021
 title=Road Builder
-description=A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads that wont erode.
+description=A Project Zomboid mod that adds a dump truck capable of laying gravel roads that wont erode.
 description=
 description=[h2]New features[/h2]
-description=- Volvo FE6 Dump Truck model (courtesy of fhqwhgads from Motorius Zone!)
+description=- Volvo FE6 dump truck model (courtesy of [b]fhqwhgads[/b] from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2791656602]Motorious Zone[/url]!)
 description=- Improved gravel dumping logic
 description=- 3-tile wide roads
 description=
@@ -15,7 +15,7 @@ description=- Smart corner filling: gaps between angled roads automatically fill
 description=- Realistic spawn variation: 50% chance trucks spawn with 80-100% gravel load
 description=
 description=[h2]Usage[/h2]
-description=1. Find a Dump Truck (spawns in construction, farm, and industrial zones)
+description=1. Find a dump truck (spawns in construction, farm, and industrial zones)
 description=2. Load gravel sacks into the truck bed (if empty or low)
 description=3. Press (G) or use the vehicle radial menu to start dumping gravel
 description=4. (Optional) Toggle road width between 2 and 3 tiles via radial menu
@@ -25,7 +25,7 @@ description=
 description=[b]Vehicle type:[/b] Base.DumpTruck
 description=
 description=[h2]Special Thanks[/h2]
-description=Huge Thank You to fhqwhgads for his Dump Truck model!
+description=Huge Thank You to [url=https://steamcommunity.com/id/fhqwhgadsGT]fhqwhgads[/url] for his dump truck model!
 description=Thanks to Hank_Mardukas for the sound effects!
 tags=Build 42;Vehicles
 visibility=public
