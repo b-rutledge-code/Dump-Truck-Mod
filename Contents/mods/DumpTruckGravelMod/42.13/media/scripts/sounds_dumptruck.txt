@@ -1,0 +1,49 @@
+module Base
+{
+    sound HydraulicLiftRaised
+    {
+        category = Vehicle,
+        clip
+        {
+            file = media/sound/hydraulic_lift_raised.ogg,
+        }
+    }
+
+    sound HydraulicLiftDown
+    {
+        category = Vehicle,
+        clip
+        {
+            file = media/sound/hydraulic_lift_down_natural.ogg,
+        }
+    }
+
+    sound GravelDumpStart
+    {
+        category = Vehicle,
+        clip
+        {
+            file = media/sound/gravel_start_fadein_2s.ogg,
+        }
+    }
+
+    sound GravelDumpLoop
+    {
+        category = Vehicle,
+        loop = true,
+        clip
+        {
+            file = media/sound/new_gravel_loop.ogg,
+        }
+    }
+
+    sound GravelDumpEnd
+    {
+        category = Vehicle,
+        clip
+        {
+            file = media/sound/gravel_end_fadeout_2s.ogg,
+        }
+    }
+}
+
