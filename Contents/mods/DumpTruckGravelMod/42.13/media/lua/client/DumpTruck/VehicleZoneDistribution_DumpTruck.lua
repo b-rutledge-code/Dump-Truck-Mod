@@ -27,12 +27,12 @@ if VehicleZoneDistribution then -- Check if table exists
     -- Parking stall (5%)
     VehicleZoneDistribution.parkingstall = VehicleZoneDistribution.parkingstall or {}
     VehicleZoneDistribution.parkingstall.vehicles = VehicleZoneDistribution.parkingstall.vehicles or {}
-    VehicleZoneDistribution.parkingstall.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 5}
+    VehicleZoneDistribution.parkingstall.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 1}
 
     -- Medium areas (5%)
     VehicleZoneDistribution.medium = VehicleZoneDistribution.medium or {}
     VehicleZoneDistribution.medium.vehicles = VehicleZoneDistribution.medium.vehicles or {}
-    VehicleZoneDistribution.medium.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 5}
+    VehicleZoneDistribution.medium.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 1}
 
     -- Junkyard (5%)
     VehicleZoneDistribution.junkyard = VehicleZoneDistribution.junkyard or {}
