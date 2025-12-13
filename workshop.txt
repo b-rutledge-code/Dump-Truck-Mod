@@ -1,6 +1,7 @@
 version=1
 id=3433311021
 title=Road Builder
+description=[b]Updated for 42.13 Single Player[/b]
 description=A Project Zomboid mod that adds a dump truck capable of laying gravel roads that wont erode.
 description=
 description=[h2]New features[/h2]
@@ -23,6 +24,7 @@ description=5. Drive slowly (5 km/h max while dumping) to create a gravel road
 description=6. Press (G) or use the radial menu again to stop dumping
 description=
 description=[b]Vehicle type:[/b] Base.DumpTruck
+description=[Note] As of the 42.13 update trunk capacity seems to be pegged at 100.  Since this impacts the vanilla vehicles as well (ie Frankline Valuline & Dash Bulldriver, etc) it seems like a bug that Indie Stone will need to patch.  
 description=
 description=[h2]Special Thanks[/h2]
 description=Huge Thank You to [url=https://steamcommunity.com/id/fhqwhgadsGT]fhqwhgads[/url] for his dump truck model!

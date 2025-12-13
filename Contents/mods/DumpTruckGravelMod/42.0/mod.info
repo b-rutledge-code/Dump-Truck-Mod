@@ -1,5 +1,10 @@
-name=Dump Truck Gravel Mod
+name=Road Builder
 id=DumpTruckGravelMod
-description=A mod that adds a dump truck capable of replacing tiles with gravel.
+author=texasrut
+description=A dump truck mod for laying gravel roads that won't erode.
+modversion=1.0.2
 poster=poster.png
+icon=poster.png
+versionMin=42.0
+versionMax=42.12
 
