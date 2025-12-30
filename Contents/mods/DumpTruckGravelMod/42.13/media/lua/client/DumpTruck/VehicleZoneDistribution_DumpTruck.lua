@@ -47,7 +47,7 @@ if VehicleZoneDistribution then -- Check if table exists
     -- Farm (14%)
     VehicleZoneDistribution.farm = VehicleZoneDistribution.farm or {}
     VehicleZoneDistribution.farm.vehicles = VehicleZoneDistribution.farm.vehicles or {}
-    VehicleZoneDistribution.farm.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 14}
+    VehicleZoneDistribution.farm.vehicles[VEHICLE_NAME] = {index = -1, spawnChance = 7}
 
     -- Trades (20%)
     VehicleZoneDistribution.trades = VehicleZoneDistribution.trades or {}
