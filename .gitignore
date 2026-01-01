@@ -44,5 +44,8 @@ GameScripts/
 deploy.sh
 deploy_workshop.sh
 
+# Reference files (not for git)
+reference/
+
 # Cursor files
 .cursor/
