@@ -399,8 +399,8 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     -- Add the overlay
     local overlay = IsoObject.new(getCell(), targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
-    overlay:transmitCompleteItemToClients()  -- Sync to clients for multiplayer
-
+    overlay:transmitCompleteItemToClients()
+    
     -- Set square metadata using unified system (overlays are independent of floor)
     if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
         DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite)
@@ -634,7 +634,8 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     if newFloor and shovelledSprites and #shovelledSprites > 0 then
         local floorModData = newFloor:getModData()
         floorModData.shovelledSprites = shovelledSprites
-        floorModData.pouredFloor = true
+        floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+        floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
         newFloor:transmitModData()
     end
     

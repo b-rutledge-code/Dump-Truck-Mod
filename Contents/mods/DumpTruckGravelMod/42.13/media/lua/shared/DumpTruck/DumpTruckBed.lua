@@ -29,7 +29,10 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
         end
 
         -- Always add a shovel
-        local _shovel = truckbedcontainer:AddItem("Base.Shovel2")
+        local shovel = truckbedcontainer:AddItem("Base.Shovel2")
+        if shovel and isServer() then
+            sendAddItemToContainer(truckbedcontainer, shovel)
+        end
         
         -- 50% chance to have gravel
         if ZombRand(2) == 0 then
@@ -43,7 +46,12 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
             
             for i = 1, numBags do
                 local gravelBag = truckbedcontainer:AddItem("Base.Gravelbag")
-                gravelBag:setUseDelta(1.0)
+                if gravelBag then
+                    gravelBag:setUseDelta(1.0)
+                    if isServer() then
+                        sendAddItemToContainer(truckbedcontainer, gravelBag)
+                    end
+                end
             end
         end
     end
@@ -59,4 +67,3 @@ end
 function DumpTruck_part.Update.TruckBedDumpTruck(vehicle, part)
     -- No special update logic needed
 end
-    

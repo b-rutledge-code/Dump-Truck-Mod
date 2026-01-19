@@ -40,9 +40,8 @@ wheels/
 GameLua/
 GameScripts/
 
-# Development scripts
-deploy.sh
-deploy_workshop.sh
+# Development scripts (machine-specific)
+scripts/
 
 # Reference files (not for git)
 reference/
