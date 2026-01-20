@@ -18,41 +18,33 @@ DumpTruckConstants.POURED_FLOOR_TYPE = "gravel"
 DumpTruckConstants.VEHICLE_SCRIPT_NAME = "Base.DumpTruck"
 DumpTruckConstants.BAG_TYPE = "Base.Gravelbag"
 DumpTruckConstants.PART_NAME = "TruckBed"
-DumpTruckConstants.GAP_FILLER_TILES = {
-    NORTH = "blends_street_01_49",
-    SOUTH = "blends_street_01_50",
-    WEST = "blends_street_01_51",
-    EAST = "blends_street_01_52"
-}
 
--- Maps pairs of adjacent gravel tile directions to the appropriate blend tile direction
--- Each entry is {adjacent_directions = {dir1, dir2}, blend_direction = "DIRECTION"}
+-- Maps pairs of adjacent gravel tile directions to the appropriate gap filler triangle offset
+-- Each entry is {adjacent_directions = {dir1, dir2}, triangle_offset = N}
 DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING = {
     {
         adjacent_directions = {"EAST", "SOUTH"},
-        blend_direction = "SOUTH"
+        triangle_offset = 1
     },
     {
         adjacent_directions = {"WEST", "SOUTH"},
-        blend_direction = "WEST"
+        triangle_offset = 4
     },
     {
         adjacent_directions = {"NORTH", "EAST"},
-        blend_direction = "EAST"
+        triangle_offset = 3
     },
     {
         adjacent_directions = {"WEST", "NORTH"},
-        blend_direction = "NORTH"
+        triangle_offset = 2
     }
 }
 
 DumpTruckConstants.GRAVEL_SPRITE = "blends_street_01_55"
-DumpTruckConstants.GAP_FILLER_SPRITES = "blends_street_01"
 DumpTruckConstants.EDGE_BLEND_SPRITES = "blends_natural_01"
 
--- Tile type constants for unified metadata system
+-- Tile type constants for unified metadata system (gap fillers are just gravel with attached sprites)
 DumpTruckConstants.TILE_TYPES = {
-    GAP_FILLER = "gapFiller",
     EDGE_BLEND = "edgeBlend", 
     GRAVEL = "gravel"
 }

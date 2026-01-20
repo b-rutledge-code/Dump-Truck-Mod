@@ -66,11 +66,15 @@ function DumpTruck.isPouredGravel(square)
     -- Check if it's a full gravel floor
     local isGravel = DumpTruck.isFullGravelFloor(square)
     
-    -- Check if it has a gap filler overlay (metadata stored on square, not floor)
-    local modData = square:getModData()
-    local hasGapFillerOverlay = modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    -- Check if it's a gap filler (gravel floor with isGapFiller metadata)
+    local floor = square:getFloor()
+    local isGapFiller = false
+    if floor then
+        local floorModData = floor:getModData()
+        isGapFiller = floorModData and floorModData.isGapFiller
+    end
     
-    local result = isGravel or hasGapFillerOverlay
+    local result = isGravel or isGapFiller
     
     return result
 end
@@ -80,6 +84,13 @@ function DumpTruck.isFullGravelFloor(tile)
     if not tile then return false end
     local floor = tile:getFloor()
     if not floor then return false end
+    
+    -- Gap fillers should NOT count as full gravel for corner detection
+    -- (prevents cascading gap filler placement)
+    local floorModData = floor:getModData()
+    if floorModData and floorModData.isGapFiller then
+        return false
+    end
     
     -- Check sprite directly for gravel (no metadata needed)
     local spriteName = floor:getSprite():getName()
@@ -101,9 +112,12 @@ function DumpTruck.isSquareValidForGravel(sq)
     end
     if DumpTruck.isPouredGravel(sq) then
         -- Allow gap fillers to be upgraded to full gravel tiles
-        local modData = sq:getModData()
-        if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-            return true  -- Allow gap filler upgrade
+        local floor = sq:getFloor()
+        if floor then
+            local floorModData = floor:getModData()
+            if floorModData and floorModData.isGapFiller then
+                return true  -- Allow gap filler upgrade
+            end
         end
         return false  -- Reject full gravel tiles
     end
@@ -150,7 +164,15 @@ function DumpTruck.getBlendNaturalSprite(sq)
     local spriteName = floor:getSprite():getName()
     
     if spriteName and spriteName:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-        return spriteName
+        -- Extract the tile number to verify it's a base terrain (0, 5, 6, or 7 within each row)
+        local tileNumber = tonumber(spriteName:match("blends_natural_%d+_(%d+)"))
+        if tileNumber then
+            local withinRow = tileNumber % 16
+            -- Only accept base terrain variants (0, 5, 6, 7)
+            if withinRow == 0 or withinRow == 5 or withinRow == 6 or withinRow == 7 then
+                return spriteName
+            end
+        end
     end
     
     return nil
@@ -373,20 +395,124 @@ function DumpTruck.getEdgeBlendSprite(direction, terrainBlock)
     return result
 end
 
+--[[
+    getGapFillerTriangleSprite: Calculates the natural terrain triangle sprite for gap filling
+    Input:
+        triangleOffset: number - Triangle offset (1-4) from corner pattern mapping
+        naturalTerrainSprite: string - Natural terrain sprite (e.g., "blends_natural_01_64")
+    Output: string - Natural terrain triangle sprite (e.g., "blends_natural_01_17")
+]]
+function DumpTruck.getGapFillerTriangleSprite(triangleOffset, naturalTerrainSprite)
+    if not triangleOffset or not naturalTerrainSprite or type(naturalTerrainSprite) ~= "string" then
+        return nil
+    end
+    
+    -- Extract the base number from the natural terrain sprite (e.g., "blends_natural_01_64" -> 64)
+    local baseNumber = tonumber(naturalTerrainSprite:match("blends_natural_%d+_(%d+)"))
+    if not baseNumber then
+        return nil
+    end
+    
+    -- Calculate the row start tile (normalizes all variants like 64, 69, 70, 71 to row start 64)
+    local baseRow = math.floor(baseNumber / 16)
+    local rowStartTile = baseRow * 16
+    
+    -- Calculate final triangle tile in blends_natural_01 tileset
+    local triangleTile = rowStartTile + triangleOffset
+    
+    local result = "blends_natural_01_" .. triangleTile
+    
+    return result
+end
+
+--[[
+    placeGapFiller: Places gravel floor with natural terrain triangle overlay
+    Input:
+        nonGravelSquare: IsoGridSquare - Square that doesn't have gravel (corner gap)
+        triangleOffset: number - Triangle offset (1-4) from corner pattern mapping
+    Output: boolean - true if successful, false otherwise
+]]
+function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
+    if not nonGravelSquare or not triangleOffset then
+        return false
+    end
+    
+    -- Check if already has gravel (don't overwrite)
+    if DumpTruck.isPouredGravel(nonGravelSquare) then
+        return false
+    end
+    
+    -- Get the natural terrain sprite from the square
+    local naturalTerrainSprite = DumpTruck.getBlendNaturalSprite(nonGravelSquare)
+    if not naturalTerrainSprite then
+        return false
+    end
+    
+    -- Calculate the natural triangle sprite
+    local triangleSprite = DumpTruck.getGapFillerTriangleSprite(triangleOffset, naturalTerrainSprite)
+    if not triangleSprite then
+        return false
+    end
+    
+    -- Save original floor sprite for shoveling restoration
+    local originalFloor = nonGravelSquare:getFloor()
+    local shovelledSprites = nil
+    if originalFloor and originalFloor:getSprite() then
+        shovelledSprites = {originalFloor:getSprite():getName()}
+    end
+    
+    -- Place GRAVEL floor (now it's a gravel tile for shoveling)
+    local newFloor = nonGravelSquare:addFloor(DumpTruckConstants.GRAVEL_SPRITE)
+    if not newFloor then
+        DumpTruck.debugPrint("placeGapFiller: Failed to add gravel floor")
+        return false
+    end
+    
+    -- Attach the natural terrain triangle to the gravel floor
+    local sprite = getSprite(triangleSprite)
+    if sprite then
+        newFloor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
+    end
+    
+    -- Set metadata so it's recognized as gravel and can be shoveled
+    local floorModData = newFloor:getModData()
+    floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+    floorModData.shovelled = nil
+    floorModData.isGapFiller = true
+    if shovelledSprites then
+        floorModData.shovelledSprites = shovelledSprites
+    end
+    
+    -- Disable erosion on this square
+    nonGravelSquare:disableErosion()
+    
+    -- Remove any old edge blend overlays and clear metadata
+    DumpTruck.removeOppositeEdgeBlends(nonGravelSquare)
+    
+    -- Sync to clients
+    newFloor:transmitModData()
+    
+    return true
+end
+
 function DumpTruck.placeTileOverlay(targetSquare, sprite)
     if not targetSquare then
         return false
     end
+    
+    print("DEBUG EDGE BLEND: Attempting to place sprite = " .. tostring(sprite) .. " at " .. targetSquare:getX() .. "," .. targetSquare:getY())
   
     -- Check if this overlay already exists on this square (metadata stored on square, not floor)
     local modData = targetSquare:getModData()
     if modData and modData.sprite == sprite then
+        print("DEBUG EDGE BLEND: Overlay already exists, skipping")
         return false
     end
     
     -- If placing an edge blend and there's already a different edge blend, remove the old one first
     if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
         if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.sprite and modData.sprite ~= sprite then
+            print("DEBUG EDGE BLEND: Removing old edge blend = " .. tostring(modData.sprite))
             local oldEdgeBlendObject = DumpTruck.findOverlayObject(targetSquare, modData.sprite)
             if oldEdgeBlendObject then
                 targetSquare:RemoveTileObject(oldEdgeBlendObject)
@@ -397,14 +523,14 @@ function DumpTruck.placeTileOverlay(targetSquare, sprite)
     end
 
     -- Add the overlay
+    print("DEBUG EDGE BLEND: Creating overlay object")
     local overlay = IsoObject.new(getCell(), targetSquare, sprite)
     targetSquare:AddTileObject(overlay)
     overlay:transmitCompleteItemToClients()
+    print("DEBUG EDGE BLEND: Overlay placed successfully")
     
-    -- Set square metadata using unified system (overlays are independent of floor)
-    if sprite:find(DumpTruckConstants.GAP_FILLER_SPRITES) then
-        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.GAP_FILLER, sprite)
-    elseif sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
+    -- Set square metadata (this function is only used for edge blends now)
+    if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
         DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite)
     else
         return false    
@@ -479,17 +605,27 @@ function DumpTruck.addEdgeBlends(leftTile, rightTile)
         local sideTile = i == 1 and leftSideTile or rightSideTile
         local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
         
+        print("DEBUG EDGE BLEND: Checking edge " .. (i == 1 and "LEFT" or "RIGHT") .. " tile at " .. tile:getX() .. "," .. tile:getY())
+        
         if sideTile then
+            print("DEBUG EDGE BLEND: Adjacent tile exists at " .. sideTile:getX() .. "," .. sideTile:getY())
             -- Check if the adjacent side tile doesn't have poured gravel
             if not DumpTruck.isPouredGravel(sideTile) then
+                print("DEBUG EDGE BLEND: Adjacent tile is NOT gravel, proceeding")
                 local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
+                print("DEBUG EDGE BLEND: Natural terrain = " .. tostring(terrain))
                 if terrain then
                     local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
+                    print("DEBUG EDGE BLEND: Calculated blend sprite = " .. tostring(blend) .. " for direction " .. sideDir)
                     if blend then
                         DumpTruck.placeTileOverlay(tile, blend)
                     end
                 end
+            else
+                print("DEBUG EDGE BLEND: Adjacent tile IS gravel, skipping")
             end
+        else
+            print("DEBUG EDGE BLEND: No adjacent tile")
         end
     end
 end
@@ -540,24 +676,14 @@ function DumpTruck.checkForCornerPattern(gravelTile)
 
             -- If we found exactly one other gravel floor tile, we have a corner pattern
             if gravelCount == 1 then
-                -- Look up the appropriate blend tile in our mapping
-                for i, mapping in ipairs(DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING) do
-                    if not mapping then
-                        return nil, nil
-                    end
-                    if not mapping.adjacent_directions then
-                        return nil, nil
-                    end
+                -- Look up the appropriate triangle offset in our mapping
+                for _, mapping in ipairs(DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING) do
                     local directions = mapping.adjacent_directions
                     
                     -- Check if our gravel directions match this mapping (order doesn't matter)
                     if (gravelDirections[1] == directions[1] and gravelDirections[2] == directions[2]) or
                        (gravelDirections[1] == directions[2] and gravelDirections[2] == directions[1]) then
-                        local blendTile = DumpTruckConstants.GAP_FILLER_TILES[mapping.blend_direction]
-                        if not blendTile then
-                            return nil, nil
-                        end
-                        return adjacentTile, blendTile
+                        return adjacentTile, mapping.triangle_offset
                     end
                 end
             end
@@ -568,15 +694,15 @@ function DumpTruck.checkForCornerPattern(gravelTile)
 end
 
 function DumpTruck.fillGaps(leftTile, rightTile)
-    local adjacentTile1, blendTile1 = DumpTruck.checkForCornerPattern(leftTile)
-    local adjacentTile2, blendTile2 = DumpTruck.checkForCornerPattern(rightTile)
+    local adjacentTile1, triangleOffset1 = DumpTruck.checkForCornerPattern(leftTile)
+    local adjacentTile2, triangleOffset2 = DumpTruck.checkForCornerPattern(rightTile)
 
-    if adjacentTile1 and blendTile1 then
-        DumpTruck.placeTileOverlay(adjacentTile1, blendTile1)
+    if adjacentTile1 and triangleOffset1 then
+        DumpTruck.placeGapFiller(adjacentTile1, triangleOffset1)
     end
 
-    if adjacentTile2 and blendTile2 then
-        DumpTruck.placeTileOverlay(adjacentTile2, blendTile2)
+    if adjacentTile2 and triangleOffset2 then
+        DumpTruck.placeGapFiller(adjacentTile2, triangleOffset2)
     end
 end
 
@@ -606,17 +732,15 @@ end
 -- GRAVEL
 
 function DumpTruck.placeGravelFloorOnTile(sprite, sq)
-    -- Check if this is upgrading a gap filler to full gravel (metadata stored on square, not floor)
-    local modData = sq:getModData()
+    -- Check if this is upgrading a gap filler to full gravel
+    local floor = sq:getFloor()
     local isGapFillerUpgrade = false
-    if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-        isGapFillerUpgrade = true
-        
-        -- Clean up gap filler data before upgrading
-        local gapFillerSprite = modData.sprite
-        local gapFillerObject = DumpTruck.findOverlayObject(sq, gapFillerSprite)
-        if gapFillerObject then
-            DumpTruck.removeOverlayObject(sq, gapFillerObject)
+    if floor then
+        local floorModData = floor:getModData()
+        if floorModData and floorModData.isGapFiller then
+            isGapFillerUpgrade = true
+            -- When addFloor() is called below, it will replace the gap filler floor
+            -- and remove attached sprites automatically
         end
     end
 
