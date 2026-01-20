@@ -11,51 +11,6 @@ function DumpTruck.debugPrint(...)
     end
 end
 
--- Initialize overlay metadata (gap fillers and edge blends only)
--- Store on square, not floor, since overlays are independent objects
-function DumpTruck.initializeOverlayMetadata(square, tileType, sprite)
-    if not square then return end
-    
-    local modData = square:getModData()
-    modData.tileType = tileType
-    modData.sprite = sprite
-end
-
--- Find overlay object by sprite name
--- Loops through square objects to find the one matching the sprite
-function DumpTruck.findOverlayObject(square, sprite)
-    if not square or not sprite then return nil end
-    
-    -- Only loop if we know there's an overlay here (metadata tells us)
-    local objects = square:getObjects()
-    if not objects then 
-        return nil 
-    end
-    
-    
-    for i = 0, objects:size() - 1 do
-        local obj = objects:get(i)
-        if obj and obj:getSprite() then
-            local objSprite = obj:getSprite():getName()
-            if objSprite == sprite then
-                return obj
-            end
-        end
-    end
-    
-    return nil
-end
-
--- Reset overlay metadata to clean state
--- Store on square, not floor, since overlays are independent objects
-function DumpTruck.resetOverlayMetadata(square)
-    if not square then return end
-    
-    local modData = square:getModData()
-    modData.tileType = nil
-    modData.sprite = nil
-end
-
 -- HELPERS
 
 -- Check if a tile is poured gravel
@@ -176,20 +131,6 @@ function DumpTruck.getBlendNaturalSprite(sq)
     end
     
     return nil
-end
-
-
-function DumpTruck.removeOverlayObject(square, edgeBlendObject)
-    
-    -- Direct removal using stored object reference
-    square:RemoveTileObject(edgeBlendObject)
-    square:transmitRemoveItemFromSquare(edgeBlendObject)  -- Sync removal to clients
-    
-    -- Clear edge blend metadata (stored on square, not floor)
-    DumpTruck.resetOverlayMetadata(square)
-    
-    square:RecalcProperties()
-    square:DirtySlice()
 end
 
 
@@ -482,55 +423,6 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
     
     return true
 end
-
-function DumpTruck.placeTileOverlay(targetSquare, sprite)
-    if not targetSquare then
-        return false
-    end
-    
-    print("DEBUG EDGE BLEND: Attempting to place sprite = " .. tostring(sprite) .. " at " .. targetSquare:getX() .. "," .. targetSquare:getY())
-  
-    -- Check if this overlay already exists on this square (metadata stored on square, not floor)
-    local modData = targetSquare:getModData()
-    if modData and modData.sprite == sprite then
-        print("DEBUG EDGE BLEND: Overlay already exists, skipping")
-        return false
-    end
-    
-    -- If placing an edge blend and there's already a different edge blend, remove the old one first
-    if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
-        if modData and modData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and modData.sprite and modData.sprite ~= sprite then
-            print("DEBUG EDGE BLEND: Removing old edge blend = " .. tostring(modData.sprite))
-            local oldEdgeBlendObject = DumpTruck.findOverlayObject(targetSquare, modData.sprite)
-            if oldEdgeBlendObject then
-                targetSquare:RemoveTileObject(oldEdgeBlendObject)
-                targetSquare:transmitRemoveItemFromSquare(oldEdgeBlendObject)  -- Sync removal to clients
-                DumpTruck.resetOverlayMetadata(targetSquare)
-            end
-        end
-    end
-
-    -- Add the overlay
-    print("DEBUG EDGE BLEND: Creating overlay object")
-    local overlay = IsoObject.new(getCell(), targetSquare, sprite)
-    targetSquare:AddTileObject(overlay)
-    overlay:transmitCompleteItemToClients()
-    print("DEBUG EDGE BLEND: Overlay placed successfully")
-    
-    -- Set square metadata (this function is only used for edge blends now)
-    if sprite:find(DumpTruckConstants.EDGE_BLEND_SPRITES) then
-        DumpTruck.initializeOverlayMetadata(targetSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, sprite)
-    else
-        return false    
-    end
-    targetSquare:RecalcProperties()
-    targetSquare:DirtySlice()
-
-    DumpTruck.removeOppositeEdgeBlends(targetSquare)
-    
-    return true
-end
-
 
 --[[
     smoothRoad: Adds blend tiles to smooth the transition between gravel and other terrain
