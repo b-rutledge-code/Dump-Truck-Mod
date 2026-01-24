@@ -11,9 +11,54 @@ function DumpTruck.debugPrint(...)
     end
 end
 
+-- OVERLAY OBJECT HELPERS
+
+-- Initialize overlay metadata (gap fillers and edge blends only)
+-- Store on square, not floor, since overlays are independent objects
+function DumpTruck.initializeOverlayMetadata(square, tileType, sprite)
+    if not square then return end
+    
+    local modData = square:getModData()
+    modData.tileType = tileType
+    modData.sprite = sprite
+end
+
+-- Find overlay object by sprite name
+-- Loops through square objects to find the one matching the sprite
+function DumpTruck.findOverlayObject(square, sprite)
+    if not square or not sprite then return nil end
+    
+    local objects = square:getObjects()
+    if not objects then 
+        return nil 
+    end
+    
+    for i = 0, objects:size() - 1 do
+        local obj = objects:get(i)
+        if obj and obj:getSprite() then
+            local objSprite = obj:getSprite():getName()
+            if objSprite == sprite then
+                return obj
+            end
+        end
+    end
+    
+    return nil
+end
+
+-- Reset overlay metadata to clean state
+-- Store on square, not floor, since overlays are independent objects
+function DumpTruck.resetOverlayMetadata(square)
+    if not square then return end
+    
+    local modData = square:getModData()
+    modData.tileType = nil
+    modData.sprite = nil
+end
+
 -- HELPERS
 
--- Check if a tile is poured gravel
+-- Check if a square is poured gravel
 function DumpTruck.isPouredGravel(square)
     if not square then return false end
 
@@ -21,37 +66,33 @@ function DumpTruck.isPouredGravel(square)
     -- Check if it's a full gravel floor
     local isGravel = DumpTruck.isFullGravelFloor(square)
     
-    -- Check if it's a gap filler (gravel floor with isGapFiller metadata)
-    local floor = square:getFloor()
-    local isGapFiller = false
-    if floor then
-        local floorModData = floor:getModData()
-        isGapFiller = floorModData and floorModData.isGapFiller
-    end
+    -- Check if it's a gap filler (gravel floor with gap filler overlay)
+    local squareModData = square:getModData()
+    local isGapFiller = squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
     
     local result = isGravel or isGapFiller
     
     return result
 end
 
--- Check if a tile is a full gravel floor (not a blend)
-function DumpTruck.isFullGravelFloor(tile)
-    if not tile then return false end
-    local floor = tile:getFloor()
+-- Check if a square is a full gravel floor (not a blend)
+function DumpTruck.isFullGravelFloor(square)
+    if not square then return false end
+    local floor = square:getFloor()
     if not floor then return false end
     
     -- Gap fillers should NOT count as full gravel for corner detection
     -- (prevents cascading gap filler placement)
-    local floorModData = floor:getModData()
-    if floorModData and floorModData.isGapFiller then
+    local squareModData = square:getModData()
+    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         return false
     end
     
     -- Check sprite directly for gravel (no metadata needed)
-    local spriteName = floor:getSprite():getName()
-    local isGravelSprite = spriteName == DumpTruckConstants.GRAVEL_SPRITE
-    
-    return isGravelSprite
+    local floorSprite = floor:getSprite()
+    if not floorSprite then return false end
+    local spriteName = floorSprite:getName()
+    return spriteName == DumpTruckConstants.GRAVEL_SPRITE
 end
 
 -- Check if square is valid for gravel
@@ -66,15 +107,12 @@ function DumpTruck.isSquareValidForGravel(sq)
         return false
     end
     if DumpTruck.isPouredGravel(sq) then
-        -- Allow gap fillers to be upgraded to full gravel tiles
-        local floor = sq:getFloor()
-        if floor then
-            local floorModData = floor:getModData()
-            if floorModData and floorModData.isGapFiller then
+        -- Allow gap fillers to be upgraded to full gravel squares
+        local squareModData = sq:getModData()
+        if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
             return true  -- Allow gap filler upgrade
-            end
         end
-        return false  -- Reject full gravel tiles
+        return false  -- Reject full gravel squares
     end
     return true
 end
@@ -137,26 +175,24 @@ end
 
 -- Helper: Check if square has any blends pointing toward a gravel neighbor
 local function hasBlendPointingAtGravel(square, adjacentChecks)
-    local floor = square:getFloor()
-    if not floor then return false end
+    if not square then return false end
     
-    local modData = floor:getModData()
-    if not modData or modData.isGapFiller or not modData.attachedBlends or #modData.attachedBlends == 0 then
+    local modData = square:getModData()
+    if not modData or modData.tileType ~= DumpTruckConstants.TILE_TYPES.EDGE_BLEND or not modData.sprite then
         return false
     end
     
+    -- Check if this square's edge blend points at any gravel neighbor
     for _, check in ipairs(adjacentChecks) do
         if check.square and DumpTruck.isPouredGravel(check.square) then
-            for _, attachedBlend in ipairs(modData.attachedBlends) do
-                local baseNumber = tonumber(attachedBlend:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
-                if baseNumber then
-                    local baseRow = math.floor(baseNumber / 16)
-                    local rowStartTile = baseRow * 16
-                    
-                    for _, offset in ipairs(check.offsets) do
-                        if baseNumber == rowStartTile + offset then
-                            return true
-                        end
+            local baseNumber = tonumber(modData.sprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
+            if baseNumber then
+                local baseRow = math.floor(baseNumber / 16)
+                local rowStartTile = baseRow * 16
+                
+                for _, offset in ipairs(check.offsets) do
+                    if baseNumber == rowStartTile + offset then
+                        return true
                     end
                 end
             end
@@ -184,13 +220,17 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     }
     
     if hasBlendPointingAtGravel(square, myChecks) then
-        local myFloor = square:getFloor()
-        local myModData = myFloor:getModData()
-        myFloor:RemoveAttachedAnims()
-        myModData.attachedBlends = {}
-        myFloor:transmitModData()
-        square:RecalcProperties()
-        square:DirtySlice()
+        local modData = square:getModData()
+        if modData and modData.sprite then
+            local overlayObj = DumpTruck.findOverlayObject(square, modData.sprite)
+            if overlayObj then
+                square:RemoveTileObject(overlayObj)
+            end
+            DumpTruck.resetOverlayMetadata(square)
+            square:RecalcProperties()
+            square:DirtySlice()
+            if square.transmitFloor then square:transmitFloor() end
+        end
     end
     
     -- Check NEIGHBOR blends pointing back at me
@@ -204,13 +244,17 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     for _, check in ipairs(neighborChecks) do
         if check.square and DumpTruck.isPouredGravel(check.square) then
             if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
-                local adjFloor = check.square:getFloor()
-                local adjModData = adjFloor:getModData()
-                adjFloor:RemoveAttachedAnims()
-                adjModData.attachedBlends = {}
-                adjFloor:transmitModData()
-                check.square:RecalcProperties()
-                check.square:DirtySlice()
+                local adjModData = check.square:getModData()
+                if adjModData and adjModData.sprite then
+                    local overlayObj = DumpTruck.findOverlayObject(check.square, adjModData.sprite)
+                    if overlayObj then
+                        check.square:RemoveTileObject(overlayObj)
+                    end
+                    DumpTruck.resetOverlayMetadata(check.square)
+                    check.square:RecalcProperties()
+                    check.square:DirtySlice()
+                    if check.square.transmitFloor then check.square:transmitFloor() end
+                end
             end
         end
     end
@@ -330,27 +374,30 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
         shovelledSprites = {originalFloor:getSprite():getName()}
     end
     
-    -- Place GRAVEL floor (now it's a gravel tile for shoveling)
+        -- Place GRAVEL floor (now it's a gravel square for shoveling)
     local newFloor = nonGravelSquare:addFloor(DumpTruckConstants.GRAVEL_SPRITE)
     if not newFloor then
         DumpTruck.debugPrint("placeGapFiller: Failed to add gravel floor")
         return false
     end
     
-    -- Attach the natural terrain triangle to the gravel floor
+    -- Add the natural terrain triangle as an overlay object
     local sprite = getSprite(triangleSprite)
     if sprite then
-        newFloor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
+        local overlay = IsoObject.new(getCell(), nonGravelSquare, triangleSprite)
+        nonGravelSquare:AddSpecialObject(overlay, 0)  -- Index 0 to render below snow
     end
     
     -- Set metadata so it's recognized as gravel and can be shoveled
     local floorModData = newFloor:getModData()
     floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
     floorModData.shovelled = nil
-    floorModData.isGapFiller = true
     if shovelledSprites then
         floorModData.shovelledSprites = shovelledSprites
     end
+    
+    -- Set square metadata for gap filler overlay
+    DumpTruck.initializeOverlayMetadata(nonGravelSquare, DumpTruckConstants.TILE_TYPES.GAP_FILLER, triangleSprite)
     
     -- Disable erosion on this square
     nonGravelSquare:disableErosion()
@@ -360,6 +407,9 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
     
     -- Sync to clients
     newFloor:transmitModData()
+    if nonGravelSquare.transmitFloor then nonGravelSquare:transmitFloor() end
+    nonGravelSquare:RecalcProperties()
+    nonGravelSquare:DirtySlice()
     
     return true
 end
@@ -388,36 +438,38 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
     end
     
     -- Don't place edge blends on gap fillers (they already have natural terrain triangles)
-    local floorModData = floor:getModData()
-    if floorModData and floorModData.isGapFiller then
+    local squareModData = gravelSquare:getModData()
+    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         return false
     end
     
-    -- Check if this blend is already attached
-    if floorModData.attachedBlends then
-        for _, existingBlend in ipairs(floorModData.attachedBlends) do
-            if existingBlend == blendSprite then
-                return false  -- Already attached
-            end
+    -- Check if this blend already exists
+    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and squareModData.sprite == blendSprite then
+        return false  -- Already attached
+    end
+    
+    -- Remove old edge blend if different
+    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and squareModData.sprite and squareModData.sprite ~= blendSprite then
+        local oldOverlayObj = DumpTruck.findOverlayObject(gravelSquare, squareModData.sprite)
+        if oldOverlayObj then
+            gravelSquare:RemoveTileObject(oldOverlayObj)
         end
     end
     
-    -- Attach the blend sprite to the floor
+    -- Add the blend sprite as an overlay object
     local sprite = getSprite(blendSprite)
-    if sprite then
-        floor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
-    else
+    if not sprite then
         return false
     end
     
-    -- Track attached blends in metadata
-    if not floorModData.attachedBlends then
-        floorModData.attachedBlends = {}
-    end
-    table.insert(floorModData.attachedBlends, blendSprite)
+    local overlay = IsoObject.new(getCell(), gravelSquare, blendSprite)
+    gravelSquare:AddSpecialObject(overlay, 0)  -- Index 0 to render below snow
+    
+    -- Set square metadata for edge blend overlay
+    DumpTruck.initializeOverlayMetadata(gravelSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, blendSprite)
     
     -- Sync to clients
-    floor:transmitModData()
+    if gravelSquare.transmitFloor then gravelSquare:transmitFloor() end
     gravelSquare:RecalcProperties()
     gravelSquare:DirtySlice()
     
@@ -425,137 +477,126 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
 end
 
 --[[
-    smoothRoad: Adds blend tiles to smooth the transition between gravel and other terrain
+    smoothRoad: Adds blend squares to smooth the transition between gravel and other terrain
     Input:
-        currentSquares: array of IsoGridSquare - The current row of gravel tiles
+        currentSquares: array of IsoGridSquare - The current row of gravel squares
         fx: number - Forward vector X component (direction of travel)
         fy: number - Forward vector Y component (direction of travel)
-    Output: None (modifies tiles directly)
+    Output: None (modifies squares directly)
 ]]
-function DumpTruck.addEdgeBlends(leftTile, rightTile)
-    if not leftTile or not rightTile then 
+function DumpTruck.addEdgeBlends(leftSquare, rightSquare)
+    if not leftSquare or not rightSquare then 
         return 
     end
     
     local secondaryDir
-    if leftTile:getX() == rightTile:getX() then
+    if leftSquare:getX() == rightSquare:getX() then
         -- For east-west roads, determine which direction to use based on Y coordinates
-        if leftTile:getY() > rightTile:getY() then
-            -- Going west: left tile is south, right tile is north
+        if leftSquare:getY() > rightSquare:getY() then
+            -- Going west: left square is south, right square is north
             secondaryDir = {"SOUTH", "NORTH"}
         else
-            -- Going east: left tile is north, right tile is south
+            -- Going east: left square is north, right square is south
             secondaryDir = {"NORTH", "SOUTH"}
         end
     else
         -- For north-south roads, determine which direction to use based on X coordinates
-        if leftTile:getX() < rightTile:getX() then
-            -- Going south: left tile is west, right tile is east
+        if leftSquare:getX() < rightSquare:getX() then
+            -- Going south: left square is west, right square is east
             secondaryDir = {"WEST", "EAST"}
         else
-            -- Going north: left tile is east, right tile is west
+            -- Going north: left square is east, right square is west
             secondaryDir = {"EAST", "WEST"}
         end
     end
     
-    -- Get the adjacent tiles for edge blending
-    local leftSideTile, rightSideTile
+    -- Get the adjacent squares for edge blending
+    local leftSideSquare, rightSideSquare
     if secondaryDir[1] == "NORTH" then
-        leftSideTile = leftTile:getN()
+        leftSideSquare = leftSquare:getN()
     elseif secondaryDir[1] == "SOUTH" then
-        leftSideTile = leftTile:getS()
+        leftSideSquare = leftSquare:getS()
     elseif secondaryDir[1] == "EAST" then
-        leftSideTile = leftTile:getE()
+        leftSideSquare = leftSquare:getE()
     elseif secondaryDir[1] == "WEST" then
-        leftSideTile = leftTile:getW()
+        leftSideSquare = leftSquare:getW()
     end
     
     if secondaryDir[2] == "NORTH" then
-        rightSideTile = rightTile:getN()
+        rightSideSquare = rightSquare:getN()
     elseif secondaryDir[2] == "SOUTH" then
-        rightSideTile = rightTile:getS()
+        rightSideSquare = rightSquare:getS()
     elseif secondaryDir[2] == "EAST" then
-        rightSideTile = rightTile:getE()
+        rightSideSquare = rightSquare:getE()
     elseif secondaryDir[2] == "WEST" then
-        rightSideTile = rightTile:getW()
+        rightSideSquare = rightSquare:getW()
     end
     
     -- Add terrain blends for outer edges
-    for i, tile in ipairs({leftTile, rightTile}) do
-        local sideTile = i == 1 and leftSideTile or rightSideTile
+    for i, square in ipairs({leftSquare, rightSquare}) do
+        local sideSquare = i == 1 and leftSideSquare or rightSideSquare
         local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
         
-        print("DEBUG EDGE BLEND: Checking edge " .. (i == 1 and "LEFT" or "RIGHT") .. " tile at " .. tile:getX() .. "," .. tile:getY())
-        
-        if sideTile then
-            print("DEBUG EDGE BLEND: Adjacent tile exists at " .. sideTile:getX() .. "," .. sideTile:getY())
-            -- Check if the adjacent side tile doesn't have poured gravel
-            if not DumpTruck.isPouredGravel(sideTile) then
-                print("DEBUG EDGE BLEND: Adjacent tile is NOT gravel, proceeding")
-                local terrain = DumpTruck.getBlendNaturalSprite(sideTile)
-                print("DEBUG EDGE BLEND: Natural terrain = " .. tostring(terrain))
+        if sideSquare then
+            -- Check if the adjacent side square doesn't have poured gravel
+            if not DumpTruck.isPouredGravel(sideSquare) then
+                local terrain = DumpTruck.getBlendNaturalSprite(sideSquare)
                 if terrain then
                     local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
-                    print("DEBUG EDGE BLEND: Calculated blend sprite = " .. tostring(blend) .. " for direction " .. sideDir)
                     if blend then
-                        local success = DumpTruck.placeEdgeBlend(tile, blend)
-                        print("DEBUG EDGE BLEND: placeEdgeBlend returned " .. tostring(success))
+                        DumpTruck.placeEdgeBlend(square, blend)
                     end
                 end
-            else
-                print("DEBUG EDGE BLEND: Adjacent tile IS gravel, skipping")
             end
-        else
-            print("DEBUG EDGE BLEND: No adjacent tile")
         end
     end
 end
 
--- Check if a grass tile adjacent to a gravel tile forms a corner pattern
-function DumpTruck.checkForCornerPattern(gravelTile)
-    if not gravelTile or not DumpTruck.isFullGravelFloor(gravelTile) then
+-- Check if a grass square adjacent to a gravel square forms a corner pattern
+function DumpTruck.checkForCornerPattern(gravelSquare)
+    if not gravelSquare or not DumpTruck.isFullGravelFloor(gravelSquare) then
         return nil, nil
     end
 
-    -- Check each adjacent tile
+    -- Check each adjacent square
     local adjacentChecks = {
-        {tile = gravelTile:getN(), dir = "NORTH", opposite = "SOUTH"},
-        {tile = gravelTile:getS(), dir = "SOUTH", opposite = "NORTH"},
-        {tile = gravelTile:getE(), dir = "EAST", opposite = "WEST"},
-        {tile = gravelTile:getW(), dir = "WEST", opposite = "EAST"}
+        {square = gravelSquare:getN(), dir = "NORTH", opposite = "SOUTH"},
+        {square = gravelSquare:getS(), dir = "SOUTH", opposite = "NORTH"},
+        {square = gravelSquare:getE(), dir = "EAST", opposite = "WEST"},
+        {square = gravelSquare:getW(), dir = "WEST", opposite = "EAST"}
     }
 
     for _, check in ipairs(adjacentChecks) do
-        local adjacentTile = check.tile
-        if adjacentTile and not DumpTruck.isPouredGravel(adjacentTile) then
+        local adjacentSquare = check.square
+        if adjacentSquare and not DumpTruck.isPouredGravel(adjacentSquare) then
             
-            -- Found a non-gravel tile, check its other adjacent tiles
+            -- Found a non-gravel square, check its other adjacent squares
             local otherAdjacentChecks = {
-                {tile = adjacentTile:getN(), dir = "NORTH"},
-                {tile = adjacentTile:getS(), dir = "SOUTH"},
-                {tile = adjacentTile:getE(), dir = "EAST"},
-                {tile = adjacentTile:getW(), dir = "WEST"}
+                {square = adjacentSquare:getN(), dir = "NORTH"},
+                {square = adjacentSquare:getS(), dir = "SOUTH"},
+                {square = adjacentSquare:getE(), dir = "EAST"},
+                {square = adjacentSquare:getW(), dir = "WEST"}
             }
 
             local gravelCount = 0
             local gravelDirections = {}
 
-            -- First add the direction FROM the grass tile TO the original gravel tile
-            -- This is the opposite of how we found the grass tile
+            -- First add the direction FROM the grass square TO the original gravel square
+            -- This is the opposite of how we found the grass square
             table.insert(gravelDirections, check.opposite)
 
-            -- Then check other adjacent tiles from the grass tile's perspective
+            -- Then check other adjacent squares from the grass square's perspective
             for _, otherCheck in ipairs(otherAdjacentChecks) do
-                -- Skip the direction that points back to our original gravel tile
+                -- Skip the direction that points back to our original gravel square
                 if otherCheck.dir ~= check.opposite then
-                    if otherCheck.tile and DumpTruck.isFullGravelFloor(otherCheck.tile) then
+                    if otherCheck.square and DumpTruck.isFullGravelFloor(otherCheck.square) then
                         gravelCount = gravelCount + 1
                         table.insert(gravelDirections, otherCheck.dir)
                     end
                 end
             end
 
-            -- If we found exactly one other gravel floor tile, we have a corner pattern
+            -- If we found exactly one other gravel floor square, we have a corner pattern
             if gravelCount == 1 then
                 -- Look up the appropriate triangle offset in our mapping
                 for _, mapping in ipairs(DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING) do
@@ -564,7 +605,7 @@ function DumpTruck.checkForCornerPattern(gravelTile)
                     -- Check if our gravel directions match this mapping (order doesn't matter)
                     if (gravelDirections[1] == directions[1] and gravelDirections[2] == directions[2]) or
                        (gravelDirections[1] == directions[2] and gravelDirections[2] == directions[1]) then
-                        return adjacentTile, mapping.triangle_offset
+                        return adjacentSquare, mapping.triangle_offset
                     end
                 end
             end
@@ -574,16 +615,16 @@ function DumpTruck.checkForCornerPattern(gravelTile)
     return nil, nil
 end
 
-function DumpTruck.fillGaps(leftTile, rightTile)
-    local adjacentTile1, triangleOffset1 = DumpTruck.checkForCornerPattern(leftTile)
-    local adjacentTile2, triangleOffset2 = DumpTruck.checkForCornerPattern(rightTile)
+function DumpTruck.fillGaps(leftSquare, rightSquare)
+    local adjacentSquare1, triangleOffset1 = DumpTruck.checkForCornerPattern(leftSquare)
+    local adjacentSquare2, triangleOffset2 = DumpTruck.checkForCornerPattern(rightSquare)
 
-    if adjacentTile1 and triangleOffset1 then
-        DumpTruck.placeGapFiller(adjacentTile1, triangleOffset1)
+    if adjacentSquare1 and triangleOffset1 then
+        DumpTruck.placeGapFiller(adjacentSquare1, triangleOffset1)
     end
 
-    if adjacentTile2 and triangleOffset2 then
-        DumpTruck.placeGapFiller(adjacentTile2, triangleOffset2)
+    if adjacentSquare2 and triangleOffset2 then
+        DumpTruck.placeGapFiller(adjacentSquare2, triangleOffset2)
     end
 end
 
@@ -595,13 +636,13 @@ function DumpTruck.smoothRoad(currentSquares, fx, fy)
     local cz = currentSquares[1]:getZ()
     
     -- Only check the outer edges of the road
-    local leftTile = currentSquares[1]
-    local rightTile = currentSquares[#currentSquares]
+    local leftSquare = currentSquares[1]
+    local rightSquare = currentSquares[#currentSquares]
     
     -- Fill gaps and add edge blends
-    DumpTruck.fillGaps(leftTile, rightTile)
+    DumpTruck.fillGaps(leftSquare, rightSquare)
     
-    DumpTruck.addEdgeBlends(leftTile, rightTile)
+    DumpTruck.addEdgeBlends(leftSquare, rightSquare)
     
     -- Clean up edge blends between pourable squares (after addEdgeBlends)
     for _, square in ipairs(currentSquares) do
@@ -612,19 +653,23 @@ end
 
 -- GRAVEL
 
-function DumpTruck.placeGravelFloorOnTile(sprite, sq)
-    -- Check if this is upgrading a gap filler to full gravel
-    local floor = sq:getFloor()
-    local isGapFillerUpgrade = false
-    if floor then
-        local floorModData = floor:getModData()
-        if floorModData and floorModData.isGapFiller then
-        isGapFillerUpgrade = true
-            -- When addFloor() is called below, it will replace the gap filler floor
-            -- and remove attached sprites automatically
-        end
+function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
+    if not sprite or not sq then
+        return
     end
-
+    
+    -- If upgrading a gap filler, remove the triangle overlay first
+    local squareModData = sq:getModData()
+    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        if squareModData.sprite then
+            local overlay = DumpTruck.findOverlayObject(sq, squareModData.sprite)
+            if overlay then
+                sq:RemoveTileObject(overlay)
+            end
+        end
+        DumpTruck.resetOverlayMetadata(sq)
+    end
+    
     -- Save original floor sprite so it can be restored when shoveled
     local originalFloor = sq:getFloor()
     local shovelledSprites = nil
@@ -644,7 +689,7 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
         newFloor:transmitModData()
     end
     
-    -- Disable erosion on this square (single player implementation)
+    -- Disable erosion on this square
     sq:disableErosion()
     
     
@@ -653,10 +698,8 @@ function DumpTruck.placeGravelFloorOnTile(sprite, sq)
     
     sq:RecalcProperties()
     sq:DirtySlice()
-    -- Transmit floor changes to clients (server-side or singleplayer)
-    if isServer() then
-        sq:transmitFloor()
-    end
+    -- Transmit floor changes to clients (MP only)
+    if sq.transmitFloor then sq:transmitFloor() end
 end
 
 function DumpTruck.consumeGravelFromTruckBed(vehicle)
@@ -834,18 +877,25 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     -- Track if any gravel was placed this update
     local gravelPlaced = false
     
+    -- Check gravel count BEFORE the loop (only check once per update cycle)
+    if DumpTruck.getGravelCount(vehicle) <= 0 then
+        DumpTruck.stopDumping(vehicle)
+        return
+    end
+    
     -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
         if sq and DumpTruck.isSquareValidForGravel(sq) then
+            DumpTruck.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
+            DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
+            DumpTruck.consumeGravelFromTruckBed(vehicle)
+            gravelPlaced = true
+            
+            -- Check again after consuming (in case we just ran out)
             if DumpTruck.getGravelCount(vehicle) <= 0 then
-                DumpTruck.debugPrint("GRAVEL RAN OUT - stopping dump")
                 DumpTruck.stopDumping(vehicle)
                 return
             end
-            DumpTruck.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
-            DumpTruck.placeGravelFloorOnTile(DumpTruckConstants.GRAVEL_SPRITE, sq)
-            DumpTruck.consumeGravelFromTruckBed(vehicle)
-            gravelPlaced = true
         else
             if sq then
                 DumpTruck.debugPrint("SKIPPED square (not valid): x=" .. sq:getX() .. ", y=" .. sq:getY())
@@ -885,9 +935,11 @@ function DumpTruck.stopDumpingSounds(vehicle, soundID)
         end
     end
     
-    -- Play hydraulic lift down and fade-out sounds
-    vehicle:playSound("HydraulicLiftDown")
-    vehicle:playSound("GravelDumpEnd")
+    -- Only play stop sounds if we have a valid soundID (meaning dumping was actually active)
+    if soundID and soundID ~= 0 then
+        vehicle:playSound("HydraulicLiftDown")
+        vehicle:playSound("GravelDumpEnd")
+    end
     
     -- Clear from modData
     local data = vehicle:getModData()
@@ -901,7 +953,6 @@ function DumpTruck.startDumping(vehicle)
     vehicle:setMaxSpeed(DumpTruckConstants.MAX_DUMP_SPEED)
     
     -- Start dumping sounds
-    DumpTruck.debugPrint("Starting dumping sounds")
     vehicle:playSound("HydraulicLiftRaised")
     vehicle:playSound("GravelDumpStart")
     local emitter = vehicle:getEmitter()
@@ -911,6 +962,12 @@ end
 -- Stop dumping
 function DumpTruck.stopDumping(vehicle)
     local data = vehicle:getModData()
+    
+    -- Only stop if actually dumping (prevents repeated calls)
+    if not data.dumpingGravelActive then
+        return
+    end
+    
     data.dumpingGravelActive = false
     vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
     
@@ -918,24 +975,5 @@ function DumpTruck.stopDumping(vehicle)
     DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
 end
 
--- Toggle gravel dumping based on key press
-function DumpTruck.toggleGravelDumping(key)
-    if key == DumpTruckConstants.DUMP_KEY then
-        local playerObj = getSpecificPlayer(0)
-        if not playerObj then return end
-        local vehicle = playerObj:getVehicle()
-        if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
-            local data = vehicle:getModData()
-            
-            if data.dumpingGravelActive then
-                DumpTruck.stopDumping(vehicle)
-            else
-                DumpTruck.startDumping(vehicle)
-            end
-        end
-    end
-end
--- Event bindings
-Events.OnKeyPressed.Add(DumpTruck.toggleGravelDumping)
 
 return DumpTruck

@@ -45,7 +45,8 @@ DumpTruckConstants.EDGE_BLEND_SPRITES = "blends_natural_01"
 
 -- Tile type constants for unified metadata system (gap fillers are just gravel with attached sprites)
 DumpTruckConstants.TILE_TYPES = {
-    EDGE_BLEND = "edgeBlend", 
+    EDGE_BLEND = "edgeBlend",
+    GAP_FILLER = "gapFiller",
     GRAVEL = "gravel"
 }
 
