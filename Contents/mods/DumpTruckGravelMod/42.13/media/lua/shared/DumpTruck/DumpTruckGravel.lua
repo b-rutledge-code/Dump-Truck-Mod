@@ -430,48 +430,20 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
         shovelledSprites = {originalFloor:getSprite():getName()}
     end
     
-        -- Place GRAVEL floor (now it's a gravel square for shoveling)
-    print("[DumpTruck] placeGapFiller: placing gravel floor at " .. nonGravelSquare:getX() .. "," .. nonGravelSquare:getY())
+    -- Place GRAVEL floor (now it's a gravel square for shoveling)
     local newFloor = nonGravelSquare:addFloor(DumpTruckConstants.GRAVEL_SPRITE)
     if not newFloor then
-        print("[DumpTruck] placeGapFiller: FAILED to add gravel floor!")
         return false
     end
-    print("[DumpTruck] placeGapFiller: floor added successfully")
     
     -- Add the natural terrain triangle as an overlay object
     local sprite = getSprite(triangleSprite)
     if sprite then
-        -- Debug: Check what's on the square before adding overlay
         local objects = nonGravelSquare:getObjects()
-        local floor = nonGravelSquare:getFloor()
-        print("[DT] pGF BEFORE ADD:")
-        print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
-        print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
-        if objects then
-            for i = 0, objects:size() - 1 do
-                local obj = objects:get(i)
-                print("[DT]   obj[" .. i .. "]=" .. tostring(obj and obj:getSprite() and obj:getSprite():getName()))
-            end
-        end
-        
         local overlay = IsoObject.new(getCell(), nonGravelSquare, triangleSprite)
-        -- Use actual object count as index instead of hardcoded 0 (fixes black squares)
         local insertIndex = objects and objects:size() or 0
-        print("[DT]   inserting at index=" .. tostring(insertIndex))
         nonGravelSquare:AddSpecialObject(overlay, insertIndex)
-        nonGravelSquare:transmitAddObjectToSquare(overlay, insertIndex)  -- Sync with correct index
-        
-        -- Debug: Check after adding
-        objects = nonGravelSquare:getObjects()
-        floor = nonGravelSquare:getFloor()
-        print("[DT] pGF AFTER ADD:")
-        print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
-        print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
-        
-        print("[DumpTruck] placeGapFiller: overlay added")
-    else
-        print("[DumpTruck] placeGapFiller: could not get sprite for " .. tostring(triangleSprite))
+        nonGravelSquare:transmitAddObjectToSquare(overlay, insertIndex)
     end
     
     -- Set metadata so it's recognized as gravel and can be shoveled
@@ -494,7 +466,6 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
     if nonGravelSquare.transmitFloor then nonGravelSquare:transmitFloor() end
     nonGravelSquare:RecalcProperties()
     nonGravelSquare:DirtySlice()
-    print("[DumpTruck] placeGapFiller: COMPLETE at " .. nonGravelSquare:getX() .. "," .. nonGravelSquare:getY())
     
     return true
 end
@@ -550,19 +521,11 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
     
-    -- Debug: Check what's on the square before adding overlay
     local objects = gravelSquare:getObjects()
-    local floor = gravelSquare:getFloor()
-    print("[DT] pEB BEFORE ADD at " .. gravelSquare:getX() .. "," .. gravelSquare:getY() .. ":")
-    print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
-    print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
-    
     local overlay = IsoObject.new(getCell(), gravelSquare, blendSprite)
-    -- Use actual object count as index instead of hardcoded 0
     local insertIndex = objects and objects:size() or 0
-    print("[DT]   inserting at index=" .. tostring(insertIndex))
     gravelSquare:AddSpecialObject(overlay, insertIndex)
-    gravelSquare:transmitAddObjectToSquare(overlay, insertIndex)  -- Sync with correct index
+    gravelSquare:transmitAddObjectToSquare(overlay, insertIndex)
     
     -- Set square metadata for edge blend overlay
     DumpTruck.initializeOverlayMetadata(gravelSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, blendSprite)
