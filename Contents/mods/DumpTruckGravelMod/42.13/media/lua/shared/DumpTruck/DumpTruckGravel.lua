@@ -14,13 +14,20 @@ end
 -- OVERLAY OBJECT HELPERS
 
 -- Initialize overlay metadata (gap fillers and edge blends only)
--- Store on square, not floor, since overlays are independent objects
+-- Store on FLOOR modData - saves with world, LoadGridsquare recreates on reload
+-- transmitModData syncs to other clients for LoadGridsquare restore function
 function DumpTruck.initializeOverlayMetadata(square, tileType, sprite)
     if not square then return end
     
-    local modData = square:getModData()
-    modData.tileType = tileType
-    modData.sprite = sprite
+    local floor = square:getFloor()
+    if not floor then return end
+    
+    local floorModData = floor:getModData()
+    floorModData.overlayType = tileType
+    floorModData.overlaySprite = sprite
+    
+    -- Sync modData to other clients for restore function
+    floor:transmitModData()
 end
 
 -- Find overlay object by sprite name
@@ -47,13 +54,53 @@ function DumpTruck.findOverlayObject(square, sprite)
 end
 
 -- Reset overlay metadata to clean state
--- Store on square, not floor, since overlays are independent objects
+-- Store on FLOOR modData, transmit to sync with other clients
 function DumpTruck.resetOverlayMetadata(square)
     if not square then return end
     
-    local modData = square:getModData()
-    modData.tileType = nil
-    modData.sprite = nil
+    local floor = square:getFloor()
+    if not floor then return end
+    
+    local floorModData = floor:getModData()
+    floorModData.overlayType = nil
+    floorModData.overlaySprite = nil
+    floor:transmitModData()  -- Sync to other clients
+end
+
+-- Get overlay data from floor modData
+-- Returns {type, sprite} or nil if no overlay
+function DumpTruck.getOverlayData(square)
+    if not square then return nil end
+    local floor = square:getFloor()
+    if not floor then return nil end
+    local floorModData = floor:getModData()
+    if not floorModData or not floorModData.overlayType then return nil end
+    return {
+        type = floorModData.overlayType,
+        sprite = floorModData.overlaySprite
+    }
+end
+
+-- Remove overlay from square (gap filler or edge blend)
+-- Handles object removal, metadata cleanup, and MP sync
+function DumpTruck.removeOverlayFromSquare(square)
+    if not square then return false end
+    
+    local overlayData = DumpTruck.getOverlayData(square)
+    if not overlayData or not overlayData.sprite then return false end
+    
+    local overlayObj = DumpTruck.findOverlayObject(square, overlayData.sprite)
+    if overlayObj then
+        square:transmitRemoveItemFromSquare(overlayObj)
+        square:RemoveTileObject(overlayObj)
+    end
+    
+    DumpTruck.resetOverlayMetadata(square)
+    square:RecalcProperties()
+    square:DirtySlice()
+    if square.transmitFloor then square:transmitFloor() end
+    
+    return true
 end
 
 -- HELPERS
@@ -67,8 +114,9 @@ function DumpTruck.isPouredGravel(square)
     local isGravel = DumpTruck.isFullGravelFloor(square)
     
     -- Check if it's a gap filler (gravel floor with gap filler overlay)
-    local squareModData = square:getModData()
-    local isGapFiller = squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    local floor = square:getFloor()
+    local floorModData = floor and floor:getModData()
+    local isGapFiller = floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
     
     local result = isGravel or isGapFiller
     
@@ -83,8 +131,8 @@ function DumpTruck.isFullGravelFloor(square)
     
     -- Gap fillers should NOT count as full gravel for corner detection
     -- (prevents cascading gap filler placement)
-    local squareModData = square:getModData()
-    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+    local floorModData = floor:getModData()
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         return false
     end
     
@@ -108,8 +156,9 @@ function DumpTruck.isSquareValidForGravel(sq)
     end
     if DumpTruck.isPouredGravel(sq) then
         -- Allow gap fillers to be upgraded to full gravel squares
-        local squareModData = sq:getModData()
-        if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        local floor = sq:getFloor()
+        local floorModData = floor and floor:getModData()
+        if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
             return true  -- Allow gap filler upgrade
         end
         return false  -- Reject full gravel squares
@@ -177,15 +226,18 @@ end
 local function hasBlendPointingAtGravel(square, adjacentChecks)
     if not square then return false end
     
-    local modData = square:getModData()
-    if not modData or modData.tileType ~= DumpTruckConstants.TILE_TYPES.EDGE_BLEND or not modData.sprite then
+    local floor = square:getFloor()
+    if not floor then return false end
+    
+    local floorModData = floor:getModData()
+    if not floorModData or floorModData.overlayType ~= DumpTruckConstants.TILE_TYPES.EDGE_BLEND or not floorModData.overlaySprite then
         return false
     end
     
     -- Check if this square's edge blend points at any gravel neighbor
     for _, check in ipairs(adjacentChecks) do
         if check.square and DumpTruck.isPouredGravel(check.square) then
-            local baseNumber = tonumber(modData.sprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
+            local baseNumber = tonumber(floorModData.overlaySprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
             if baseNumber then
                 local baseRow = math.floor(baseNumber / 16)
                 local rowStartTile = baseRow * 16
@@ -220,10 +272,12 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     }
     
     if hasBlendPointingAtGravel(square, myChecks) then
-        local modData = square:getModData()
-        if modData and modData.sprite then
-            local overlayObj = DumpTruck.findOverlayObject(square, modData.sprite)
+        local floor = square:getFloor()
+        local floorModData = floor and floor:getModData()
+        if floorModData and floorModData.overlaySprite then
+            local overlayObj = DumpTruck.findOverlayObject(square, floorModData.overlaySprite)
             if overlayObj then
+                square:transmitRemoveItemFromSquare(overlayObj)  -- Sync removal to other clients in MP
                 square:RemoveTileObject(overlayObj)
             end
             DumpTruck.resetOverlayMetadata(square)
@@ -244,10 +298,12 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     for _, check in ipairs(neighborChecks) do
         if check.square and DumpTruck.isPouredGravel(check.square) then
             if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
-                local adjModData = check.square:getModData()
-                if adjModData and adjModData.sprite then
-                    local overlayObj = DumpTruck.findOverlayObject(check.square, adjModData.sprite)
+                local adjFloor = check.square:getFloor()
+                local adjFloorModData = adjFloor and adjFloor:getModData()
+                if adjFloorModData and adjFloorModData.overlaySprite then
+                    local overlayObj = DumpTruck.findOverlayObject(check.square, adjFloorModData.overlaySprite)
                     if overlayObj then
+                        check.square:transmitRemoveItemFromSquare(overlayObj)  -- Sync removal to other clients in MP
                         check.square:RemoveTileObject(overlayObj)
                     end
                     DumpTruck.resetOverlayMetadata(check.square)
@@ -375,17 +431,47 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
     end
     
         -- Place GRAVEL floor (now it's a gravel square for shoveling)
+    print("[DumpTruck] placeGapFiller: placing gravel floor at " .. nonGravelSquare:getX() .. "," .. nonGravelSquare:getY())
     local newFloor = nonGravelSquare:addFloor(DumpTruckConstants.GRAVEL_SPRITE)
     if not newFloor then
-        DumpTruck.debugPrint("placeGapFiller: Failed to add gravel floor")
+        print("[DumpTruck] placeGapFiller: FAILED to add gravel floor!")
         return false
     end
+    print("[DumpTruck] placeGapFiller: floor added successfully")
     
     -- Add the natural terrain triangle as an overlay object
     local sprite = getSprite(triangleSprite)
     if sprite then
+        -- Debug: Check what's on the square before adding overlay
+        local objects = nonGravelSquare:getObjects()
+        local floor = nonGravelSquare:getFloor()
+        print("[DT] pGF BEFORE ADD:")
+        print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
+        print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
+        if objects then
+            for i = 0, objects:size() - 1 do
+                local obj = objects:get(i)
+                print("[DT]   obj[" .. i .. "]=" .. tostring(obj and obj:getSprite() and obj:getSprite():getName()))
+            end
+        end
+        
         local overlay = IsoObject.new(getCell(), nonGravelSquare, triangleSprite)
-        nonGravelSquare:AddSpecialObject(overlay, 0)  -- Index 0 to render below snow
+        -- Use actual object count as index instead of hardcoded 0 (fixes black squares)
+        local insertIndex = objects and objects:size() or 0
+        print("[DT]   inserting at index=" .. tostring(insertIndex))
+        nonGravelSquare:AddSpecialObject(overlay, insertIndex)
+        nonGravelSquare:transmitAddObjectToSquare(overlay, insertIndex)  -- Sync with correct index
+        
+        -- Debug: Check after adding
+        objects = nonGravelSquare:getObjects()
+        floor = nonGravelSquare:getFloor()
+        print("[DT] pGF AFTER ADD:")
+        print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
+        print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
+        
+        print("[DumpTruck] placeGapFiller: overlay added")
+    else
+        print("[DumpTruck] placeGapFiller: could not get sprite for " .. tostring(triangleSprite))
     end
     
     -- Set metadata so it's recognized as gravel and can be shoveled
@@ -405,11 +491,10 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
     -- Remove any old edge blend overlays and clear metadata
     DumpTruck.removeOppositeEdgeBlends(nonGravelSquare)
     
-    -- Sync to clients
-    newFloor:transmitModData()
     if nonGravelSquare.transmitFloor then nonGravelSquare:transmitFloor() end
     nonGravelSquare:RecalcProperties()
     nonGravelSquare:DirtySlice()
+    print("[DumpTruck] placeGapFiller: COMPLETE at " .. nonGravelSquare:getX() .. "," .. nonGravelSquare:getY())
     
     return true
 end
@@ -437,21 +522,24 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
     
+    -- Get floor modData for overlay checks
+    local floorModData = floor:getModData()
+    
     -- Don't place edge blends on gap fillers (they already have natural terrain triangles)
-    local squareModData = gravelSquare:getModData()
-    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         return false
     end
     
     -- Check if this blend already exists
-    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and squareModData.sprite == blendSprite then
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and floorModData.overlaySprite == blendSprite then
         return false  -- Already attached
     end
     
     -- Remove old edge blend if different
-    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and squareModData.sprite and squareModData.sprite ~= blendSprite then
-        local oldOverlayObj = DumpTruck.findOverlayObject(gravelSquare, squareModData.sprite)
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and floorModData.overlaySprite and floorModData.overlaySprite ~= blendSprite then
+        local oldOverlayObj = DumpTruck.findOverlayObject(gravelSquare, floorModData.overlaySprite)
         if oldOverlayObj then
+            gravelSquare:transmitRemoveItemFromSquare(oldOverlayObj)  -- Sync removal to other clients in MP
             gravelSquare:RemoveTileObject(oldOverlayObj)
         end
     end
@@ -462,13 +550,23 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
     
+    -- Debug: Check what's on the square before adding overlay
+    local objects = gravelSquare:getObjects()
+    local floor = gravelSquare:getFloor()
+    print("[DT] pEB BEFORE ADD at " .. gravelSquare:getX() .. "," .. gravelSquare:getY() .. ":")
+    print("[DT]   floor=" .. tostring(floor and floor:getSprite() and floor:getSprite():getName()))
+    print("[DT]   obj_count=" .. tostring(objects and objects:size() or 0))
+    
     local overlay = IsoObject.new(getCell(), gravelSquare, blendSprite)
-    gravelSquare:AddSpecialObject(overlay, 0)  -- Index 0 to render below snow
+    -- Use actual object count as index instead of hardcoded 0
+    local insertIndex = objects and objects:size() or 0
+    print("[DT]   inserting at index=" .. tostring(insertIndex))
+    gravelSquare:AddSpecialObject(overlay, insertIndex)
+    gravelSquare:transmitAddObjectToSquare(overlay, insertIndex)  -- Sync with correct index
     
     -- Set square metadata for edge blend overlay
     DumpTruck.initializeOverlayMetadata(gravelSquare, DumpTruckConstants.TILE_TYPES.EDGE_BLEND, blendSprite)
     
-    -- Sync to clients
     if gravelSquare.transmitFloor then gravelSquare:transmitFloor() end
     gravelSquare:RecalcProperties()
     gravelSquare:DirtySlice()
@@ -659,15 +757,20 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     end
     
     -- If upgrading a gap filler, remove the triangle overlay first
-    local squareModData = sq:getModData()
-    if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-        if squareModData.sprite then
-            local overlay = DumpTruck.findOverlayObject(sq, squareModData.sprite)
+    local existingFloor = sq:getFloor()
+    local floorModData = existingFloor and existingFloor:getModData()
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        if floorModData.overlaySprite then
+            local overlay = DumpTruck.findOverlayObject(sq, floorModData.overlaySprite)
             if overlay then
+                sq:transmitRemoveItemFromSquare(overlay)  -- Sync removal to other clients in MP
                 sq:RemoveTileObject(overlay)
             end
         end
-        DumpTruck.resetOverlayMetadata(sq)
+        -- NOTE: Intentionally NOT calling resetOverlayMetadata here
+        -- The floor is about to be replaced by addFloor() below, which wipes the modData anyway
+        -- Calling resetOverlayMetadata would transmit modData on a soon-to-be-deleted floor,
+        -- causing black squares on other clients
     end
     
     -- Save original floor sprite so it can be restored when shoveled
@@ -686,7 +789,7 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         floorModData.shovelledSprites = shovelledSprites
         floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
-        newFloor:transmitModData()
+        newFloor:transmitModData()  -- Sync to other clients
     end
     
     -- Disable erosion on this square
@@ -698,7 +801,6 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     
     sq:RecalcProperties()
     sq:DirtySlice()
-    -- Transmit floor changes to clients (MP only)
     if sq.transmitFloor then sq:transmitFloor() end
 end
 
@@ -974,6 +1076,24 @@ function DumpTruck.stopDumping(vehicle)
     -- Stop dumping sounds
     DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
 end
+
+
+-- Recreate overlay objects from floor modData when squares load (handles persistence + MP sync)
+-- Checks FLOOR modData (synced via floor:transmitModData) not square modData
+Events.LoadGridsquare.Add(function(square)
+    local floor = square:getFloor()
+    if not floor then return end
+    
+    local floorModData = floor:getModData()
+    if floorModData and floorModData.overlaySprite then
+        if not DumpTruck.findOverlayObject(square, floorModData.overlaySprite) then
+            local overlay = IsoObject.new(getCell(), square, floorModData.overlaySprite)
+            local objects = square:getObjects()
+            local insertIndex = objects and objects:size() or 0
+            square:AddSpecialObject(overlay, insertIndex)
+        end
+    end
+end)
 
 
 return DumpTruck

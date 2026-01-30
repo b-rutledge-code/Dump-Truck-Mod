@@ -9,17 +9,10 @@ function ISShovelGround:perform()
     if self.sandTile then
         local isoSquare = self.sandTile:getSquare()
         if isoSquare then
-            -- Remove gap filler overlay if present
-            local squareModData = isoSquare:getModData()
-            if squareModData and squareModData.tileType == DumpTruckConstants.TILE_TYPES.GAP_FILLER and squareModData.sprite then
-                local overlayObj = DumpTruck.findOverlayObject(isoSquare, squareModData.sprite)
-                if overlayObj then
-                    isoSquare:RemoveTileObject(overlayObj)
-                    DumpTruck.resetOverlayMetadata(isoSquare)
-                end
-            end
+            -- Remove overlay (gap filler or edge blend) from this square
+            DumpTruck.removeOverlayFromSquare(isoSquare)
             
-            -- Remove edge blends
+            -- Remove edge blends on adjacent squares that point to this one
             DumpTruck.removeEdgeBlendsBetweenPourableSquares(isoSquare)
         end
     end
