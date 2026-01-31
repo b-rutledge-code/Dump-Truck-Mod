@@ -1,5 +1,5 @@
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
-local DumpTruckGravel = require("DumpTruck/DumpTruckGravel")
+local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
 
 local originalBuildIsoEntityCreate = ISBuildIsoEntity.create
 
@@ -12,7 +12,6 @@ function ISBuildIsoEntity:create(x, y, z, north, sprite)
 
     -- After the tile is placed, clean up any edge blends between adjacent gravel tiles
     if self.sq and DumpTruckCore.isFullGravelFloor(self.sq) then
-        DumpTruckGravel.removeEdgeBlendsBetweenPourableSquares(self.sq)
+        DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(self.sq)
     end
 end
-

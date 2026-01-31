@@ -1,5 +1,5 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
-local DumpTruck = require("DumpTruck/DumpTruckGravel")
+local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
 
 local originalPerform = ISShovelGround.perform
 
@@ -10,10 +10,10 @@ function ISShovelGround:perform()
         local isoSquare = self.sandTile:getSquare()
         if isoSquare then
             -- Remove overlay (gap filler or edge blend) from this square
-            DumpTruck.removeOverlayFromSquare(isoSquare)
+            DumpTruckOverlays.removeOverlayFromSquare(isoSquare)
             
             -- Remove edge blends on adjacent squares that point to this one
-            DumpTruck.removeEdgeBlendsBetweenPourableSquares(isoSquare)
+            DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(isoSquare)
         end
     end
 
