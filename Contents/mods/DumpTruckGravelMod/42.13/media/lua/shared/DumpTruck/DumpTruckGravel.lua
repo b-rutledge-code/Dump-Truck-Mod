@@ -1,15 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
+local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 
 local DumpTruck = {}
-DumpTruck.debugMode = false
-
-
--- Utility function for debug printing
-function DumpTruck.debugPrint(...)
-    if DumpTruck.debugMode then
-        print("[DEBUG]", ...)
-    end
-end
 
 -- OVERLAY OBJECT HELPERS
 
@@ -103,93 +95,6 @@ function DumpTruck.removeOverlayFromSquare(square)
     return true
 end
 
--- HELPERS
-
--- Check if a square is poured gravel
-function DumpTruck.isPouredGravel(square)
-    if not square then return false end
-
-    
-    -- Check if it's a full gravel floor
-    local isGravel = DumpTruck.isFullGravelFloor(square)
-    
-    -- Check if it's a gap filler (gravel floor with gap filler overlay)
-    local floor = square:getFloor()
-    local floorModData = floor and floor:getModData()
-    local isGapFiller = floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
-    
-    local result = isGravel or isGapFiller
-    
-    return result
-end
-
--- Check if a square is a full gravel floor (not a blend)
-function DumpTruck.isFullGravelFloor(square)
-    if not square then return false end
-    local floor = square:getFloor()
-    if not floor then return false end
-    
-    -- Gap fillers should NOT count as full gravel for corner detection
-    -- (prevents cascading gap filler placement)
-    local floorModData = floor:getModData()
-    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-        return false
-    end
-    
-    -- Check sprite directly for gravel (no metadata needed)
-    local floorSprite = floor:getSprite()
-    if not floorSprite then return false end
-    local spriteName = floorSprite:getName()
-    return spriteName == DumpTruckConstants.GRAVEL_SPRITE
-end
-
--- Check if square is valid for gravel
-function DumpTruck.isSquareValidForGravel(sq)
-    if not sq then
-        return false
-    end
-    if CFarmingSystem and CFarmingSystem.instance:getLuaObjectOnSquare(sq) then
-        return false
-    end
-    if sq:getProperties() and sq:getProperties():has("water") then
-        return false
-    end
-    if DumpTruck.isPouredGravel(sq) then
-        -- Allow gap fillers to be upgraded to full gravel squares
-        local floor = sq:getFloor()
-        local floorModData = floor and floor:getModData()
-        if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-            return true  -- Allow gap filler upgrade
-        end
-        return false  -- Reject full gravel squares
-    end
-    return true
-end
-
-
--- get vehicle vector 
--- function DumpTruck.getVector(vehicle)
---     local dir = vehicle:getDir()
---     local fx = dir:dx()
---     local fy = dir:dy()
---     DumpTruck.debugPrint(string.format("Vehicle Vector: fx=%.3f, fy=%.3f.", fx, fy))
---     return fx, fy
--- end
-
-function DumpTruck.getVectorFromPlayer(vehicle)
-    -- Get the driver of the vehicle
-    local driver = vehicle:getDriver()
-    if driver == nil then
-        return nil, nil
-    end
-
-    -- Get the driver's forward direction as a vector
-    local vector = Vector2.new()
-    driver:getForwardDirection(vector)
-
-    return vector:getX(), vector:getY()
-end
-
 -- BLENDING
 
 
@@ -236,7 +141,7 @@ local function hasBlendPointingAtGravel(square, adjacentChecks)
     
     -- Check if this square's edge blend points at any gravel neighbor
     for _, check in ipairs(adjacentChecks) do
-        if check.square and DumpTruck.isPouredGravel(check.square) then
+        if check.square and DumpTruckCore.isPouredGravel(check.square) then
             local baseNumber = tonumber(floorModData.overlaySprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
             if baseNumber then
                 local baseRow = math.floor(baseNumber / 16)
@@ -296,7 +201,7 @@ function DumpTruck.removeOppositeEdgeBlends(square)
     }
     
     for _, check in ipairs(neighborChecks) do
-        if check.square and DumpTruck.isPouredGravel(check.square) then
+        if check.square and DumpTruckCore.isPouredGravel(check.square) then
             if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
                 local adjFloor = check.square:getFloor()
                 local adjFloorModData = adjFloor and adjFloor:getModData()
@@ -407,7 +312,7 @@ function DumpTruck.placeGapFiller(nonGravelSquare, triangleOffset)
     end
     
     -- Check if already has gravel (don't overwrite)
-    if DumpTruck.isPouredGravel(nonGravelSquare) then
+    if DumpTruckCore.isPouredGravel(nonGravelSquare) then
         return false
     end
     
@@ -483,7 +388,7 @@ function DumpTruck.placeEdgeBlend(gravelSquare, blendSprite)
     end
     
     -- Must be a gravel square
-    if not DumpTruck.isPouredGravel(gravelSquare) then
+    if not DumpTruckCore.isPouredGravel(gravelSquare) then
         return false
     end
     
@@ -600,7 +505,7 @@ function DumpTruck.addEdgeBlends(leftSquare, rightSquare)
         
         if sideSquare then
             -- Check if the adjacent side square doesn't have poured gravel
-            if not DumpTruck.isPouredGravel(sideSquare) then
+            if not DumpTruckCore.isPouredGravel(sideSquare) then
                 local terrain = DumpTruck.getBlendNaturalSprite(sideSquare)
                 if terrain then
                     local blend = DumpTruck.getEdgeBlendSprite(sideDir, terrain)
@@ -615,7 +520,7 @@ end
 
 -- Check if a grass square adjacent to a gravel square forms a corner pattern
 function DumpTruck.checkForCornerPattern(gravelSquare)
-    if not gravelSquare or not DumpTruck.isFullGravelFloor(gravelSquare) then
+    if not gravelSquare or not DumpTruckCore.isFullGravelFloor(gravelSquare) then
         return nil, nil
     end
 
@@ -629,7 +534,7 @@ function DumpTruck.checkForCornerPattern(gravelSquare)
 
     for _, check in ipairs(adjacentChecks) do
         local adjacentSquare = check.square
-        if adjacentSquare and not DumpTruck.isPouredGravel(adjacentSquare) then
+        if adjacentSquare and not DumpTruckCore.isPouredGravel(adjacentSquare) then
             
             -- Found a non-gravel square, check its other adjacent squares
             local otherAdjacentChecks = {
@@ -650,7 +555,7 @@ function DumpTruck.checkForCornerPattern(gravelSquare)
             for _, otherCheck in ipairs(otherAdjacentChecks) do
                 -- Skip the direction that points back to our original gravel square
                 if otherCheck.dir ~= check.opposite then
-                    if otherCheck.square and DumpTruck.isFullGravelFloor(otherCheck.square) then
+                    if otherCheck.square and DumpTruckCore.isFullGravelFloor(otherCheck.square) then
                         gravelCount = gravelCount + 1
                         table.insert(gravelDirections, otherCheck.dir)
                     end
@@ -897,11 +802,11 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not data.dumpingGravelActive then return end  -- Only proceed if dumping is active
 
     local cx, cy, cz = vehicle:getX(), vehicle:getY(), vehicle:getZ()
-    DumpTruck.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
+    DumpTruckCore.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
     -- Get forward vector first (returns nil if no driver)
-    local fx, fy = DumpTruck.getVectorFromPlayer(vehicle)
+    local fx, fy = DumpTruckCore.getVectorFromPlayer(vehicle)
     if not fx or not fy then
         -- No driver - can't pour gravel (need direction), but keep dump state active
         -- Passenger can activate dump and wait for driver
@@ -938,9 +843,9 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
     
     -- Debug print current squares
-    DumpTruck.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
+    DumpTruckCore.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
     for i, sq in ipairs(currentSquares) do
-        DumpTruck.debugPrint(string.format("[DEBUG] Current square %d - x: %d, y: %d", 
+        DumpTruckCore.debugPrint(string.format("[DEBUG] Current square %d - x: %d, y: %d", 
             tostring(i), tostring(sq:getX()), tostring(sq:getY())))
     end
     
@@ -955,8 +860,8 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     
     -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
-        if sq and DumpTruck.isSquareValidForGravel(sq) then
-            DumpTruck.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
+        if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+            DumpTruckCore.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
             DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
             DumpTruck.consumeGravelFromTruckBed(vehicle)
             gravelPlaced = true
@@ -968,7 +873,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
             end
         else
             if sq then
-                DumpTruck.debugPrint("SKIPPED square (not valid): x=" .. sq:getX() .. ", y=" .. sq:getY())
+                DumpTruckCore.debugPrint("SKIPPED square (not valid): x=" .. sq:getX() .. ", y=" .. sq:getY())
             end
         end
     end
