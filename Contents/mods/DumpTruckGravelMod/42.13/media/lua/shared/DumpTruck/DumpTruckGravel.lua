@@ -900,8 +900,13 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     DumpTruck.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
-    -- Get forward vector first
+    -- Get forward vector first (returns nil if no driver)
     local fx, fy = DumpTruck.getVectorFromPlayer(vehicle)
+    if not fx or not fy then
+        -- No driver - can't pour gravel (need direction), but keep dump state active
+        -- Passenger can activate dump and wait for driver
+        return
+    end
     
     -- Calculate perpendicular vector (90 degrees to forward)
     local perpX = -fy

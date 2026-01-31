@@ -34,7 +34,7 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
             sendAddItemToContainer(truckbedcontainer, shovel)
         end
         
-        -- 50% chance to have gravel
+        -- 50% chance to have gravel, otherwise empty sacks
         if ZombRand(2) == 0 then
             local totalWeight = truckbedcontainer:getContentsWeight()
             local capacity = truckbedcontainer:getCapacity()
@@ -52,6 +52,12 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
                         sendAddItemToContainer(truckbedcontainer, gravelBag)
                     end
                 end
+            end
+        else
+            -- No gravel - spawn 50 empty sacks instead
+            local emptySacks = truckbedcontainer:AddItems("Base.EmptySandbag", 50)
+            if emptySacks and isServer() then
+                sendAddItemsToContainer(truckbedcontainer, emptySacks)
             end
         end
     end
