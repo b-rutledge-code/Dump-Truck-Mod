@@ -11,21 +11,13 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         return
     end
     
-    -- If upgrading a gap filler, remove the triangle overlay first
+    -- If upgrading a gap filler, remove the attached triangle overlay first
     local existingFloor = sq:getFloor()
     local floorModData = existingFloor and existingFloor:getModData()
     if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
-        if floorModData.overlaySprite then
-            local overlay = DumpTruckOverlays.findOverlayObject(sq, floorModData.overlaySprite)
-            if overlay then
-                sq:transmitRemoveItemFromSquare(overlay)  -- Sync removal to other clients in MP
-                sq:RemoveTileObject(overlay)
-            end
-        end
-        -- NOTE: Intentionally NOT calling resetOverlayMetadata here
-        -- The floor is about to be replaced by addFloor() below, which wipes the modData anyway
-        -- Calling resetOverlayMetadata would transmit modData on a soon-to-be-deleted floor,
-        -- causing black squares on other clients
+        existingFloor:RemoveAttachedAnims()
+        -- NOTE: Intentionally NOT calling resetOverlayMetadata or transmitUpdatedSpriteToClients here
+        -- The floor is about to be replaced by addFloor() below, which wipes everything anyway
     end
     
     -- Save original floor sprite so it can be restored when shoveled
@@ -338,19 +330,20 @@ function DumpTruck.stopDumping(vehicle)
 end
 
 
--- Recreate overlay objects from floor modData when squares load (handles persistence + MP sync)
--- Checks FLOOR modData (synced via floor:transmitModData) not square modData
+-- Recreate overlay sprites from floor modData when squares load (handles persistence)
+-- Uses AttachExistingAnim to reattach sprite to floor
 Events.LoadGridsquare.Add(function(square)
     local floor = square:getFloor()
     if not floor then return end
     
     local floorModData = floor:getModData()
     if floorModData and floorModData.overlaySprite then
-        if not DumpTruckOverlays.findOverlayObject(square, floorModData.overlaySprite) then
-            local overlay = IsoObject.new(getCell(), square, floorModData.overlaySprite)
-            local objects = square:getObjects()
-            local insertIndex = objects and objects:size() or 0
-            square:AddSpecialObject(overlay, insertIndex)
+        -- Only attach if floor doesn't already have attached anims (avoid duplicates)
+        if not floor:hasAttachedAnimSprites() then
+            local sprite = getSprite(floorModData.overlaySprite)
+            if sprite then
+                floor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
+            end
         end
     end
 end)
