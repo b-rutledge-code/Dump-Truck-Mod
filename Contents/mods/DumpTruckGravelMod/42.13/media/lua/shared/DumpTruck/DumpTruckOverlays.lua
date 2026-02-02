@@ -25,29 +25,6 @@ function DumpTruckOverlays.initializeOverlayMetadata(square, tileType, sprite)
     floor:transmitModData()
 end
 
--- Find overlay object by sprite name
--- Loops through square objects to find the one matching the sprite
-function DumpTruckOverlays.findOverlayObject(square, sprite)
-    if not square or not sprite then return nil end
-    
-    local objects = square:getObjects()
-    if not objects then 
-        return nil 
-    end
-    
-    for i = 0, objects:size() - 1 do
-        local obj = objects:get(i)
-        if obj and obj:getSprite() then
-            local objSprite = obj:getSprite():getName()
-            if objSprite == sprite then
-                return obj
-            end
-        end
-    end
-    
-    return nil
-end
-
 -- Reset overlay metadata to clean state
 -- Store on FLOOR modData, transmit to sync with other clients
 function DumpTruckOverlays.resetOverlayMetadata(square)
@@ -79,35 +56,42 @@ end
 -- CENTRAL OVERLAY METHODS
 
 -- Place overlay on square (gap filler or edge blend)
--- Creates IsoObject, adds to square, transmits to MP, sets metadata
+-- Uses AttachExistingAnim to attach sprite to floor, transmits to MP, sets metadata
 function DumpTruckOverlays.placeOverlay(square, sprite, tileType)
     if not square or not sprite then return false end
+    
+    local floor = square:getFloor()
+    if not floor then return false end
     
     local spriteObj = getSprite(sprite)
     if not spriteObj then return false end
     
-    local objects = square:getObjects()
-    local overlay = IsoObject.new(getCell(), square, sprite)
-    local insertIndex = objects and objects:size() or 0
-    square:AddSpecialObject(overlay, insertIndex)
-    square:transmitAddObjectToSquare(overlay, insertIndex)
+    -- Attach sprite to floor using vanilla pattern (see ISShovelGround.lua)
+    floor:AttachExistingAnim(spriteObj, 0, 0, false, 0, false, 0.0)
+    
+    -- Sync to MP clients (server only - not needed in SP)
+    if isServer() then
+        floor:transmitUpdatedSpriteToClients()
+    end
     
     DumpTruckOverlays.initializeOverlayMetadata(square, tileType, sprite)
     return true
 end
 
 -- Remove overlay from square (gap filler or edge blend)
--- Finds object, transmits removal to MP, removes object, clears metadata
+-- Uses RemoveAttachedAnims to remove all attached sprites, clears metadata
 function DumpTruckOverlays.removeOverlay(square)
     if not square then return false end
     
-    local overlayData = DumpTruckOverlays.getOverlayData(square)
-    if not overlayData or not overlayData.sprite then return false end
+    local floor = square:getFloor()
+    if not floor then return false end
     
-    local overlayObj = DumpTruckOverlays.findOverlayObject(square, overlayData.sprite)
-    if overlayObj then
-        square:transmitRemoveItemFromSquare(overlayObj)
-        square:RemoveTileObject(overlayObj)
+    -- Remove all attached anims from floor
+    floor:RemoveAttachedAnims()
+    
+    -- Sync to MP clients (server only - not needed in SP)
+    if isServer() then
+        floor:transmitUpdatedSpriteToClients()
     end
     
     DumpTruckOverlays.resetOverlayMetadata(square)
