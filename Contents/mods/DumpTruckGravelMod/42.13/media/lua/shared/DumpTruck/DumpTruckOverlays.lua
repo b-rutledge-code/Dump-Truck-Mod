@@ -346,7 +346,11 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
     
     -- Disable erosion on this square
     nonGravelSquare:disableErosion()
-    
+    -- Tell clients to set doNothing on their copy (erosion state does not sync with floor change)
+    if isServer() then
+        sendServerCommand("DumpTruckGravelMod", "disableErosionAt", { x = nonGravelSquare:getX(), y = nonGravelSquare:getY(), z = nonGravelSquare:getZ() })
+    end
+
     -- Remove any old edge blend overlays and clear metadata
     DumpTruckOverlays.removeOppositeEdgeBlends(nonGravelSquare)
     
