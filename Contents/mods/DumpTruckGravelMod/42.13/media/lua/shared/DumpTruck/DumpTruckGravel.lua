@@ -41,8 +41,11 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     
     -- Disable erosion on this square
     sq:disableErosion()
-    
-    
+    -- Tell clients to set doNothing on their copy (erosion state does not sync with floor change)
+    if isServer() then
+        sendServerCommand("DumpTruckGravelMod", "disableErosionAt", { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+    end
+
     DumpTruckOverlays.removeOppositeEdgeBlends(sq)
 
     
@@ -332,6 +335,17 @@ end
 
 -- Recreate overlay sprites from floor modData when squares load (handles persistence)
 -- Uses AttachExistingAnim to reattach sprite to floor
+-- MP: when server places gravel it sends disableErosionAt; clients run disableErosion() on their copy so erosion (trees/grass) does not run there
+Events.OnServerCommand.Add(function(module, command, args)
+    if module == "DumpTruckGravelMod" and command == "disableErosionAt" and args and args.x and args.y and args.z then
+        local cell = getCell()
+        if cell then
+            local sq = cell:getGridSquare(args.x, args.y, args.z)
+            if sq then sq:disableErosion() end
+        end
+    end
+end)
+
 Events.LoadGridsquare.Add(function(square)
     local floor = square:getFloor()
     if not floor then return end
