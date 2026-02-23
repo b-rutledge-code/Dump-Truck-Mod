@@ -57,5 +57,10 @@ DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS = {
     SOUTH = {11, 15}   -- Bottom edge + variation
 }
 
+-- Pour effect: overlay sprites shown briefly when gravel is placed (client-only visual)
+-- Stages progress from sparse to dense; fake floor + speckle overlay hide gravel until removed
+DumpTruckConstants.POUR_SPRITES = { "dumptruck_pour_00", "dumptruck_pour_005", "dumptruck_pour_01" }
+DumpTruckConstants.POUR_STAGE_MS = 120
+
 return DumpTruckConstants
 
