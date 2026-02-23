@@ -240,12 +240,13 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         return
     end
     
+    local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
+
     -- Place gravel on valid squares, skipping ones that already have gravel
     for _, sq in ipairs(currentSquares) do
         if sq and DumpTruckCore.isSquareValidForGravel(sq) then
             DumpTruckCore.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
-            DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
-            DumpTruck.consumeGravelFromTruckBed(vehicle)
+            DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
             gravelPlaced = true
             
             -- Check again after consuming (in case we just ran out)
