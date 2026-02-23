@@ -308,7 +308,6 @@ end
 function DumpTruck.startDumping(vehicle)
     local data = vehicle:getModData()
     data.dumpingGravelActive = true
-    vehicle:setMaxSpeed(DumpTruckConstants.MAX_DUMP_SPEED)
     
     -- Start dumping sounds
     vehicle:playSound("HydraulicLiftRaised")
@@ -327,7 +326,6 @@ function DumpTruck.stopDumping(vehicle)
     end
     
     data.dumpingGravelActive = false
-    vehicle:setMaxSpeed(DumpTruckConstants.DEFAULT_MAX_SPEED)
     
     -- Stop dumping sounds
     DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)

@@ -1,10 +1,6 @@
 local DumpTruckConstants = {}
 
--- These should come from the script ideally
-DumpTruckConstants.DEFAULT_MAX_SPEED = 70.0
-
 --Misc Information
-DumpTruckConstants.MAX_DUMP_SPEED = 5.0 -- Maximum speed in km/h while dumping
 DumpTruckConstants.DUMP_KEY = 34  -- Key code for 'G'
 DumpTruckConstants.UPDATE_INTERVAL = 0.5 -- how often to drop gravel in seconds
 DumpTruckConstants.AXIS = {
