@@ -64,16 +64,55 @@ See also **Post-Release → Not Feasible**: "Gravel dumping animation" (no Lua A
 - **IsoFireManager** and **IsoFire** are exposed to Lua, so you can start a fire on a square and get the built-in fire/smoke look via attached anims—but that uses the game's fire logic and "Fire"/"Smoke" sprites, not a generic "spawn particles here" API. Not suitable for custom gravel-dust.
 - **Conclusion:** Custom "gravel dust" or other dump visuals via particles would require a game change that exposes a particle API; from Lua alone there is no supported way.
 
-**Short-lived custom sprites (viable):**
+**Short-lived custom sprites — IMPLEMENTED (v1.2.0):**
 
-- **Idea:** Custom sprites that look like grass with increasing grey dots; flash them briefly on the square when gravel is placed to suggest pour/splash. No fade—just show the sprite for a short time then remove it.
-- **Implementation:** Create an **IsoObject** with the effect sprite, add it to the square with `square:AddTileObject(overlay)`, then remove it after ~0.1–0.2s with `square:RemoveTileObject(overlay)`. Use a **separate** IsoObject (do not use the floor's AttachExistingAnim for this), so we don't wipe edge blends (RemoveAttachedAnims() removes all). Schedule removal via a small table of { object, removeAt } and an OnTick (or similar) handler that checks `getTimestampMs()` and removes expired objects.
-- **Assets:** A **few sprites** are enough (e.g. 3–5 frames: grass → grass+few dots → more dots). Flash each briefly (e.g. 50–100 ms) then remove; slightly choppy is fine for Zomboid and still reads as "something pouring." Add sprites to the mod's media.
-- **Asset generation:** Start from the **existing gravel sprite** we use. Produce 3–5 variants by adding **increasing gray noise/dots** on top—no new art needed, just "base + more noise" per frame. Well-suited to an AI image tool or a simple script (e.g. overlay gray noise at increasing density).
-- **One effect vs per-floor:** Using the *same* gravel-colored pour overlay on every square would look odd: the base floor (grass, dirt, concrete) would still show, then get "colored in" with the gravel overlay, then snap to gravel—visually weird. To look right we'd need a **different pour sprite set per flooring type** (grass+dots on grass, dirt+dots on dirt, etc.), which is a lot of assets. **Compromise:** use a **neutral "dust" effect**—sprites that are just grey/dark speckles (no gravel base), so they read as "debris/dust pouring" and don't clash with any terrain. One set of 3–5 frames, works on any floor. Otherwise: accept per-floor sprite sets for a proper match, or skip the overlay and rely on sound + bed tilt.
-- **When to show:** Right when placing gravel (or just before): spawn the effect object on the target square, register for removal; optionally spawn on the last N squares behind the truck for a short "trail" of flashes.
+### Architecture: synchronous floor + stacked overlays
 
-- **Sprite transparency:** The game **does** support transparent sprites—it's baked into the asset (alpha channel). Gap fillers and many tiles use it. So the neutral dust effect can be **grey speckles on a transparent background**; transparent areas show the underlying floor. What isn't supported is *runtime* alpha from Lua (`setAlpha()` is for wall cutaway only). We can add custom sprites with transparency; we just can't fade them in/out from script.
+The pour effect places gravel immediately but hides it behind temporary overlays that animate the "pouring" visual. This ensures `smoothRoad` edge blends work correctly (they need the real gravel floor to already exist).
+
+**On each square when gravel is placed (`DumpTruckPourEffect.schedulePlaceAndEffect`):**
+
+1. Save the name of the existing floor sprite (e.g. `blends_natural_01_0`).
+2. Call `placeGravelFloorOnSquare()` immediately — the real gravel is now the floor.
+3. Call `consumeGravelFromTruckBed()` — deduct from inventory.
+4. Create **IsoObject #1 ("fakeFloor")** using the saved old floor sprite → `square:AddTileObject(fakeFloor)`. This visually hides the gravel underneath.
+5. Create **IsoObject #2 ("overlay")** using `POUR_SPRITES[1]` (sparse speckles on transparent background) → `square:AddTileObject(overlay)`. This sits on top of the fake floor.
+6. Store `{ fakeFloor, overlay, square, stage=1, nextSwapAt=now+POUR_STAGE_MS }` in a `pending` table.
+
+**Animation progression (`onTick`):**
+
+- Each tick, check `pending` entries against `getTimestampMs()`.
+- If `now >= nextSwapAt` and not on the final stage: swap the overlay's sprite to the next `POUR_SPRITES` entry (more gravel speckles), call `overlay:DirtySlice()`, advance stage.
+- When the final stage expires: remove both fakeFloor and overlay from the square, call `sq:RecalcProperties()` and `sq:DirtySlice()`. The real gravel floor is revealed.
+
+### Sprite stages
+
+Three stages, progressing from sparse to dense gravel speckles on a transparent background:
+
+| Stage | Sprite | Density |
+|-------|--------|---------|
+| 1 | `dumptruck_pour_00` | ~6% (sparse) |
+| 2 | `dumptruck_pour_005` | ~13% (mid) |
+| 3 | `dumptruck_pour_01` | ~20% (medium) |
+
+After stage 3 completes, overlays are removed and the full gravel tile is visible.
+
+### Timing
+
+`POUR_STAGE_MS = 120` — each stage lasts 120ms, total animation ~360ms. This was tuned through in-game testing; shorter felt too abrupt, longer was noticeable as a delay.
+
+**Future idea: speed-scaled duration.** The stage duration could scale with vehicle speed (`vehicle:getCurrentSpeedKmHour()`) so the effect completes faster when the truck is moving quickly and lingers when crawling. Not yet implemented.
+
+### Assets
+
+Sprites are 128×256 transparent PNGs with grey gravel speckles at increasing density. Generated via a Python script using `struct`/`zlib` (no PIL dependency). Source PNGs and TOMLs live in `media/texturepacks_src/pour/`. Compiled into `media/texturepacks/DumpTruckGravelMod.pack`.
+
+### Key learnings
+
+- **Stacked IsoObjects work.** You can `AddTileObject()` multiple IsoObjects on a square and they render in order. `RemoveTileObject()` removes a specific one without affecting others or the floor.
+- **`DirtySlice()` is the correct method** to force a re-render after changing a sprite on an existing IsoObject. `setDirty()` does not exist on IsoObject.
+- **Sprite transparency works** — the game renders alpha channels from PNGs in texture packs. Transparent areas show whatever is underneath. Runtime alpha (`setAlpha()`) is still wall-cutaway only.
+- **`smoothRoad` needs real gravel floors** — it checks adjacent squares for gravel sprites to decide edge blends. If gravel is deferred (placed later by `onTick`), `smoothRoad` won't see it. The synchronous placement + overlay approach solves this.
 
 ### How to add sprites (for pour effect or any custom sprite)
 
@@ -83,20 +122,18 @@ See also **Post-Release → Not Feasible**: "Gravel dumping animation" (no Lua A
 2. **Create a texture pack**  
    PZ loads sprites from `.pack` files (texture atlases). Two options:
    - **TileZed:** Tools → .pack files → Create .pack File. Choose the folder containing your PNG(s). Save as e.g. `media/texturepacks/DumpTruckGravelMod.pack` in the mod. TileZed will trim and pack the images and generate entry names from filenames.
-   - **pz-pack tool** (see `reference/pz-pack/README.md`): Put each PNG in a folder with a TOML file that defines **entries** (one per sprite). Each entry has a name (the key in TOML), `pos`, `size`, and optionally `frame_offset` (transparent padding), `frame_size`. Run `pz-pack-tool pack ./InputDir ./OutputFile.pack`.
+   - **pz-pack tool** (see `reference/pz-pack/README.md`): Put each PNG in a folder with a matching TOML file. **Critical: the TOML filename stem must match the PNG filename stem** (e.g. `dumptruck_pour_01.png` needs `dumptruck_pour_01.toml`). A single TOML for multiple PNGs won't work — the tool pairs by name. Each TOML specifies `pos` and `size`. Run `pz-pack-tool pack ./InputDir ./OutputFile.pack`.
 
 3. **Place the pack in the mod**  
-   e.g. `Contents/mods/DumpTruckGravelMod/42.13/media/texturepacks/DumpTruckGravelMod.pack` (or a shared `media/texturepacks/` if you have one).
+   e.g. `Contents/mods/DumpTruckGravelMod/42.13/media/texturepacks/DumpTruckGravelMod.pack`.
 
 4. **Register the pack in mod.info**  
    Add a line: `pack=DumpTruckGravelMod` (name without `.pack`). The game loads this pack with the mod.
 
 5. **Use in Lua**  
-   Sprite name in code is the **pack entry name** (from TileZed output or your TOML key). e.g. `getSprite("dumptruck_pour_01")` or whatever the packed name is. Then e.g. `IsoObject.new(getCell(), square, getSprite("dumptruck_pour_01"))`.
+   Sprite name in code is the **PNG filename stem** (e.g. `dumptruck_pour_01`). Use `getSprite("dumptruck_pour_01")` to get the sprite object, then `IsoObject.new(getCell(), square, getSprite("dumptruck_pour_01"))`.
 
 **References:** PZwiki [Adding new tiles](https://pzwiki.net/wiki/Adding_new_tiles); `reference/pz-pack/README.md` (TOML format, transparent padding).
-
-**Current feedback for dumping:** Sound + bed tilt (see below). Short-lived sprites above would add a visual "splash" without needing particles or transparency.
 
 ---
 
