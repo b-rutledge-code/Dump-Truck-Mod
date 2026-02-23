@@ -1,8 +1,8 @@
 version=1
 id=3433311021
 title=Road Builder
-description=[b]Updated for 42.13 Multiplayer[/b]
-description=A Project Zomboid mod that adds a dump truck capable of laying gravel roads that wont erode.
+description=[b]Supports Multiplayer[/b]
+description=Build gravel roads that look like they belong in the game. Smooth edge blending, gravel pour animation, and erosion prevention — designed for a vanilla experience.
 description=
 description=[h2]Features[/h2]
 description=- Volvo FE6 dump truck model (courtesy of [b]fhqwhgads[/b] from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2791656602]Motorious Zone[/url]!)
@@ -27,8 +27,6 @@ description=- Traffic Jams (roadblocks and traffic zones)
 description=- Parking Stalls (general parking lots) - very low chance
 description=- Medium Areas (medium density zones) - very low chance
 description=[b]Vehicle type:[/b] Base.DumpTruck
-description=
-description=[Note] As of the 42.13 update Indie Stone clamped the trunk capacity for all vehicles to 100  
 description=
 description=[h2]Special Thanks[/h2]
 description=Huge Thank You to [url=https://steamcommunity.com/id/fhqwhgadsGT]fhqwhgads[/url] for his dump truck model!
