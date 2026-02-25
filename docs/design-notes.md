@@ -113,6 +113,16 @@ Sprites are 128×256 transparent PNGs with grey gravel speckles at increasing de
 - **`DirtySlice()` is the correct method** to force a re-render after changing a sprite on an existing IsoObject. `setDirty()` does not exist on IsoObject.
 - **Sprite transparency works** — the game renders alpha channels from PNGs in texture packs. Transparent areas show whatever is underneath. Runtime alpha (`setAlpha()`) is still wall-cutaway only.
 - **`smoothRoad` needs real gravel floors** — it checks adjacent squares for gravel sprites to decide edge blends. If gravel is deferred (placed later by `onTick`), `smoothRoad` won't see it. The synchronous placement + overlay approach solves this.
+- **Edge blends are hidden by the pour effect** — they attach via `AttachExistingAnim` to the gravel floor, which is behind the fake floor + speckle overlay. They only become visible when the overlays are removed. No timing issue.
+- **Gap fillers appear before pour finishes (known issue, fixed)** — gap fillers call `placeGapFiller` on a *separate neighbor square* with no pour effect. The gravel + triangle overlay appears instantly while adjacent road tiles are still mid-animation. Fix: delay gap filler placement by the same duration as the pour effect (~360ms) using the `pending` system. The gap filler square gets a fake floor overlay that hides it until the timer expires, then removes the fake floor to reveal the gravel + triangle underneath. No per-terrain pour sprites needed.
+
+### setMaxSpeed is not a speed cap (removed in v1.2.0)
+
+`vehicle:setMaxSpeed()` does not hard-cap speed. The engine tapers force over a 20 km/h window above the set value (formula: `engineForce * ((maxSpeed + 20 - speed) / 20)`). Setting it to 5.0 means force starts reducing at 5 but doesn't reach zero until 25 km/h. It also wrecks gear ratios (`speedPerGear = maxSpeed / gearCount`) and steering sensitivity (`1.0 - speed / maxSpeed` clamps to 0.1 at "top speed"). Removed entirely — dump speed is uncapped.
+
+### Vehicle mechanic panel blank (missing carMechanicsOverlay)
+
+The mechanics UI (open hood → E) shows a blank left panel because the vehicle script is missing `carMechanicsOverlay`. This is the top-down 2D diagram the UI renders for clickable part areas. Vanilla vans use `carMechanicsOverlay = Base.Van`. Fix: add `carMechanicsOverlay = Base.Van,` to the vehicle script. Won't be pixel-perfect for the FE6 shape but makes the panel functional. A custom overlay image could be drawn later.
 
 ### How to add sprites (for pour effect or any custom sprite)
 

@@ -43,6 +43,30 @@ function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
     })
 end
 
+function DumpTruckPourEffect.scheduleDelayedReveal(square, oldFloorSpriteName)
+    if not square or not oldFloorSpriteName then return end
+
+    local oldSpriteObj = getSprite(oldFloorSpriteName)
+    if not oldSpriteObj then return end
+
+    local fakeFloor = IsoObject.new(getCell(), square, oldSpriteObj)
+    square:AddTileObject(fakeFloor)
+    square:DirtySlice()
+
+    local sprites = DumpTruckConstants.POUR_SPRITES
+    local numStages = #sprites
+    local totalDelay = DumpTruckConstants.POUR_STAGE_MS * numStages
+
+    local now = getTimestampMs()
+    table.insert(pending, {
+        fakeFloor = fakeFloor,
+        overlay = nil,
+        square = square,
+        stage = numStages,
+        nextSwapAt = now + totalDelay,
+    })
+end
+
 local function onTick()
     if #pending == 0 then return end
 
@@ -64,7 +88,9 @@ local function onTick()
             else
                 local sq = entry.square
                 sq:RemoveTileObject(entry.fakeFloor)
-                sq:RemoveTileObject(entry.overlay)
+                if entry.overlay then
+                    sq:RemoveTileObject(entry.overlay)
+                end
                 sq:RecalcProperties()
                 sq:DirtySlice()
                 table.remove(pending, i)

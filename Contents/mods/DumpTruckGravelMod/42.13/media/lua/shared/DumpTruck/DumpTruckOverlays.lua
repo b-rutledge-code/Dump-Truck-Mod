@@ -357,7 +357,13 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
     if nonGravelSquare.transmitFloor then nonGravelSquare:transmitFloor() end
     nonGravelSquare:RecalcProperties()
     nonGravelSquare:DirtySlice()
-    
+
+    local oldFloorSpriteName = shovelledSprites and shovelledSprites[1] or nil
+    if oldFloorSpriteName then
+        local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
+        DumpTruckPourEffect.scheduleDelayedReveal(nonGravelSquare, oldFloorSpriteName)
+    end
+
     return true
 end
 
