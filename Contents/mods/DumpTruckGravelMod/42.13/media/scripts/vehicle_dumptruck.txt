@@ -93,6 +93,7 @@ module Base
 		textureDamage1Shell = Vehicles/Veh_Damage1,
 		textureDamage2Shell = Vehicles/Veh_Damage2,
 		textureRust = Vehicles/Veh_Rust,
+		carMechanicsOverlay = Base.Van,
 
 		sound
 		{
