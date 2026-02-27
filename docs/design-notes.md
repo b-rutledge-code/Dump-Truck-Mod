@@ -293,3 +293,17 @@ Getting the truck pointed exactly cardinal and beginning to dump at the exact ri
 - **Pre-aim mode:** Before dumping, show a preview line on the ground at the nearest cardinal. Player confirms, then dumping starts already locked. Best UX but most implementation work.
 
 **No decision made yet.** The gravel snap approach partially solves this because once the lock engages the line is straight; only the first 3 seconds of gravel (before lock) would be off-line.
+
+---
+
+## Tile-gap interpolation (TODO)
+
+**Problem:** When driving at an angle (especially at moderate speed), the truck can skip over tiles between ticks. The dump logic only places gravel at the vehicle's current tile position each tick — if it jumps from tile (5,5) to tile (7,7), tile (6,6) gets no gravel, leaving a visible one-tile gap in the road.
+
+**Observed:** Gaps appear intermittently when driving diagonally. Straight cardinal driving is unaffected (axis lock makes this a non-issue for locked roads). Backing up and re-driving over the gap fills it, but it's annoying.
+
+**Proposed fix:** When the new tile position differs from the previous by more than 1 in either axis, interpolate between `(oldX, oldY)` and `(tileX, tileY)` using a Bresenham-style line walk. Call `getBackSquares` and place gravel for each intermediate position. Only kicks in when there's a gap, so no performance cost during normal slow driving.
+
+**Scope:** This is a general dump logic fix, not specific to axis lock. Should be done on `main`, not the `feature/axis-lock` branch.
+
+**Status:** Not yet implemented.
