@@ -1,5 +1,6 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruck = require("DumpTruck/DumpTruckGravel")
+local DumpTruckAxisLock = require("DumpTruck/DumpTruckAxisLock")
 
 -- Hook into the radial menu without overriding
 local originalShowRadialMenu = ISVehicleMenu.showRadialMenu
@@ -50,5 +51,33 @@ function ISVehicleMenu.showRadialMenu(playerObj)
                 end
             )
         end
+
+        local isLocked = DumpTruckAxisLock.isActive(vehicle)
+        local lockLabel
+        if isLocked then
+            lockLabel = "Disable Axis Lock (" .. (data.axisLockHeading or "?") .. ")"
+        else
+            local nearestHeading = DumpTruckAxisLock.getNearestHeading(vehicle)
+            lockLabel = "Enable Axis Lock (" .. nearestHeading .. ")"
+        end
+        local lockIcon = isLocked and "media/ui/vehicles/axis_lock_off.png" or "media/ui/vehicles/axis_lock_on.png"
+
+        menu:addSlice(
+            lockLabel,
+            getTexture(lockIcon),
+            function()
+                if isLocked then
+                    DumpTruckAxisLock.disengage(vehicle)
+                    vehicle:playSound("VehicleDoorCloseWindow")
+                else
+                    local ok = DumpTruckAxisLock.engage(vehicle)
+                    if ok then
+                        vehicle:playSound("VehicleSeatBelt")
+                    else
+                        vehicle:playSound("VehicleReverseBuzzer")
+                    end
+                end
+            end
+        )
     end
 end 
