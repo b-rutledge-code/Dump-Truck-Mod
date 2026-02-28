@@ -237,45 +237,74 @@ So anything we set on `currentSteering` in step 1 is replaced in step 3 before t
 
 ---
 
-## Cardinal Lock – gravel snap (VIABLE ALTERNATIVE)
+## Snap Line — gravel snap (IMPLEMENTED)
 
-Instead of steering the truck, **snap gravel placement to a grid line** so the road is straight even if the truck wobbles:
+Instead of steering the truck (which is impossible from Lua — see "steering the vehicle from Lua" above), **snap gravel placement to a grid line** so the road is straight even if the truck wobbles.
 
 ### How it works
 
-1. When the cardinal lock engages (state machine above), record the vehicle's grid position:
-   - Heading N or S (0 or 180 degrees): store `lockedX = math.floor(vehicle:getX() + 0.5)`
-   - Heading E or W (90 or 270 degrees): store `lockedY = math.floor(vehicle:getY() + 0.5)`
+1. Player opens radial menu and selects **"Enable Snap Line (N)"** (label shows predicted direction). The mod checks if the truck is within 25 degrees of a cardinal heading (`SNAP_LINE_ENGAGE_THRESHOLD`). If not, engage is refused with a buzzer sound.
+2. On engage: capture the actual forward vector from `DumpTruckCore.getVectorFromPlayer()` — the same function the normal dump path uses — and snap it to the nearest cardinal axis. Store the snapped `fx, fy`, the cross-axis coordinate, and heading label in vehicle modData (`snapLineAxis`, `snapLineValue`, `snapLineHeading`, `snapLineFx`, `snapLineFy`). This guarantees the locked vector uses the exact same sign convention as the working dump logic.
+3. In `tryPourGravelUnderTruck()`, when Snap Line is active:
+   - **Brake check:** if `vehicle:isBraking()`, auto-disengage lock + stop dumping + warning sound.
+   - **Drift check:** if the truck has drifted more than `SNAP_LINE_DRIFT_MAX` (3) tiles off the locked line, auto-disengage lock + stop dumping + warning sound.
+   - **Position snap:** override `cx` or `cy` with the locked value before calling `getBackSquares()`.
+   - **Forward vector override:** use the stored cardinal `fx, fy` instead of the driver's actual direction, so `getBackSquares` computes the perpendicular correctly.
+4. **All disengage paths stop dumping** — whether from drift, braking, or the radial menu toggle. The player must re-engage deliberately.
+5. The truck can wobble — the road still lands on a perfectly straight line of tiles.
 
-2. In `tryPourGravelUnderTruck()` (in `DumpTruckGravel.lua`), when cardinal lock is active, override the cross-axis coordinate (`cx` or `cy`) with the locked value before calling `getBackSquares()`.
+### Key design decision: trust the existing forward vector
 
-3. The truck can wobble ~5-10 degrees off cardinal. The road still lands on a perfectly straight line of tiles.
+Early iterations used a hardcoded lookup table mapping `getAngleZ()` cardinal centers to pre-computed `fx, fy` values. This produced a sign convention mismatch with the existing dump logic (which uses `getVectorFromPlayer`), causing gravel to dump from the front or drift off-axis. The fix: capture the real player forward vector at engage time and snap it, so the locked vector is guaranteed to match.
 
-### UX concern
+### Files
 
-The truck visually wanders but gravel is straight. This is cosmetically weird but functionally correct. The player needs to understand that gravel placement is "snapped" and doesn't follow the truck exactly. Could mitigate with a visual indicator (e.g. "LOCKED" text, or the dust overlay sprites landing on the snapped line).
+- `DumpTruckSnapLine.lua` (shared) — `engage()`, `disengage()`, `isActive()`, `getSnappedPosition()`, `getLockedForwardVector()`, `checkDrift()`, `getNearestHeading()`
+- `DumpTruckGravel.lua` — brake + drift check + position/vector override in `tryPourGravelUnderTruck`
+- `ISVehicleMenuDumpTruck.lua` — radial menu slices: "Enable Snap Line (N)" / "Disable Snap Line (N)" (action-oriented labels with direction)
+- `DumpTruckConstants.lua` — `SNAP_LINE_DRIFT_MAX = 3`, `SNAP_LINE_ENGAGE_THRESHOLD = 25`
 
-### Status
+### Audio feedback
 
-Not yet implemented. The lock state machine is in place in `DumpTruckCardinalLock.lua`; the gravel snap logic in `DumpTruckGravel.lua` needs to be added.
+- **Engage:** `VehicleSeatBelt`
+- **Disengage (manual):** `VehicleDoorCloseWindow`
+- **Disengage (drift or braking):** `VehicleReverseBuzzer`
+- **Engage refused (not facing cardinal):** `VehicleReverseBuzzer`
+
+### UX: action-oriented radial menu labels
+
+Early labeling showed state ("Axis Lock: OFF" / "Axis Lock: N"), which led to accidental engages — users clicked the "OFF" label thinking it would keep it off, but it toggled it on. Changed to action-oriented labels: **"Enable Snap Line (N)"** / **"Disable Snap Line (N)"**. Both show the direction (predicted or current) so the player knows what they're locking to before clicking.
+
+### Previous approach: steering the vehicle (DEAD END)
+
+See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering manipulation failed because `setCurrentSteering` is overwritten by `CarController`, `clientControls` is not Lua-exposed, and `setAngles` flips the vehicle. The gravel snap approach sidesteps all of this.
+
+### Future ideas
+
+- **Auto-regulator (cruise control):** `vehicle:setRegulator(true)` + `vehicle:setRegulatorSpeed(5)` on lock engage so the player doesn't need to hold the gas.
+- **Preview line on ground:** Show a visual line at the snap position before dumping starts.
+- **Pre-aim mode:** Player aims to set a start marker, then dumps along that line.
 
 ---
 
-## Cardinal Lock – auto-regulator (cruise control)
+## Sound — gravel loop volume by zoom (approach documented)
 
-The game has a built-in speed regulator (cruise control): `vehicle:setRegulator(true)` + `vehicle:setRegulatorSpeed(kmh)`. When the cardinal lock engages, we can auto-enable the regulator at 5 km/h so the player doesn't need to hold the gas. The controller already respects the regulator—it's read in `updateRegulator()` inside `CarController.update()`.
+**Goal:** Make the gravel dump loop (and optionally start/end) get quieter when the camera is zoomed out, similar to the fridge hum.
 
-**Concern:** If the player is already holding the gas key when the regulator kicks in, releasing gas might feel weird. Need to test whether holding gas overrides the regulator or conflicts with it.
+**Current setup:** Dump truck sounds are **script clips** in `media/scripts/sounds_dumptruck.txt` (e.g. `GravelDumpStart`, `GravelDumpLoop`, `GravelDumpEnd`), not FMOD events. The fridge uses FMOD with a global **CameraZoom** parameter; that’s authored in the FMOD project. We have no FMOD project for these clips, so we can’t get fridge-style zoom ducking via FMOD.
 
-**Status:** Not yet implemented.
+**Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
 
----
+- **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
+- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`, and we already store the loop handle in `data.gravelLoopSoundID` from `emitter:playSound("GravelDumpLoop")`.
 
-## Cardinal Lock – audio feedback
+**Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
 
-When the lock engages, play 3 short car-related sounds (e.g. seatbelt ding) to signal the player that the lock is active.
+1. `local zoom = getCore():getZoom(getPlayer():getPlayerNum())`
+2. Normalize to 0–1 with min/max zoom (e.g. `(zoom - min) / (max - min)` or a curve) so “zoomed in = full volume, zoomed out = quieter”.
+3. `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)` with that factor.
 
-**Status:** Not yet implemented.
+No FMOD changes required; the actual Lua change can be done in a follow-up.
 
 ---
 
@@ -307,24 +336,3 @@ Getting the truck pointed exactly cardinal and beginning to dump at the exact ri
 **Scope:** This is a general dump logic fix, not specific to axis lock. Should be done on `main`, not the `feature/axis-lock` branch.
 
 **Status:** Not yet implemented.
-
----
-
-## Sound — gravel loop volume by zoom (approach documented)
-
-**Goal:** Make the gravel dump loop (and optionally start/end) get quieter when the camera is zoomed out, similar to the fridge hum.
-
-**Current setup:** Dump truck sounds are **script clips** in `media/scripts/sounds_dumptruck.txt` (e.g. `GravelDumpStart`, `GravelDumpLoop`, `GravelDumpEnd`), not FMOD events. The fridge uses FMOD with a global **CameraZoom** parameter; that's authored in the FMOD project. We have no FMOD project for these clips, so we can't get fridge-style zoom ducking via FMOD.
-
-**Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
-
-- **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
-- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle's emitter is `vehicle:getEmitter()`, and we already store the loop handle in `data.gravelLoopSoundID` from `emitter:playSound("GravelDumpLoop")`.
-
-**Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
-
-1. `local zoom = getCore():getZoom(getPlayer():getPlayerNum())`
-2. Normalize to 0–1 with min/max zoom (e.g. `(zoom - min) / (max - min)` or a curve) so "zoomed in = full volume, zoomed out = quieter".
-3. `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)` with that factor.
-
-No FMOD changes required; the actual Lua change can be done in a follow-up.
