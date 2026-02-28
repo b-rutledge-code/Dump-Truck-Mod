@@ -1,7 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 
-local DumpTruckAxisLock = {}
+local DumpTruckSnapLine = {}
 
 local function normalizeAngle(a)
     a = a % 360
@@ -30,7 +30,7 @@ local function headingLabel(fx, fy)
     else return "W" end
 end
 
-function DumpTruckAxisLock.getNearestHeading(vehicle)
+function DumpTruckSnapLine.getNearestHeading(vehicle)
     if not vehicle then return "?" end
     local rawFx, rawFy = DumpTruckCore.getVectorFromPlayer(vehicle)
     if not rawFx or not rawFy then return "?" end
@@ -38,7 +38,7 @@ function DumpTruckAxisLock.getNearestHeading(vehicle)
     return headingLabel(fx, fy)
 end
 
-function DumpTruckAxisLock.engage(vehicle)
+function DumpTruckSnapLine.engage(vehicle)
     if not vehicle then return false end
 
     local angleZ = normalizeAngle(vehicle:getAngleZ())
@@ -49,7 +49,7 @@ function DumpTruckAxisLock.engage(vehicle)
         local d = angleDiff(angleZ, center)
         if d < minDiff then minDiff = d end
     end
-    if minDiff > DumpTruckConstants.AXIS_LOCK_ENGAGE_THRESHOLD then
+    if minDiff > DumpTruckConstants.SNAP_LINE_ENGAGE_THRESHOLD then
         return false
     end
 
@@ -71,65 +71,65 @@ function DumpTruckAxisLock.engage(vehicle)
     end
 
     local data = vehicle:getModData()
-    data.axisLockActive = true
-    data.axisLockAxis = lockAxis
-    data.axisLockValue = lockedValue
-    data.axisLockHeading = headingLabel(fx, fy)
-    data.axisLockFx = fx
-    data.axisLockFy = fy
+    data.snapLineActive = true
+    data.snapLineAxis = lockAxis
+    data.snapLineValue = lockedValue
+    data.snapLineHeading = headingLabel(fx, fy)
+    data.snapLineFx = fx
+    data.snapLineFy = fy
 
     return true
 end
 
-function DumpTruckAxisLock.disengage(vehicle)
+function DumpTruckSnapLine.disengage(vehicle)
     if not vehicle then return end
     local data = vehicle:getModData()
-    data.axisLockActive = nil
-    data.axisLockAxis = nil
-    data.axisLockValue = nil
-    data.axisLockHeading = nil
-    data.axisLockFx = nil
-    data.axisLockFy = nil
+    data.snapLineActive = nil
+    data.snapLineAxis = nil
+    data.snapLineValue = nil
+    data.snapLineHeading = nil
+    data.snapLineFx = nil
+    data.snapLineFy = nil
 end
 
-function DumpTruckAxisLock.isActive(vehicle)
+function DumpTruckSnapLine.isActive(vehicle)
     if not vehicle then return false end
-    return vehicle:getModData().axisLockActive == true
+    return vehicle:getModData().snapLineActive == true
 end
 
-function DumpTruckAxisLock.getSnappedPosition(vehicle, cx, cy)
+function DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
     if not vehicle then return cx, cy end
     local data = vehicle:getModData()
-    if not data.axisLockActive then return cx, cy end
+    if not data.snapLineActive then return cx, cy end
 
-    if data.axisLockAxis == "X" then
-        return data.axisLockValue, cy
+    if data.snapLineAxis == "X" then
+        return data.snapLineValue, cy
     else
-        return cx, data.axisLockValue
+        return cx, data.snapLineValue
     end
 end
 
-function DumpTruckAxisLock.getLockedForwardVector(vehicle)
+function DumpTruckSnapLine.getLockedForwardVector(vehicle)
     if not vehicle then return nil, nil end
     local data = vehicle:getModData()
-    if not data.axisLockActive then return nil, nil end
-    if not data.axisLockFx or not data.axisLockFy then return nil, nil end
-    return data.axisLockFx, data.axisLockFy
+    if not data.snapLineActive then return nil, nil end
+    if not data.snapLineFx or not data.snapLineFy then return nil, nil end
+    return data.snapLineFx, data.snapLineFy
 end
 
-function DumpTruckAxisLock.checkDrift(vehicle, cx, cy)
+function DumpTruckSnapLine.checkDrift(vehicle, cx, cy)
     if not vehicle then return false end
     local data = vehicle:getModData()
-    if not data.axisLockActive then return false end
+    if not data.snapLineActive then return false end
 
     local drift
-    if data.axisLockAxis == "X" then
-        drift = math.abs(cx - data.axisLockValue)
+    if data.snapLineAxis == "X" then
+        drift = math.abs(cx - data.snapLineValue)
     else
-        drift = math.abs(cy - data.axisLockValue)
+        drift = math.abs(cy - data.snapLineValue)
     end
 
-    return drift > DumpTruckConstants.AXIS_LOCK_DRIFT_MAX
+    return drift > DumpTruckConstants.SNAP_LINE_DRIFT_MAX
 end
 
-return DumpTruckAxisLock
+return DumpTruckSnapLine

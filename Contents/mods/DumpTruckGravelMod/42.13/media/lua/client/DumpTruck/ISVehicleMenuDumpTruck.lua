@@ -1,6 +1,6 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruck = require("DumpTruck/DumpTruckGravel")
-local DumpTruckAxisLock = require("DumpTruck/DumpTruckAxisLock")
+local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
 
 -- Hook into the radial menu without overriding
 local originalShowRadialMenu = ISVehicleMenu.showRadialMenu
@@ -52,25 +52,25 @@ function ISVehicleMenu.showRadialMenu(playerObj)
             )
         end
 
-        local isLocked = DumpTruckAxisLock.isActive(vehicle)
+        local isLocked = DumpTruckSnapLine.isActive(vehicle)
         local lockLabel
         if isLocked then
-            lockLabel = "Disable Axis Lock (" .. (data.axisLockHeading or "?") .. ")"
+            lockLabel = "Disable Snap Line (" .. (data.snapLineHeading or "?") .. ")"
         else
-            local nearestHeading = DumpTruckAxisLock.getNearestHeading(vehicle)
-            lockLabel = "Enable Axis Lock (" .. nearestHeading .. ")"
+            local nearestHeading = DumpTruckSnapLine.getNearestHeading(vehicle)
+            lockLabel = "Enable Snap Line (" .. nearestHeading .. ")"
         end
-        local lockIcon = isLocked and "media/ui/vehicles/axis_lock_off.png" or "media/ui/vehicles/axis_lock_on.png"
+        local lockIcon = isLocked and "media/ui/vehicles/snap_line_off.png" or "media/ui/vehicles/snap_line_on.png"
 
         menu:addSlice(
             lockLabel,
             getTexture(lockIcon),
             function()
                 if isLocked then
-                    DumpTruckAxisLock.disengage(vehicle)
+                    DumpTruckSnapLine.disengage(vehicle)
                     vehicle:playSound("VehicleDoorCloseWindow")
                 else
-                    local ok = DumpTruckAxisLock.engage(vehicle)
+                    local ok = DumpTruckSnapLine.engage(vehicle)
                     if ok then
                         vehicle:playSound("VehicleSeatBelt")
                     else

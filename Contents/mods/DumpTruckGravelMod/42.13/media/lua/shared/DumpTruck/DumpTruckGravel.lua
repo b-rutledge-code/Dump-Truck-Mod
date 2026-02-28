@@ -1,7 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
-local DumpTruckAxisLock = require("DumpTruck/DumpTruckAxisLock")
+local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
 
 local DumpTruck = {}
 
@@ -189,10 +189,10 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     cz = 0 -- Assume ground level for simplicity
 
     -- Axis lock: brake and drift checks before anything else
-    if DumpTruckAxisLock.isActive(vehicle) then
-        if vehicle:isBraking() or DumpTruckAxisLock.checkDrift(vehicle, cx, cy) then
+    if DumpTruckSnapLine.isActive(vehicle) then
+        if vehicle:isBraking() or DumpTruckSnapLine.checkDrift(vehicle, cx, cy) then
             DumpTruck.stopDumping(vehicle)
-            DumpTruckAxisLock.disengage(vehicle)
+            DumpTruckSnapLine.disengage(vehicle)
             vehicle:playSound("VehicleReverseBuzzer")
             return
         end
@@ -200,8 +200,8 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     -- Get forward vector (axis lock overrides driver direction)
     local fx, fy
-    if DumpTruckAxisLock.isActive(vehicle) then
-        fx, fy = DumpTruckAxisLock.getLockedForwardVector(vehicle)
+    if DumpTruckSnapLine.isActive(vehicle) then
+        fx, fy = DumpTruckSnapLine.getLockedForwardVector(vehicle)
     end
     if not fx or not fy then
         fx, fy = DumpTruckCore.getVectorFromPlayer(vehicle)
@@ -225,7 +225,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     oldX, oldY = tileX, tileY
 
     -- Snap position to locked axis if active
-    cx, cy = DumpTruckAxisLock.getSnappedPosition(vehicle, cx, cy)
+    cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
 
     local script = vehicle:getScript()
     local extents = script:getExtents()
