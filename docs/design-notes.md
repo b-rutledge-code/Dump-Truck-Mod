@@ -307,3 +307,24 @@ Getting the truck pointed exactly cardinal and beginning to dump at the exact ri
 **Scope:** This is a general dump logic fix, not specific to axis lock. Should be done on `main`, not the `feature/axis-lock` branch.
 
 **Status:** Not yet implemented.
+
+---
+
+## Sound — gravel loop volume by zoom (approach documented)
+
+**Goal:** Make the gravel dump loop (and optionally start/end) get quieter when the camera is zoomed out, similar to the fridge hum.
+
+**Current setup:** Dump truck sounds are **script clips** in `media/scripts/sounds_dumptruck.txt` (e.g. `GravelDumpStart`, `GravelDumpLoop`, `GravelDumpEnd`), not FMOD events. The fridge uses FMOD with a global **CameraZoom** parameter; that's authored in the FMOD project. We have no FMOD project for these clips, so we can't get fridge-style zoom ducking via FMOD.
+
+**Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
+
+- **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
+- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle's emitter is `vehicle:getEmitter()`, and we already store the loop handle in `data.gravelLoopSoundID` from `emitter:playSound("GravelDumpLoop")`.
+
+**Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
+
+1. `local zoom = getCore():getZoom(getPlayer():getPlayerNum())`
+2. Normalize to 0–1 with min/max zoom (e.g. `(zoom - min) / (max - min)` or a curve) so "zoomed in = full volume, zoomed out = quieter".
+3. `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)` with that factor.
+
+No FMOD changes required; the actual Lua change can be done in a follow-up.
