@@ -1,6 +1,7 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
+local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
 
 local DumpTruck = {}
 
@@ -187,14 +188,28 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     DumpTruckCore.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
-    -- Get forward vector first (returns nil if no driver)
-    local fx, fy = DumpTruckCore.getVectorFromPlayer(vehicle)
+    -- Axis lock: brake and drift checks before anything else
+    if DumpTruckSnapLine.isActive(vehicle) then
+        if vehicle:isBraking() or DumpTruckSnapLine.checkDrift(vehicle, cx, cy) then
+            DumpTruck.stopDumping(vehicle)
+            DumpTruckSnapLine.disengage(vehicle)
+            vehicle:playSound("VehicleReverseBuzzer")
+            return
+        end
+    end
+
+    -- Get forward vector (axis lock overrides driver direction)
+    local fx, fy
+    if DumpTruckSnapLine.isActive(vehicle) then
+        fx, fy = DumpTruckSnapLine.getLockedForwardVector(vehicle)
+    end
     if not fx or not fy then
-        -- No driver - can't pour gravel (need direction), but keep dump state active
-        -- Passenger can activate dump and wait for driver
+        fx, fy = DumpTruckCore.getVectorFromPlayer(vehicle)
+    end
+    if not fx or not fy then
         return
     end
-    
+
     -- Calculate perpendicular vector (90 degrees to forward)
     local perpX = -fy
     local perpY = fx
@@ -208,6 +223,9 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     
     if tileX == oldX and tileY == oldY then return end
     oldX, oldY = tileX, tileY
+
+    -- Snap position to locked axis if active
+    cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
 
     local script = vehicle:getScript()
     local extents = script:getExtents()

@@ -58,5 +58,9 @@ DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS = {
 DumpTruckConstants.POUR_SPRITES = { "dumptruck_pour_00", "dumptruck_pour_005", "dumptruck_pour_01" }
 DumpTruckConstants.POUR_STAGE_MS = 120
 
+-- Snap Line: snap gravel placement to a cardinal grid line
+DumpTruckConstants.SNAP_LINE_DRIFT_MAX = 3
+DumpTruckConstants.SNAP_LINE_ENGAGE_THRESHOLD = 25
+
 return DumpTruckConstants
 

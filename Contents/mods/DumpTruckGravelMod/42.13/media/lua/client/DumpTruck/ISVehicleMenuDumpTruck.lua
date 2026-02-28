@@ -1,5 +1,6 @@
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruck = require("DumpTruck/DumpTruckGravel")
+local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
 
 -- Hook into the radial menu without overriding
 local originalShowRadialMenu = ISVehicleMenu.showRadialMenu
@@ -50,5 +51,33 @@ function ISVehicleMenu.showRadialMenu(playerObj)
                 end
             )
         end
+
+        local isLocked = DumpTruckSnapLine.isActive(vehicle)
+        local lockLabel
+        if isLocked then
+            lockLabel = "Disable Snap Line (" .. (data.snapLineHeading or "?") .. ")"
+        else
+            local nearestHeading = DumpTruckSnapLine.getNearestHeading(vehicle)
+            lockLabel = "Enable Snap Line (" .. nearestHeading .. ")"
+        end
+        local lockIcon = isLocked and "media/ui/vehicles/snap_line_off.png" or "media/ui/vehicles/snap_line_on.png"
+
+        menu:addSlice(
+            lockLabel,
+            getTexture(lockIcon),
+            function()
+                if isLocked then
+                    DumpTruckSnapLine.disengage(vehicle)
+                    vehicle:playSound("VehicleDoorCloseWindow")
+                else
+                    local ok = DumpTruckSnapLine.engage(vehicle)
+                    if ok then
+                        vehicle:playSound("VehicleSeatBelt")
+                    else
+                        vehicle:playSound("VehicleReverseBuzzer")
+                    end
+                end
+            end
+        )
     end
 end 
