@@ -4,6 +4,16 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ---
 
+## Debug
+
+**Single debug flag:** `DumpTruckCore.debugMode` in `DumpTruckCore.lua`. When `true`:
+- **Console:** `DumpTruckCore.debugPrint()` runs — vehicle pos (cx, cy, tile), then path: `[interp] first run`, `[interp] gap path: ... points=N`, or `[interp] single-tile step`.
+- **Unlimited gravel:** `consumeGravelFromTruckBed` and `getGravelCount` act as if the bed always has gravel (for testing without loading sacks).
+
+**Set to `false` before release.** Leave a `TODO: set false before release` comment when enabling. See bugs.md open issue.
+
+---
+
 ## Vehicle direction (gravel dumping)
 
 We use **vehicle `getAngleZ()`** (converted to a unit vector) for dump direction, not the driver's `getForwardDirection()`.
