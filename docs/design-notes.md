@@ -14,6 +14,17 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ---
 
+## Admin-only / world spawn option
+
+**Mod Option:** “Allow dump truck in world spawn” (Options → Mod Options → Dump Truck Gravel Mod). Default: **on** (trucks can spawn in the world). When **off**, the dump truck is not added to `VehicleZoneDistribution`, so it never spawns in the world and is only available via admin spawn (e.g. Vehicle panel).
+
+- **Single-player / host:** Set the option in the main menu before starting or loading a game. The value is stored in `ModOptions.ini` (cache).
+- **Dedicated server:** The distribution script runs in shared context and reads `ModOptions.ini` from the server’s cache. To make dump trucks admin-only on a dedicated server, either (1) run the game once as client with the mod, uncheck the option, and save options (so `ModOptions.ini` is written), then use that profile/cache for the server; or (2) manually add a line to the server’s `ModOptions.ini`: `tickbox|DumpTruckGravelMod|AllowDumpTruckInWorldSpawn|false`.
+
+We use ModOptions (and parsing the ini in shared) rather than a custom sandbox option because PZ does not expose a Lua API to register custom sandbox options; they are defined in Java.
+
+---
+
 ## Vehicle direction (gravel dumping)
 
 We use **vehicle `getAngleZ()`** (converted to a unit vector) for dump direction, not the driver's `getForwardDirection()`.
