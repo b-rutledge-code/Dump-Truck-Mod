@@ -7,7 +7,6 @@ Adds a dump truck (Volvo FE6) that places gravel on the ground to build roads. T
 ## Build Support
 
 - **42.13:** `Contents/mods/DumpTruckGravelMod/42.13/` – Active development. Lua, media, and vehicle script live here.
-- **42.0:** Legacy; do not add features or changes there.
 
 ## Key Flow
 
