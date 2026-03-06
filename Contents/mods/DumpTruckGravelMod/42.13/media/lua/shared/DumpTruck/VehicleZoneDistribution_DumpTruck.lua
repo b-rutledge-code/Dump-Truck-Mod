@@ -4,7 +4,11 @@
     This file adds the dump truck to various vehicle spawn zones in the game.
     Uses OnGameBoot event so VehicleZoneDistribution exists when we modify it.
     
-    Spawn Rates:
+    Sandbox-style option: "Allow dump truck in world spawn" (Mod Options).
+    When unchecked, the dump truck is not added to spawn tables (admin spawn only).
+    We read ModOptions.ini so this works in shared context (e.g. dedicated server).
+    
+    Spawn Rates (when allowed):
     - McCoy Logging: 10% (industrial area)
     - Parking Stalls: 1% (general parking lots)
     - Medium Areas: 1% (medium density zones)
@@ -15,12 +19,36 @@
 
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
+--- Returns true if the mod option "Allow dump truck in world spawn" is set to false
+--- (admin-only mode). Reads ModOptions.ini so this works in shared/server context.
+local function isAdminOnlyRequested()
+    local file = getFileReader("ModOptions.ini", true)
+    if not file then return false end
+    while true do
+        local line = file:readLine()
+        if not line then
+            file:close()
+            return false
+        end
+        local t = luautils.split(line, "|")
+        if #t >= 4 and t[1] == "tickbox" and t[2] == "DumpTruckGravelMod" and t[3] == "AllowDumpTruckInWorldSpawn" and t[4] == "false" then
+            file:close()
+            return true
+        end
+    end
+end
+
 local function initVehicleZoneDistribution()
     if not VehicleZoneDistribution then
         print("[DumpTruck] ERROR: VehicleZoneDistribution not available")
         return
     end
-    
+
+    if isAdminOnlyRequested() then
+        print("[DumpTruck] Admin-only mode: dump truck not added to vehicle spawn tables")
+        return
+    end
+
     local VEHICLE_NAME = DumpTruckConstants.VEHICLE_SCRIPT_NAME
     
     -- Helper to add vehicle to zone
