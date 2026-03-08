@@ -65,6 +65,11 @@ local function sendSmoothRoadToServer(currentSquares)
         end
     end
     if #squareList >= 2 then
+        local role = isServer() and "server" or "client"
+        print(string.format("[DumpTruck] edgeBlend sendSmoothRoadToServer (%s) squares=%d first=(%d,%d,%d) last=(%d,%d,%d)",
+            role, #squareList,
+            squareList[1].x, squareList[1].y, squareList[1].z,
+            squareList[#squareList].x, squareList[#squareList].y, squareList[#squareList].z))
         sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
     end
 end
@@ -481,7 +486,10 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         DumpTruck.consumeGravelFromTruckBed(vehicle)
     elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
         local cell = getCell()
-        if not cell then return end
+        if not cell then
+            print("[DumpTruck] edgeBlend smoothRoad server: no cell")
+            return
+        end
         local serverSquares = {}
         for _, pt in ipairs(args.squares) do
             if pt.x and pt.y and pt.z then
@@ -489,8 +497,17 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 if sq then table.insert(serverSquares, sq) end
             end
         end
+        print(string.format("[DumpTruck] edgeBlend smoothRoad server: received squares=%d resolved=%d", #args.squares, #serverSquares))
         if #serverSquares >= 2 then
             DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
+        end
+    elseif command == "clearOverlayAt" and args.x and args.y and args.z then
+        local cell = getCell()
+        if cell then
+            local sq = cell:getGridSquare(args.x, args.y, args.z)
+            if sq then
+                DumpTruckOverlays.removeOverlayFromSquare(sq)
+            end
         end
     end
 end)
@@ -498,14 +515,14 @@ end)
 Events.LoadGridsquare.Add(function(square)
     local floor = square:getFloor()
     if not floor then return end
-    
+
     local floorModData = floor:getModData()
     if floorModData and floorModData.overlaySprite then
-        -- Only attach if floor doesn't already have attached anims (avoid duplicates)
         if not floor:hasAttachedAnimSprites() then
             local sprite = getSprite(floorModData.overlaySprite)
             if sprite then
                 floor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
+                print(string.format("[DumpTruck] LoadGridsquare RESTORE overlay sq=(%d,%d,%d) overlaySprite=%s overlayType=%s", square:getX(), square:getY(), square:getZ(), tostring(floorModData.overlaySprite), tostring(floorModData.overlayType)))
             end
         end
     end

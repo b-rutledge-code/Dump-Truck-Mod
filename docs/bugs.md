@@ -26,6 +26,14 @@
 
 **Fix:** Replaced with new 60×60 icons: solid grey arrow (off) and solid green arrow (on), white stroke, transparent background, 8-bit. Same style applied to `road_2.png` and `road_3.png` (morphology dilate + composite for stroke).
 
+### Edge blends next to gap fillers wrong after reload
+
+**Problem:** Edge blends beside gap filler tiles (gravel triangles at corners) were wrong only after log out and come back. In-session cleanup worked; on reload the neighbor tile showed the edge blend again.
+
+**Root cause:** Client cleared the overlay (removeOverlay + resetOverlayMetadata) locally, but the server’s copy of that floor was never updated. The server’s state is what gets saved, so the saved world still had overlaySprite set and LoadGridsquare re-attached the blend.
+
+**Fix:** When the client clears overlay metadata (in `resetOverlayMetadata`), send `clearOverlayAt` (x, y, z) to the server. Server handles it in OnClientCommand and calls `removeOverlayFromSquare(sq)` so the server’s floor has cleared metadata and that state persists to save.
+
 ## Known Limitations
 
 - **Mechanic panel blank** – Open hood → E shows a blank left panel because the vehicle script lacks `carMechanicsOverlay`. Fix: add `carMechanicsOverlay = Base.Van` to the vehicle script (functional but not pixel-perfect for FE6).
@@ -36,7 +44,6 @@
 
 ## Open Issues
 
-- **Edge blends next to gap fillers** – Edge blends beside gap filler tiles (gravel triangles at corners) are wrong: either they were not cleaned up when the gap filler was placed, or they were incorrectly placed after the gap filler was laid. (Recurring / “old friend” issue.)
 - **Straightaways: edge blends not filling in** – On straight road sections, edge blends (smooth transition from gravel to grass/terrain) are no longer being placed. (Recurring / “old friend” issue.)
 - **MP desync: bed contents / gravel duping (reported Mar 2026)** – In multiplayer, driver sees “gravel in the back” when starting, then hears it stop as if done; trunk shows only empty sacks on the driver’s client, while the other player still sees gravel in the bed. Can repeat. Reported that gravel can also be duplicated using this desync (e.g. one client thinks bed is empty, other still sees gravel; placement/consumption get out of sync). **Cause:** Consumption is only run inside client-only `DumpTruckPourEffect.schedulePlaceAndEffect()` (which does place + `consumeGravelFromTruckBed`). The server never runs that path, so only the driver's client removes gravel; server and other clients never see the consumption. **Fix:** Make consumption (and placement) server-authoritative: server runs the gravel tick and does place + consume; clients do the visual pour effect only, or add an explicit sync (e.g. server command) so the server is the single source of truth for bed contents.
 - **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` is currently `true` (console + unlimited gravel for testing). Set to `false` before packaging/release (see design-notes “Debug”).
