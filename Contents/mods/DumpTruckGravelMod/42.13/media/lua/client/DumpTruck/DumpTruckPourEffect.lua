@@ -20,7 +20,17 @@ function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
     end
 
     DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, square)
-    DumpTruck.consumeGravelFromTruckBed(vehicle)
+    -- SP/host: consume locally. Dedicated server: client places locally for visual; server must place + consume so world syncs.
+    if isServer() then
+        DumpTruck.consumeGravelFromTruckBed(vehicle)
+    else
+        sendClientCommand(getPlayer(), "DumpTruckGravelMod", "consumeGravel", {
+            vehicle = vehicle:getId(),
+            x = square:getX(),
+            y = square:getY(),
+            z = square:getZ(),
+        })
+    end
 
     if not firstSprite or not oldFloorSprite then return end
 

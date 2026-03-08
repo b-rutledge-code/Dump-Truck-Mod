@@ -14,6 +14,12 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ---
 
+## Noted: admin-only dump trucks (Workshop request)
+
+A comment asked for a sandbox/mod option so dump trucks are **not** added to vehicle spawn tables—i.e. spawnable by admins only. Not implemented; noted for future consideration.
+
+---
+
 ## Vehicle direction (gravel dumping)
 
 We use **vehicle `getAngleZ()`** (converted to a unit vector) for dump direction, not the driver's `getForwardDirection()`.

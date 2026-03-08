@@ -55,8 +55,22 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     if sq.transmitFloor then sq:transmitFloor() end
 end
 
+-- Send current row to server so it can run smoothRoad (edge blends sync to all clients)
+local function sendSmoothRoadToServer(currentSquares)
+    if not isClient() or not currentSquares or #currentSquares < 2 then return end
+    local squareList = {}
+    for _, sq in ipairs(currentSquares) do
+        if sq then
+            table.insert(squareList, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+        end
+    end
+    if #squareList >= 2 then
+        sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
+    end
+end
+
 function DumpTruck.consumeGravelFromTruckBed(vehicle)
-    if DumpTruck.debugMode then
+    if DumpTruckCore.debugMode then
         return true
     end
 
@@ -77,8 +91,20 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
                 local newCount = currentUses - 1
                 item:setCurrentUses(newCount)
                 if newCount <= 0 then
+                    -- Remove empty sack and add EmptySandbag; sync so clients see bed change
+                    if isServer() then
+                        sendRemoveItemFromContainer(container, item)
+                    end
                     container:Remove(item)
-                    container:AddItem("Base.EmptySandbag")
+                    local newItem = container:AddItem("Base.EmptySandbag")
+                    if isServer() and newItem then
+                        sendAddItemToContainer(container, newItem)
+                    end
+                else
+                    -- Same item, fewer uses; sync so clients see the count change
+                    if isServer() then
+                        sendReplaceItemInContainer(container, item, item)
+                    end
                 end
                 container:setDrawDirty(true)
                 return true
@@ -90,7 +116,7 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
 end
 
 function DumpTruck.getGravelCount(vehicle)
-    if DumpTruck.debugMode then
+    if DumpTruckCore.debugMode then
         return 100
     end
 
@@ -176,8 +202,35 @@ function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
     return squares
 end
 
-local oldX, oldY = 0, 0
--- Modify tryPourGravelUnderTruck to handle transitions
+--[[
+    getLinePoints: Bresenham line from (x0,y0) to (x1,y1) inclusive.
+    Returns list of {x=int, y=int} for tile-gap interpolation.
+]]
+function DumpTruck.getLinePoints(x0, y0, x1, y1)
+    local points = {}
+    local dx = math.abs(x1 - x0)
+    local dy = math.abs(y1 - y0)
+    local sx = x0 < x1 and 1 or -1
+    local sy = y0 < y1 and 1 or -1
+    local err = dx - dy
+    local x, y = x0, y0
+    while true do
+        table.insert(points, { x = x, y = y })
+        if x == x1 and y == y1 then break end
+        local e2 = 2 * err
+        if e2 > -dy then
+            err = err - dy
+            x = x + sx
+        end
+        if e2 < dx then
+            err = err + dx
+            y = y + sy
+        end
+    end
+    return points
+end
+
+-- Modify tryPourGravelUnderTruck to handle transitions (per-vehicle last tile + gap interpolation)
 function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not vehicle or vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
 
@@ -185,7 +238,6 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not data.dumpingGravelActive then return end  -- Only proceed if dumping is active
 
     local cx, cy, cz = vehicle:getX(), vehicle:getY(), vehicle:getZ()
-    DumpTruckCore.debugPrint("Vehicle coordinates: cx=" .. cx .. ", cy=" .. cy .. ", cz=" .. cz)
     cz = 0 -- Assume ground level for simplicity
 
     -- Axis lock: brake and drift checks before anything else
@@ -221,64 +273,105 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local tileX = math.floor(adjustedX)
     local tileY = math.floor(adjustedY)
     
-    if tileX == oldX and tileY == oldY then return end
-    oldX, oldY = tileX, tileY
-
-    -- Snap position to locked axis if active
-    cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
-
+    local tileX = math.floor(adjustedX)
+    local tileY = math.floor(adjustedY)
+    
+    DumpTruckCore.debugPrint("Vehicle pos: cx=", cx, " cy=", cy, " tile=", tileX, tileY)
+    
+    -- Road dimensions (needed for both single-tile and interpolation paths)
     local script = vehicle:getScript()
     local extents = script:getExtents()
     local vehicleWidth = math.floor(extents:x() + 0.5)
     local length = math.floor(extents:z() + 0.5)
-    
-    -- Determine road width based on vehicle width and user preference
-    local modData = vehicle:getModData()
-    local wideMode = modData.wideRoadMode or false
     local roadWidth = vehicleWidth
-    if wideMode and vehicleWidth < 3 then
+    if (data.wideRoadMode or false) and vehicleWidth < 3 then
         roadWidth = vehicleWidth + 1
     end
-    
-    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
-    
-    -- Debug print current squares
-    DumpTruckCore.debugPrint("tryPourGravelUnderTruck: Current squares to process:")
-    for i, sq in ipairs(currentSquares) do
-        DumpTruckCore.debugPrint(string.format("[DEBUG] Current square %d - x: %d, y: %d", 
-            tostring(i), tostring(sq:getX()), tostring(sq:getY())))
-    end
-    
-    -- Track if any gravel was placed this update
-    local gravelPlaced = false
-    
-    -- Check gravel count BEFORE the loop (only check once per update cycle)
+
     if DumpTruck.getGravelCount(vehicle) <= 0 then
         DumpTruck.stopDumping(vehicle)
         return
     end
-    
+
     local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
 
-    -- Place gravel on valid squares, skipping ones that already have gravel
+    -- First run: no previous tile — single-tile path only (avoid placing from 0,0 to current)
+    if data.dumpLastTileX == nil then
+        DumpTruckCore.debugPrint("[interp] first run, single-tile at ", tileX, tileY)
+        local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
+        local currentSquares = DumpTruck.getBackSquares(fx, fy, snapCx, snapCy, cz, roadWidth, length)
+        for _, sq in ipairs(currentSquares) do
+            if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+                DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
+                if DumpTruck.getGravelCount(vehicle) <= 0 then
+                    DumpTruck.stopDumping(vehicle)
+                    return
+                end
+            end
+        end
+        DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
+        sendSmoothRoadToServer(currentSquares)
+        data.dumpLastTileX = tileX
+        data.dumpLastTileY = tileY
+        return
+    end
+
+    if tileX == data.dumpLastTileX and tileY == data.dumpLastTileY then return end
+
+    -- Gap: step > 1 — Bresenham walk, skip first point, place at each (full road width per position)
+    if math.abs(tileX - data.dumpLastTileX) > 1 or math.abs(tileY - data.dumpLastTileY) > 1 then
+        local points = DumpTruck.getLinePoints(data.dumpLastTileX, data.dumpLastTileY, tileX, tileY)
+        DumpTruckCore.debugPrint("[interp] gap path: ", data.dumpLastTileX, data.dumpLastTileY, " -> ", tileX, tileY, " points=", #points)
+        for i = 2, #points do
+            local ix, iy = points[i].x, points[i].y
+            local icx, icy = ix + 0.5, iy + 0.5
+            if DumpTruckSnapLine.isActive(vehicle) then
+                icx, icy = DumpTruckSnapLine.getSnappedPosition(vehicle, icx, icy)
+            end
+            local squares = DumpTruck.getBackSquares(fx, fy, icx, icy, cz, roadWidth, length)
+            for _, sq in ipairs(squares) do
+                if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+                    DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
+                    if DumpTruck.getGravelCount(vehicle) <= 0 then
+                        DumpTruck.stopDumping(vehicle)
+                        data.dumpLastTileX = tileX
+                        data.dumpLastTileY = tileY
+                        DumpTruckOverlays.smoothRoad(squares, fx, fy)
+                        sendSmoothRoadToServer(squares)
+                        return
+                    end
+                end
+            end
+            -- Edge blends for this row (smoothRoad uses first/last of list only)
+            DumpTruckOverlays.smoothRoad(squares, fx, fy)
+            sendSmoothRoadToServer(squares)
+        end
+        data.dumpLastTileX = tileX
+        data.dumpLastTileY = tileY
+        return
+    end
+
+    -- Single-tile step: place at current position only
+    DumpTruckCore.debugPrint("[interp] single-tile step at ", tileX, tileY)
+    cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
+    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
     for _, sq in ipairs(currentSquares) do
         if sq and DumpTruckCore.isSquareValidForGravel(sq) then
-            DumpTruckCore.debugPrint("PLACED gravel at square: x=" .. sq:getX() .. ", y=" .. sq:getY())
             DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
-            gravelPlaced = true
-            
-            -- Check again after consuming (in case we just ran out)
             if DumpTruck.getGravelCount(vehicle) <= 0 then
                 DumpTruck.stopDumping(vehicle)
+                data.dumpLastTileX = tileX
+                data.dumpLastTileY = tileY
+                DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
+                sendSmoothRoadToServer(currentSquares)
                 return
-            end
-        else
-            if sq then
-                DumpTruckCore.debugPrint("SKIPPED square (not valid): x=" .. sq:getX() .. ", y=" .. sq:getY())
             end
         end
     end
     DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
+    sendSmoothRoadToServer(currentSquares)
+    data.dumpLastTileX = tileX
+    data.dumpLastTileY = tileY
 end
 
 -- Update function for player actions
@@ -326,7 +419,9 @@ end
 function DumpTruck.startDumping(vehicle)
     local data = vehicle:getModData()
     data.dumpingGravelActive = true
-    
+    data.dumpLastTileX = nil
+    data.dumpLastTileY = nil
+
     -- Start dumping sounds
     vehicle:playSound("HydraulicLiftRaised")
     vehicle:playSound("GravelDumpStart")
@@ -344,7 +439,9 @@ function DumpTruck.stopDumping(vehicle)
     end
     
     data.dumpingGravelActive = false
-    
+    data.dumpLastTileX = nil
+    data.dumpLastTileY = nil
+
     -- Stop dumping sounds
     DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
 end
@@ -353,12 +450,47 @@ end
 -- Recreate overlay sprites from floor modData when squares load (handles persistence)
 -- Uses AttachExistingAnim to reattach sprite to floor
 -- MP: when server places gravel it sends disableErosionAt; clients run disableErosion() on their copy so erosion (trees/grass) does not run there
+-- Client receives commands FROM server (e.g. disableErosionAt after server places gravel)
 Events.OnServerCommand.Add(function(module, command, args)
-    if module == "DumpTruckGravelMod" and command == "disableErosionAt" and args and args.x and args.y and args.z then
+    if module ~= "DumpTruckGravelMod" or not args then return end
+    if command == "disableErosionAt" and args.x and args.y and args.z then
         local cell = getCell()
         if cell then
             local sq = cell:getGridSquare(args.x, args.y, args.z)
             if sq then sq:disableErosion() end
+        end
+    end
+end)
+
+-- Server receives commands FROM client (place gravel + consume, and smoothRoad for edge blends)
+Events.OnClientCommand.Add(function(module, command, player, args)
+    if module ~= "DumpTruckGravelMod" or not args then return end
+    if command == "consumeGravel" and args.vehicle then
+        local vehicle = getVehicleById(args.vehicle)
+        if not vehicle then return end
+        if vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
+        if args.x and args.y and args.z then
+            local cell = getCell()
+            if cell then
+                local sq = cell:getGridSquare(args.x, args.y, args.z)
+                if sq then
+                    DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
+                end
+            end
+        end
+        DumpTruck.consumeGravelFromTruckBed(vehicle)
+    elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
+        local cell = getCell()
+        if not cell then return end
+        local serverSquares = {}
+        for _, pt in ipairs(args.squares) do
+            if pt.x and pt.y and pt.z then
+                local sq = cell:getGridSquare(pt.x, pt.y, pt.z)
+                if sq then table.insert(serverSquares, sq) end
+            end
+        end
+        if #serverSquares >= 2 then
+            DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
         end
     end
 end)
