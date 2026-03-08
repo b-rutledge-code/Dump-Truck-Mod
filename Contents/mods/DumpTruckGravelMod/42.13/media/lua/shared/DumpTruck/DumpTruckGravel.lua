@@ -55,9 +55,14 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     if sq.transmitFloor then sq:transmitFloor() end
 end
 
--- Send current row to server so it can run smoothRoad (edge blends sync to all clients)
+-- Send current row to server so it can run smoothRoad (edge blends sync to all clients).
+-- Caller already ran smoothRoad locally, so in SP we must NOT run it again (would run twice and second run replaces/clears blends).
 local function sendSmoothRoadToServer(currentSquares)
-    if not isClient() or not currentSquares or #currentSquares < 2 then return end
+    if not currentSquares or #currentSquares < 2 then return end
+    if not isClient() then
+        -- SP: smoothRoad was already run by caller (tryPourGravelUnderTruck). Do not run again.
+        return
+    end
     local squareList = {}
     for _, sq in ipairs(currentSquares) do
         if sq then
@@ -65,11 +70,6 @@ local function sendSmoothRoadToServer(currentSquares)
         end
     end
     if #squareList >= 2 then
-        local role = isServer() and "server" or "client"
-        print(string.format("[DumpTruck] edgeBlend sendSmoothRoadToServer (%s) squares=%d first=(%d,%d,%d) last=(%d,%d,%d)",
-            role, #squareList,
-            squareList[1].x, squareList[1].y, squareList[1].z,
-            squareList[#squareList].x, squareList[#squareList].y, squareList[#squareList].z))
         sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
     end
 end
@@ -392,7 +392,12 @@ function DumpTruck.onPlayerUpdateFunc(player)
             end
             elapsedTime = 0
 
-            DumpTruck.tryPourGravelUnderTruck(vehicle)
+            -- Run only where the driver runs (MP client or SP). Dedicated server must not run this (requires client module).
+            if isServer() then
+                -- Dedicated server: skip (no client module)
+            else
+                DumpTruck.tryPourGravelUnderTruck(vehicle)
+            end
         end
     end
 end
@@ -471,23 +476,34 @@ end)
 Events.OnClientCommand.Add(function(module, command, player, args)
     if module ~= "DumpTruckGravelMod" or not args then return end
     if command == "consumeGravel" and args.vehicle then
+        print(string.format("[DumpTruck] server OnClientCommand consumeGravel vehicle=%s", tostring(args.vehicle)))
         local vehicle = getVehicleById(args.vehicle)
-        if not vehicle then return end
+        if not vehicle then
+            print("[DumpTruck] server consumeGravel: getVehicleById nil, skip")
+            return
+        end
         if vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
-        if args.x and args.y and args.z then
+        -- Only place gravel on dedicated server; in SP client already placed (blends would be wiped by a second place)
+        if isServer() and args.x and args.y and args.z then
             local cell = getCell()
             if cell then
                 local sq = cell:getGridSquare(args.x, args.y, args.z)
                 if sq then
                     DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
+                else
+                    print("[DumpTruck] server consumeGravel: getGridSquare nil")
                 end
+            else
+                print("[DumpTruck] server consumeGravel: getCell nil")
             end
         end
         DumpTruck.consumeGravelFromTruckBed(vehicle)
+        print("[DumpTruck] server consumeGravel: done")
     elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
+        print(string.format("[DumpTruck] server OnClientCommand smoothRoad squares=%d", #args.squares))
         local cell = getCell()
         if not cell then
-            print("[DumpTruck] edgeBlend smoothRoad server: no cell")
+            print("[DumpTruck] edgeBlend smoothRoad server: no cell, skip")
             return
         end
         local serverSquares = {}
@@ -497,7 +513,7 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 if sq then table.insert(serverSquares, sq) end
             end
         end
-        print(string.format("[DumpTruck] edgeBlend smoothRoad server: received squares=%d resolved=%d", #args.squares, #serverSquares))
+        print(string.format("[DumpTruck] edgeBlend smoothRoad server: resolved=%d running smoothRoad=%s", #serverSquares, (#serverSquares >= 2) and "yes" or "no"))
         if #serverSquares >= 2 then
             DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
         end
