@@ -34,18 +34,33 @@
 
 **Fix:** When the client clears overlay metadata (in `resetOverlayMetadata`), send `clearOverlayAt` (x, y, z) to the server. Server handles it in OnClientCommand and calls `removeOverlayFromSquare(sq)` so the server’s floor has cleared metadata and that state persists to save.
 
+### MP gravel consumption desync / bed contents wrong for other players
+
+**Problem:** In multiplayer, the driver's client ran placement and consumption in client-only code. The server never consumed gravel, so the server's bed state (and other clients' view) stayed out of sync: driver saw empty bed, other players still saw gravel; gravel could appear to duplicate or never deplete.
+
+**Root cause:** Only the driver's client called `consumeGravelFromTruckBed(vehicle)`; the server's copy of the vehicle container was never updated.
+
+**Fix:** Client no longer consumes locally. After placing gravel and scheduling the pour effect, the client sends `sendServerCommand(..., "consumeGravel", { vehicle = vehicle:getId() })`. The server handles it in OnClientCommand and calls `DumpTruck.consumeGravelFromTruckBed(vehicle)` so the server is the source of truth; container state then syncs to all clients. Single-player unchanged (host is both client and server).
+
+### SP: edge blends and pour effect not visible (server re-place)
+
+**Problem:** In singleplayer, edge blends (gravel-to-grass transitions) and the pour effect did not appear even though placement and consume ran and logs showed one `smoothRoad` and `placeEdgeBlend ok=true`.
+
+**Root cause:** In SP the same process acts as both “client” and “server”. The client path placed gravel, ran `smoothRoad` (attaching edge blends to the floor), and sent `consumeGravel`. The server handler then ran `placeGravelFloorOnSquare` again. That second place replaced the floor with a new gravel tile, wiping the blends and the pour-effect floor.
+
+**Fix:** In the server `OnClientCommand` handler for `consumeGravel`, only call `placeGravelFloorOnSquare` when `isServer()` is true (dedicated server). In SP `isServer()` is false, so we skip the server-side place and only run `consumeGravelFromTruckBed`, preserving the floor (and blends) already placed by the client path.
+
 ## Known Limitations
 
 - **Mechanic panel blank** – Open hood → E shows a blank left panel because the vehicle script lacks `carMechanicsOverlay`. Fix: add `carMechanicsOverlay = Base.Van` to the vehicle script (functional but not pixel-perfect for FE6).
 - **No bed tilt animation** – The truck bed does not visually tilt when dumping; would require model/animation support (see design-notes “Bed tilt animation”).
 - **Erosion cannot be re-enabled** – Once gravel is placed we call `disableErosion()`. If the player removes gravel (e.g. shovels), the game has no API to re-enable erosion on that square. “Traffic maintains the road” is not feasible without a game change.
-- **Tile-gap when driving fast diagonally** – **Mitigated:** When the truck skips more than one tile between ticks, Bresenham-style interpolation (branch `feature/tile-gap-interpolation`) places gravel at each intermediate position (full road width), so the gap is filled. Single-tile steps unchanged.
+- **Tile-gap when driving fast diagonally** – **Mitigated:** When the truck skips more than one tile between ticks, Bresenham-style interpolation places gravel at each intermediate position (full road width), so the gap is filled. Single-tile steps unchanged.
 - **Gravel loop volume not zoom-dependent** – Dump truck sounds are script clips, not FMOD; zoom-based volume (fridge-style) is documented as a Lua follow-up (`getCore():getZoom()`, `setVolume(handle, volume)`), not yet implemented.
 
 ## Open Issues
 
-- **Straightaways: edge blends not filling in** – On straight road sections, edge blends (smooth transition from gravel to grass/terrain) are no longer being placed. (Recurring / “old friend” issue.)
-- **MP desync: bed contents / gravel duping (reported Mar 2026)** – In multiplayer, driver sees “gravel in the back” when starting, then hears it stop as if done; trunk shows only empty sacks on the driver’s client, while the other player still sees gravel in the bed. Can repeat. Reported that gravel can also be duplicated using this desync (e.g. one client thinks bed is empty, other still sees gravel; placement/consumption get out of sync). **Cause:** Consumption is only run inside client-only `DumpTruckPourEffect.schedulePlaceAndEffect()` (which does place + `consumeGravelFromTruckBed`). The server never runs that path, so only the driver's client removes gravel; server and other clients never see the consumption. **Fix:** Make consumption (and placement) server-authoritative: server runs the gravel tick and does place + consume; clients do the visual pour effect only, or add an explicit sync (e.g. server command) so the server is the single source of truth for bed contents.
+- **Straightaways: edge blends not filling in** – SP and MP verified for pour effect and edge blends (SP fix: server no longer re-places in same process; MP: dedicated server still places and syncs). If rare edge cases appear, investigate.
 - **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` is currently `true` (console + unlimited gravel for testing). Set to `false` before packaging/release (see design-notes “Debug”).
 - **Zoom-based gravel loop volume** – Optional: while loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)`.
 - **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.
