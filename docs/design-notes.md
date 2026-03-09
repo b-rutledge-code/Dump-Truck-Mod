@@ -14,9 +14,17 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ---
 
-## Noted: admin-only dump trucks (Workshop request)
+## Sandbox option: admin-only dump trucks (no world spawn)
 
-A comment asked for a sandbox/mod option so dump trucks are **not** added to vehicle spawn tables—i.e. spawnable by admins only. Not implemented; noted for future consideration.
+**Desired behaviour:** A sandbox (or mod) option so dump trucks **do not** appear in normal vehicle spawn tables—i.e. they are only available to admins (spawn menu) or when explicitly added to the world. Useful for servers that want the truck as a tool without it spawning in the world.
+
+**Implemented.** Sandbox option **DumpTruckGravelMod.AdminOnly** (boolean, default false). Design intent:
+
+- When the option is **on**: do **not** register the dump truck with vehicle zone distribution / spawn tables; the truck only exists when an admin spawns it or it’s placed in the map.
+- When **off** (default): dump truck can spawn in the world like other vehicles.
+
+**MP option:** For multiplayer; set by the host so dump trucks don’t spawn in the world and only admins can spawn or place them. **Files:** `media/sandbox-options.txt` (option definition); `media/lua/shared/Translate/EN/Sandbox_EN.txt` (EN label/tooltip); `VehicleZoneDistribution_DumpTruck.lua` gates on `getSandboxOptions():getOptionByName("DumpTruckGravelMod.AdminOnly"):getValue()`. See reference/general/pz-modding-knowledge.md § Sandbox options.
+
 
 ---
 

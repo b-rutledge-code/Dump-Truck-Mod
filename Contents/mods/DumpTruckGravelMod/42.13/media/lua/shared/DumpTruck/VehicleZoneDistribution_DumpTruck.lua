@@ -15,12 +15,24 @@
 
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
+local OPTION_ADMIN_ONLY = "DumpTruckGravelMod.AdminOnly"
+
 local function initVehicleZoneDistribution()
     if not VehicleZoneDistribution then
         print("[DumpTruck] ERROR: VehicleZoneDistribution not available")
         return
     end
-    
+
+    -- Sandbox option: when Admin only is on, do not add dump truck to spawn tables
+    local sandbox = getSandboxOptions()
+    if sandbox then
+        local opt = sandbox:getOptionByName(OPTION_ADMIN_ONLY)
+        if opt and opt:getValue() then
+            print("[DumpTruck] Admin only: skipping vehicle zone distribution for " .. DumpTruckConstants.VEHICLE_SCRIPT_NAME)
+            return
+        end
+    end
+
     local VEHICLE_NAME = DumpTruckConstants.VEHICLE_SCRIPT_NAME
     
     -- Helper to add vehicle to zone
