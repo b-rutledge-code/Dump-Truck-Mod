@@ -12,6 +12,9 @@ A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads.
 - Snap Line: snap gravel placement to a dead-straight cardinal line (N/S/E/W) via radial menu
 - Realistic spawn variation: 50% chance trucks spawn with 80-100% gravel load
 - Spawns in appropriate zones (construction sites, farms, industrial areas, etc.)
+- **MP sandbox option:** "Admin only (no world spawn)" — when enabled in multiplayer (host or dedicated server), dump trucks do not appear in vehicle spawn tables; only admins can spawn them or place them on the map (Sandbox Options → Dump Truck Gravel Mod).
+- **Multiplayer:** Gravel consumption is server-authoritative; bed contents stay in sync for all players.
+- **Tile-gap fill:** When driving fast enough to skip tiles, intermediate tiles are filled so diagonal roads don’t have one-tile gaps.
 
 ## Installation
 
@@ -28,6 +31,8 @@ A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads.
 5. (Optional) Enable Snap Line from the radial menu to lay perfectly straight N/S/E/W roads — automatically disengages on braking or drifting too far off-line
 6. Drive slowly (5 km/h max while dumping) to create a gravel road
 7. Press (G) or use the radial menu again to stop dumping
+
+**MP / sandbox:** In multiplayer, the host sets this in Sandbox Options (when creating or editing a save): open the "Dump Truck Gravel Mod" page and enable "Admin only (no world spawn)" to prevent dump trucks from spawning in the world; only admins can spawn them or place them on the map.
 
 ## Development Status
 

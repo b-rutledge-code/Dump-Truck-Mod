@@ -5,6 +5,9 @@ local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 
 local DumpTruckCore = {}
 DumpTruckCore.debugMode = false
+DumpTruckCore.logVersion = "42.13-1.2.1 edgeblend-log-v2"
+
+print("[DumpTruck] version " .. DumpTruckCore.logVersion)
 
 -- Utility function for debug printing
 function DumpTruckCore.debugPrint(...)

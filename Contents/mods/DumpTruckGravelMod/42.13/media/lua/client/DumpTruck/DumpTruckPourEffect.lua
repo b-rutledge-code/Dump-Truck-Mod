@@ -9,6 +9,10 @@ function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
 
     local DumpTruck = require("DumpTruck/DumpTruckGravel")
 
+    -- Log pour path: who runs this (client script), and consume branch (SP=both false -> sendClientCommand)
+    print(string.format("[DumpTruck] pour schedulePlaceAndEffect sq=(%d,%d,%d) isServer=%s isClient=%s",
+        square:getX(), square:getY(), square:getZ(), tostring(isServer()), tostring(isClient())))
+
     local sprites = DumpTruckConstants.POUR_SPRITES
     local firstSprite = sprites and sprites[1] and getSprite(sprites[1]) or nil
 
@@ -22,8 +26,10 @@ function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
     DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, square)
     -- SP/host: consume locally. Dedicated server: client places locally for visual; server must place + consume so world syncs.
     if isServer() then
+        print("[DumpTruck] pour consume: local (isServer=true)")
         DumpTruck.consumeGravelFromTruckBed(vehicle)
     else
+        print("[DumpTruck] pour consume: sendClientCommand (isServer=false)")
         sendClientCommand(getPlayer(), "DumpTruckGravelMod", "consumeGravel", {
             vehicle = vehicle:getId(),
             x = square:getX(),
