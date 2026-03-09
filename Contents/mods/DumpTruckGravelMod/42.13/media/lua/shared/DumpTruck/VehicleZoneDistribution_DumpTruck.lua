@@ -19,7 +19,6 @@ local OPTION_ADMIN_ONLY = "DumpTruckGravelMod.AdminOnly"
 
 local function initVehicleZoneDistribution()
     if not VehicleZoneDistribution then
-        print("[DumpTruck] ERROR: VehicleZoneDistribution not available")
         return
     end
 
@@ -28,7 +27,6 @@ local function initVehicleZoneDistribution()
     if sandbox then
         local opt = sandbox:getOptionByName(OPTION_ADMIN_ONLY)
         if opt and opt:getValue() then
-            print("[DumpTruck] Admin only: skipping vehicle zone distribution for " .. DumpTruckConstants.VEHICLE_SCRIPT_NAME)
             return
         end
     end
@@ -49,8 +47,7 @@ local function initVehicleZoneDistribution()
     addToZone("junkyard", 5)     -- Scrapyards
     addToZone("farm", 7)         -- Agricultural areas
     addToZone("trades", 20)      -- Construction sites
-    
-    print("[DumpTruck] Vehicle zone distribution initialized for " .. VEHICLE_NAME)
+
 end
 
 -- Hook into OnGameBoot - fires after VehicleZoneDistribution is created

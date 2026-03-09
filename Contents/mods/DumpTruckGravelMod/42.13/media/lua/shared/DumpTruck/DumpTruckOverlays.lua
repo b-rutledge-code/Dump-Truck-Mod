@@ -40,7 +40,6 @@ function DumpTruckOverlays.resetOverlayMetadata(square)
     floorModData.overlaySprite = nil
     floor:transmitModData()
     if hadType or hadSprite then
-        print(string.format("[DumpTruck] overlay metadata CLEARED sq=(%d,%d,%d) hadType=%s hadSprite=%s", square:getX(), square:getY(), square:getZ(), tostring(hadType), tostring(hadSprite)))
         -- MP: tell server to clear same square so server's copy (which gets saved) has cleared metadata
         if isClient() then
             sendClientCommand(getPlayer(), "DumpTruckGravelMod", "clearOverlayAt", { x = square:getX(), y = square:getY(), z = square:getZ() })
@@ -68,17 +67,14 @@ end
 -- Uses AttachExistingAnim to attach sprite to floor, transmits to MP, sets metadata
 function DumpTruckOverlays.placeOverlay(square, sprite, tileType)
     if not square or not sprite then
-        if square then print("[DumpTruck] placeOverlay skip: no sprite name") end
         return false
     end
     local floor = square:getFloor()
     if not floor then
-        print(string.format("[DumpTruck] placeOverlay skip: no floor sq=(%d,%d,%d)", square:getX(), square:getY(), square:getZ()))
         return false
     end
     local spriteObj = getSprite(sprite)
     if not spriteObj then
-        print(string.format("[DumpTruck] placeOverlay skip: getSprite nil for '%s'", tostring(sprite)))
         return false
     end
     
@@ -214,7 +210,6 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     }
     
     if hasBlendPointingAtGravel(square, myChecks) then
-        print(string.format("[DumpTruck] edgeBlend cleanup REMOVE sq=(%d,%d,%d) (blend pointed at gravel)", square:getX(), square:getY(), square:getZ()))
         DumpTruckOverlays.removeOverlayFromSquare(square)
     end
 
@@ -229,7 +224,6 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     for _, check in ipairs(neighborChecks) do
         if check.square and DumpTruckCore.isPouredGravel(check.square) then
             if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
-                print(string.format("[DumpTruck] edgeBlend cleanup REMOVE neighbor sq=(%d,%d,%d) (pointed at gravel)", check.square:getX(), check.square:getY(), check.square:getZ()))
                 DumpTruckOverlays.removeOverlayFromSquare(check.square)
             end
         end
@@ -366,8 +360,6 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
     
     -- Add the natural terrain triangle as an overlay object
     DumpTruckOverlays.placeOverlay(nonGravelSquare, triangleSprite, DumpTruckConstants.TILE_TYPES.GAP_FILLER)
-    local role = isServer() and "server" or "client"
-    print(string.format("[DumpTruck] gapFiller placed (%s) sq=(%d,%d,%d) then removeOppositeEdgeBlends", role, nonGravelSquare:getX(), nonGravelSquare:getY(), nonGravelSquare:getZ()))
 
     nonGravelSquare:disableErosion()
     if isServer() then
@@ -485,33 +477,25 @@ function DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
         rightSideSquare = rightSquare:getW()
     end
 
-    local role = isServer() and "server" or "client"
-    print(string.format("[DumpTruck] edgeBlend addEdgeBlends (%s) left=(%d,%d,%d) right=(%d,%d,%d) dirs=%s,%s",
-        role, leftSquare:getX(), leftSquare:getY(), leftSquare:getZ(),
-        rightSquare:getX(), rightSquare:getY(), rightSquare:getZ(),
-        secondaryDir[1], secondaryDir[2]))
-
     -- Add terrain blends for outer edges
     for i, square in ipairs({leftSquare, rightSquare}) do
         local sideSquare = i == 1 and leftSideSquare or rightSideSquare
         local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
 
         if not sideSquare then
-            print(string.format("[DumpTruck] edgeBlend skip: no sideSquare for sq=(%d,%d,%d) dir=%s", square:getX(), square:getY(), square:getZ(), sideDir))
+            -- skip
         elseif DumpTruckCore.isPouredGravel(sideSquare) then
-            print(string.format("[DumpTruck] edgeBlend skip: sideSquare is gravel sq=(%d,%d,%d) dir=%s", square:getX(), square:getY(), square:getZ(), sideDir))
+            -- skip
         else
             local terrain = DumpTruckOverlays.getBlendNaturalSprite(sideSquare)
             if not terrain then
-                print(string.format("[DumpTruck] edgeBlend skip: no terrain sprite sq=(%d,%d,%d) dir=%s", square:getX(), square:getY(), square:getZ(), sideDir))
+                -- skip
             else
                 local blend = DumpTruckOverlays.getEdgeBlendSprite(sideDir, terrain)
                 if not blend then
-                    print(string.format("[DumpTruck] edgeBlend skip: no blend sprite sq=(%d,%d,%d) dir=%s", square:getX(), square:getY(), square:getZ(), sideDir))
+                    -- skip
                 else
-                    local ok = DumpTruckOverlays.placeEdgeBlend(square, blend)
-                    print(string.format("[DumpTruck] edgeBlend placeEdgeBlend (%s) sq=(%d,%d,%d) dir=%s sprite=%s ok=%s",
-                        role, square:getX(), square:getY(), square:getZ(), sideDir, blend, tostring(ok)))
+                    DumpTruckOverlays.placeEdgeBlend(square, blend)
                 end
             end
         end
@@ -603,14 +587,8 @@ function DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
 
     local leftSquare = currentSquares[1]
     local rightSquare = currentSquares[#currentSquares]
-    -- Always log so we can confirm smoothRoad runs and from which context (SP = both false)
-    local role = isServer() and "server" or "client"
-    print(string.format("[DumpTruck] smoothRoad (%s) n=%d L=(%d,%d,%d) R=(%d,%d,%d)",
-        role, #currentSquares,
-        leftSquare:getX(), leftSquare:getY(), leftSquare:getZ(),
-        rightSquare:getX(), rightSquare:getY(), rightSquare:getZ()))
 
-    -- Order: gap fillers first, then edge blends, then cleanup (so we don't add blend then overwrite with gap filler)
+    -- Order: gap fillers first, then edge blends, then cleanup
     DumpTruckOverlays.fillGaps(leftSquare, rightSquare)
     DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
     -- Only remove "blend between two gravel" for inner squares; skip row ends so we don't strip
