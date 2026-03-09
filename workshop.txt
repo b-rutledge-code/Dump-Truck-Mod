@@ -46,5 +46,5 @@ description=
 description=[h2]Special Thanks[/h2]
 description=Huge Thank You to [url=https://steamcommunity.com/id/fhqwhgadsGT]fhqwhgads[/url] for his dump truck model!
 description=Thanks to Hank_Mardukas for the sound effects!
-tags=Build 42;Vehicles
+tags=Build 42;Vehicles;Building;Multiplayer
 visibility=public
