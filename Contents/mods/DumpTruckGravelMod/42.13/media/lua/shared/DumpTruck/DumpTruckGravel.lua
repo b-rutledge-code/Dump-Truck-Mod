@@ -476,10 +476,8 @@ end)
 Events.OnClientCommand.Add(function(module, command, player, args)
     if module ~= "DumpTruckGravelMod" or not args then return end
     if command == "consumeGravel" and args.vehicle then
-        print(string.format("[DumpTruck] server OnClientCommand consumeGravel vehicle=%s", tostring(args.vehicle)))
         local vehicle = getVehicleById(args.vehicle)
         if not vehicle then
-            print("[DumpTruck] server consumeGravel: getVehicleById nil, skip")
             return
         end
         if vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
@@ -490,20 +488,13 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 local sq = cell:getGridSquare(args.x, args.y, args.z)
                 if sq then
                     DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
-                else
-                    print("[DumpTruck] server consumeGravel: getGridSquare nil")
                 end
-            else
-                print("[DumpTruck] server consumeGravel: getCell nil")
             end
         end
         DumpTruck.consumeGravelFromTruckBed(vehicle)
-        print("[DumpTruck] server consumeGravel: done")
     elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
-        print(string.format("[DumpTruck] server OnClientCommand smoothRoad squares=%d", #args.squares))
         local cell = getCell()
         if not cell then
-            print("[DumpTruck] edgeBlend smoothRoad server: no cell, skip")
             return
         end
         local serverSquares = {}
@@ -513,7 +504,6 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 if sq then table.insert(serverSquares, sq) end
             end
         end
-        print(string.format("[DumpTruck] edgeBlend smoothRoad server: resolved=%d running smoothRoad=%s", #serverSquares, (#serverSquares >= 2) and "yes" or "no"))
         if #serverSquares >= 2 then
             DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
         end
@@ -538,7 +528,6 @@ Events.LoadGridsquare.Add(function(square)
             local sprite = getSprite(floorModData.overlaySprite)
             if sprite then
                 floor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
-                print(string.format("[DumpTruck] LoadGridsquare RESTORE overlay sq=(%d,%d,%d) overlaySprite=%s overlayType=%s", square:getX(), square:getY(), square:getZ(), tostring(floorModData.overlaySprite), tostring(floorModData.overlayType)))
             end
         end
     end
