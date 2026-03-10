@@ -6,11 +6,12 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ## Debug
 
-**Single debug flag:** `DumpTruckCore.debugMode` in `DumpTruckCore.lua`. When `true`:
-- **Console:** `DumpTruckCore.debugPrint()` runs — vehicle pos (cx, cy, tile), then path: `[interp] first run`, `[interp] gap path: ... points=N`, or `[interp] single-tile step`.
-- **Unlimited gravel:** `consumeGravelFromTruckBed` and `getGravelCount` act as if the bed always has gravel (for testing without loading sacks).
+**Single debug flag:** `DumpTruckCore.debugMode` in `DumpTruckCore.lua`. When `true` you get both:
 
-**Set to `false` before release.** Leave a `TODO: set false before release` comment when enabling. See bugs.md open issue.
+- **Console logging:** `DumpTruckCore.debugPrint()` runs. Minimal logs (gated by this flag only): `[DumpTruck] vehicle tile (tx, ty, z)`; `[DumpTruck] tile (x, y, z)` on each gravel placement; `[DumpTruck] edgeBlend (x, y, z) <sprite>`; `[DumpTruck] gapFiller (x, y, z)`; `[DumpTruck] cleanup (x, y, z)` when a blend is removed. All in DumpTruckGravel.lua and DumpTruckOverlays.lua.
+- **Endless gravel:** `consumeGravelFromTruckBed` returns without consuming; `getGravelCount` returns 100. So the truck never runs out and you can test roads without loading sacks.
+
+**Set to `false` before release.** See bugs.md open issue.
 
 ---
 
@@ -23,7 +24,7 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 - When the option is **on**: do **not** register the dump truck with vehicle zone distribution / spawn tables; the truck only exists when an admin spawns it or it’s placed in the map.
 - When **off** (default): dump truck can spawn in the world like other vehicles.
 
-**MP option:** For multiplayer; set by the host so dump trucks don’t spawn in the world and only admins can spawn or place them. **Files:** `media/sandbox-options.txt` (option definition); `media/lua/shared/Translate/EN/Sandbox_EN.txt` (EN label/tooltip); `VehicleZoneDistribution_DumpTruck.lua` gates on `getSandboxOptions():getOptionByName("DumpTruckGravelMod.AdminOnly"):getValue()`. See reference/general/pz-modding-knowledge.md § Sandbox options.
+**MP option:** For multiplayer; set by the host so dump trucks don’t spawn in the world and only admins can spawn or place them. **Files:** `media/sandbox-options.txt` (option definition); `media/lua/shared/Translate/EN/Sandbox.json` (EN label/tooltip, 42.15 .json format); `VehicleZoneDistribution_DumpTruck.lua` gates on `getSandboxOptions():getOptionByName("DumpTruckGravelMod.AdminOnly"):getValue()`. See reference/general/pz-modding-knowledge.md § Sandbox options.
 
 
 ---
