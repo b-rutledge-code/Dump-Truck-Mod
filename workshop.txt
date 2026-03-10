@@ -2,7 +2,7 @@ version=1
 id=3433311021
 title=Road Builder
 description=[b]Supports Multiplayer[/b]
-description=Build gravel roads to connect your base to town, create safe supply routes, or carve paths through the wilderness. Roads look like they belong in the game — smooth edge blending, erosion prevention, and perfectly straight lines when you need them.
+description=Build gravel roads to connect your base to town, create safe supply routes, or carve paths through the wilderness. Roads that look like they belong in the game — smooth edge blending, erosion prevention, and perfectly straight lines when you need them.
 description=
 description=[h2]Features[/h2]
 description=- Volvo FE6 dump truck model (courtesy of [b]fhqwhgads[/b] from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2791656602]Motorious Zone[/url]!)
