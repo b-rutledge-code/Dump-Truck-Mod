@@ -39,7 +39,10 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
         newFloor:transmitModData()  -- Sync to other clients
     end
-    
+    if newFloor then
+        DumpTruckCore.debugPrint("[DumpTruck] tile (", sq:getX(), ", ", sq:getY(), ", ", sq:getZ(), ")")
+    end
+
     -- Disable erosion on this square
     sq:disableErosion()
     -- Tell clients to set doNothing on their copy (erosion state does not sync with floor change)
@@ -277,11 +280,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local adjustedY = cy + (perpY * threshold)
     local tileX = math.floor(adjustedX)
     local tileY = math.floor(adjustedY)
-    
-    local tileX = math.floor(adjustedX)
-    local tileY = math.floor(adjustedY)
-    
-    DumpTruckCore.debugPrint("Vehicle pos: cx=", cx, " cy=", cy, " tile=", tileX, tileY)
+    DumpTruckCore.debugPrint("[DumpTruck] vehicle tile (", tileX, ", ", tileY, ", ", cz, ")")
     
     -- Road dimensions (needed for both single-tile and interpolation paths)
     local script = vehicle:getScript()
@@ -302,7 +301,6 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     -- First run: no previous tile — single-tile path only (avoid placing from 0,0 to current)
     if data.dumpLastTileX == nil then
-        DumpTruckCore.debugPrint("[interp] first run, single-tile at ", tileX, tileY)
         local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
         local currentSquares = DumpTruck.getBackSquares(fx, fy, snapCx, snapCy, cz, roadWidth, length)
         for _, sq in ipairs(currentSquares) do
@@ -326,7 +324,6 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     -- Gap: step > 1 — Bresenham walk, skip first point, place at each (full road width per position)
     if math.abs(tileX - data.dumpLastTileX) > 1 or math.abs(tileY - data.dumpLastTileY) > 1 then
         local points = DumpTruck.getLinePoints(data.dumpLastTileX, data.dumpLastTileY, tileX, tileY)
-        DumpTruckCore.debugPrint("[interp] gap path: ", data.dumpLastTileX, data.dumpLastTileY, " -> ", tileX, tileY, " points=", #points)
         for i = 2, #points do
             local ix, iy = points[i].x, points[i].y
             local icx, icy = ix + 0.5, iy + 0.5
@@ -357,7 +354,6 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     end
 
     -- Single-tile step: place at current position only
-    DumpTruckCore.debugPrint("[interp] single-tile step at ", tileX, tileY)
     cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
     local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
     for _, sq in ipairs(currentSquares) do

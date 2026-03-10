@@ -210,6 +210,7 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     }
     
     if hasBlendPointingAtGravel(square, myChecks) then
+        DumpTruckCore.debugPrint("[DumpTruck] cleanup (", square:getX(), ", ", square:getY(), ", ", square:getZ(), ")")
         DumpTruckOverlays.removeOverlayFromSquare(square)
     end
 
@@ -224,6 +225,7 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     for _, check in ipairs(neighborChecks) do
         if check.square and DumpTruckCore.isPouredGravel(check.square) then
             if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
+                DumpTruckCore.debugPrint("[DumpTruck] cleanup (", check.square:getX(), ", ", check.square:getY(), ", ", check.square:getZ(), ")")
                 DumpTruckOverlays.removeOverlayFromSquare(check.square)
             end
         end
@@ -377,6 +379,7 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
         local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
         DumpTruckPourEffect.scheduleDelayedReveal(nonGravelSquare, oldFloorSpriteName)
     end
+    DumpTruckCore.debugPrint("[DumpTruck] gapFiller (", nonGravelSquare:getX(), ", ", nonGravelSquare:getY(), ", ", nonGravelSquare:getZ(), ")")
 
     return true
 end
@@ -419,6 +422,7 @@ function DumpTruckOverlays.placeEdgeBlend(gravelSquare, blendSprite)
     if not DumpTruckOverlays.placeOverlay(gravelSquare, blendSprite, DumpTruckConstants.TILE_TYPES.EDGE_BLEND) then
         return false
     end
+    DumpTruckCore.debugPrint("[DumpTruck] edgeBlend (", gravelSquare:getX(), ", ", gravelSquare:getY(), ", ", gravelSquare:getZ(), ") ", blendSprite)
 
     if gravelSquare.transmitFloor then gravelSquare:transmitFloor() end
     gravelSquare:RecalcProperties()
