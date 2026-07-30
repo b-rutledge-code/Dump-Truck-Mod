@@ -52,7 +52,7 @@
 
 ## Known Limitations
 
-- **Mechanic panel blank** – Open hood → E shows a blank left panel because the vehicle script lacks `carMechanicsOverlay`. Fix: add `carMechanicsOverlay = Base.Van` to the vehicle script (functional but not pixel-perfect for FE6).
+- **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
 - **No bed tilt animation** – The truck bed does not visually tilt when dumping; would require model/animation support (see design-notes “Bed tilt animation”).
 - **Erosion cannot be re-enabled** – Once gravel is placed we call `disableErosion()`. If the player removes gravel (e.g. shovels), the game has no API to re-enable erosion on that square. “Traffic maintains the road” is not feasible without a game change.
 - **Tile-gap when driving fast diagonally** – **Mitigated:** When the truck skips more than one tile between ticks, Bresenham-style interpolation places gravel at each intermediate position (full road width), so the gap is filled. Single-tile steps unchanged.
