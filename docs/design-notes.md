@@ -145,9 +145,9 @@ Sprites are 128×256 transparent PNGs with grey gravel speckles at increasing de
 
 `vehicle:setMaxSpeed()` does not hard-cap speed. The engine tapers force over a 20 km/h window above the set value (formula: `engineForce * ((maxSpeed + 20 - speed) / 20)`). Setting it to 5.0 means force starts reducing at 5 but doesn't reach zero until 25 km/h. It also wrecks gear ratios (`speedPerGear = maxSpeed / gearCount`) and steering sensitivity (`1.0 - speed / maxSpeed` clamps to 0.1 at "top speed"). Removed entirely — dump speed is uncapped.
 
-### Vehicle mechanic panel blank (missing carMechanicsOverlay)
+### Vehicle mechanics diagram (carMechanicsOverlay)
 
-The mechanics UI (open hood → E) shows a blank left panel because the vehicle script is missing `carMechanicsOverlay`. This is the top-down 2D diagram the UI renders for clickable part areas. Vanilla vans use `carMechanicsOverlay = Base.Van`. Fix: add `carMechanicsOverlay = Base.Van,` to the vehicle script. Won't be pixel-perfect for the FE6 shape but makes the panel functional. A custom overlay image could be drawn later.
+The mechanics UI (open hood → E) draws the left-hand diagram from `ISCarMechanicsOverlay.CarList` using vanilla PNGs under `media/ui/vehicles/mechanic overlay/`. The vehicle script sets **`carMechanicsOverlay = Base.PickUpTruck`** so the dump truck reuses the pickup **`truck_`** overlay (cab + bed layout, closer than `Base.Van` for a truck). Not pixel-accurate for the FE6 model; a custom `imgPrefix` and art set can replace it later (see vanilla `ISCarMechanicsOverlay.lua`).
 
 ### How to add sprites (for pour effect or any custom sprite)
 
