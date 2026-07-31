@@ -2,7 +2,6 @@
 -- Core utility functions for the DumpTruck mod
 
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
-local DumpTruckOverlayClassify = require("DumpTruck/DumpTruckOverlayClassify")
 
 local DumpTruckCore = {}
 DumpTruckCore.debugMode = false
@@ -14,58 +13,39 @@ function DumpTruckCore.debugPrint(...)
     end
 end
 
--- OVERLAY CLASSIFICATION
--- Overlay identity comes from the sprites attached to the floor, which the engine
--- saves and syncs on its own, so this works on a dedicated server and on roads
--- poured before the mod tracked overlays.
-
--- Names of every sprite attached to a floor (vanilla pattern, see ISNaturalFloor.getFloorSpriteNames)
-function DumpTruckCore.getAttachedSpriteNames(floor)
-    local names = {}
-    if not floor or not floor:hasAttachedAnimSprites() then
-        return names
-    end
-
-    local attached = floor:getAttachedAnimSprite()
-    if not attached then
-        return names
-    end
-
-    for i = 1, attached:size() do
-        local instance = attached:get(i - 1)
-        local parentSprite = instance and instance:getParentSprite()
-        local name = parentSprite and parentSprite:getName()
-        if name then
-            table.insert(names, name)
-        end
-    end
-
-    return names
-end
-
--- Classify a live square: returns {type, sprite, direction, triangleOffset} or nil
-function DumpTruckCore.classifySquare(square)
-    if not square then return nil end
-
-    local floor = square:getFloor()
-    if not floor then return nil end
-
-    local floorSprite = floor:getSprite()
-    if not floorSprite then return nil end
-
-    return DumpTruckOverlayClassify.classify(floorSprite:getName(), DumpTruckCore.getAttachedSpriteNames(floor))
-end
-
 -- Check if a square is a full gravel floor (not a blend)
--- Gap fillers do NOT count, so corner detection cannot cascade into them
 function DumpTruckCore.isFullGravelFloor(square)
-    local overlay = DumpTruckCore.classifySquare(square)
-    return overlay ~= nil and overlay.type ~= DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    if not square then return false end
+    local floor = square:getFloor()
+    if not floor then return false end
+    
+    -- Gap fillers should NOT count as full gravel for corner detection
+    -- (prevents cascading gap filler placement)
+    local floorModData = floor:getModData()
+    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        return false
+    end
+    
+    -- Check sprite directly for gravel (no metadata needed)
+    local floorSprite = floor:getSprite()
+    if not floorSprite then return false end
+    local spriteName = floorSprite:getName()
+    return spriteName == DumpTruckConstants.GRAVEL_SPRITE
 end
 
--- Check if a square is poured gravel (full gravel or a gap filler)
+-- Check if a square is poured gravel
 function DumpTruckCore.isPouredGravel(square)
-    return DumpTruckCore.classifySquare(square) ~= nil
+    if not square then return false end
+    
+    -- Check if it's a full gravel floor
+    local isGravel = DumpTruckCore.isFullGravelFloor(square)
+    
+    -- Check if it's a gap filler (gravel floor with gap filler overlay)
+    local floor = square:getFloor()
+    local floorModData = floor and floor:getModData()
+    local isGapFiller = floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    
+    return isGravel or isGapFiller
 end
 
 -- Check if square is valid for gravel
@@ -79,11 +59,14 @@ function DumpTruckCore.isSquareValidForGravel(sq)
     if sq:getProperties() and sq:getProperties():has("water") then
         return false
     end
-
-    local overlay = DumpTruckCore.classifySquare(sq)
-    if overlay then
-        -- Gap fillers can be upgraded to full gravel; finished gravel is left alone
-        return overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    if DumpTruckCore.isPouredGravel(sq) then
+        -- Allow gap fillers to be upgraded to full gravel squares
+        local floor = sq:getFloor()
+        local floorModData = floor and floor:getModData()
+        if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+            return true  -- Allow gap filler upgrade
+        end
+        return false  -- Reject full gravel squares
     end
     return true
 end

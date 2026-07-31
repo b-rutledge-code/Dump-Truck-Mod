@@ -1,0 +1,5 @@
+Sandbox_EN = {
+    Sandbox_DumpTruckGravelMod = "Dump Truck Gravel Mod",
+    Sandbox_DumpTruckGravelMod_AdminOnly = "Admin only (no world spawn)",
+    Sandbox_DumpTruckGravelMod_AdminOnly_tooltip = "MP option: when enabled, dump trucks do not appear in vehicle spawn tables; only admins can spawn them or place them on the map. For multiplayer / dedicated servers.",
+}
