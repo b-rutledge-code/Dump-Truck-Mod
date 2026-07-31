@@ -21,8 +21,10 @@ function DumpTruckOverlays.initializeOverlayMetadata(square, tileType, sprite)
     floorModData.overlayType = tileType
     floorModData.overlaySprite = sprite
     
-    -- Sync modData to other clients for restore function
-    floor:transmitModData()
+    -- Sync modData to other clients for restore function (server only; see bugs.md)
+    if isServer() then
+        floor:transmitModData()
+    end
 end
 
 -- Reset overlay metadata to clean state
@@ -38,7 +40,9 @@ function DumpTruckOverlays.resetOverlayMetadata(square)
     local hadSprite = floorModData and floorModData.overlaySprite
     floorModData.overlayType = nil
     floorModData.overlaySprite = nil
-    floor:transmitModData()
+    if isServer() then
+        floor:transmitModData()
+    end
     if hadType or hadSprite then
         -- MP: tell server to clear same square so server's copy (which gets saved) has cleared metadata
         if isClient() then
