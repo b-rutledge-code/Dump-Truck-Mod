@@ -3,73 +3,40 @@
 
 local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
+local DumpTruckOverlayClassify = require("DumpTruck/DumpTruckOverlayClassify")
 
 local DumpTruckOverlays = {}
 
--- OVERLAY METADATA HELPERS
-
--- Initialize overlay metadata (gap fillers and edge blends only)
--- Store on FLOOR modData - saves with world, LoadGridsquare recreates on reload
--- transmitModData syncs to other clients for LoadGridsquare restore function
-function DumpTruckOverlays.initializeOverlayMetadata(square, tileType, sprite)
-    if not square then return end
-    
-    local floor = square:getFloor()
-    if not floor then return end
-    
-    local floorModData = floor:getModData()
-    floorModData.overlayType = tileType
-    floorModData.overlaySprite = sprite
-    
-    -- Sync modData to other clients for restore function (server only; see bugs.md)
-    if isServer() then
-        floor:transmitModData()
-    end
-end
-
--- Reset overlay metadata to clean state
--- Store on FLOOR modData, transmit to sync with other clients
-function DumpTruckOverlays.resetOverlayMetadata(square)
-    if not square then return end
-
-    local floor = square:getFloor()
-    if not floor then return end
-
-    local floorModData = floor:getModData()
-    local hadType = floorModData and floorModData.overlayType
-    local hadSprite = floorModData and floorModData.overlaySprite
-    floorModData.overlayType = nil
-    floorModData.overlaySprite = nil
-    if isServer() then
-        floor:transmitModData()
-    end
-    if hadType or hadSprite then
-        -- MP: tell server to clear same square so server's copy (which gets saved) has cleared metadata
-        if isClient() then
-            sendClientCommand(getPlayer(), "DumpTruckGravelMod", "clearOverlayAt", { x = square:getX(), y = square:getY(), z = square:getZ() })
-        end
-    end
-end
-
--- Get overlay data from floor modData
--- Returns {type, sprite} or nil if no overlay
-function DumpTruckOverlays.getOverlayData(square)
-    if not square then return nil end
-    local floor = square:getFloor()
-    if not floor then return nil end
-    local floorModData = floor:getModData()
-    if not floorModData or not floorModData.overlayType then return nil end
-    return {
-        type = floorModData.overlayType,
-        sprite = floorModData.overlaySprite
-    }
-end
+local CARDINAL_DIRECTIONS = { "NORTH", "SOUTH", "EAST", "WEST" }
+local OPPOSITE_DIRECTION = { NORTH = "SOUTH", SOUTH = "NORTH", EAST = "WEST", WEST = "EAST" }
 
 -- CENTRAL OVERLAY METHODS
+-- Overlays are attached sprites and nothing else: the engine saves them with the floor
+-- (IsoObject.save/load), so there is no metadata to keep.
+
+--[[
+    syncOverlayToClients: push this floor's attached sprites to clients, addressed by coordinate.
+
+    The engine's own UpdateItemSprite packet identifies the target by its index in the square's
+    object list. A freshly poured square carries client-only objects the server does not have
+    (the pour effect's fake floor and speckle overlay), so the index does not line up: the client
+    applies the update to the wrong object or drops it, silently in both cases, and nothing
+    re-sends it. The blend then stays invisible until a relog rebuilds the square from the server.
+
+    A square's coordinates cannot skew, so the client resolves its own floor and re-attaches.
+]]
+local function syncOverlayToClients(square, floor)
+    sendServerCommand("DumpTruckGravelMod", "syncOverlay", {
+        x = square:getX(),
+        y = square:getY(),
+        z = square:getZ(),
+        sprites = DumpTruckCore.getAttachedSpriteNames(floor)
+    })
+end
 
 -- Place overlay on square (gap filler or edge blend)
--- Uses AttachExistingAnim to attach sprite to floor, transmits to MP, sets metadata
-function DumpTruckOverlays.placeOverlay(square, sprite, tileType)
+-- Uses AttachExistingAnim to attach sprite to floor, transmits to MP
+function DumpTruckOverlays.placeOverlay(square, sprite)
     if not square or not sprite then
         return false
     end
@@ -92,15 +59,14 @@ function DumpTruckOverlays.placeOverlay(square, sprite, tileType)
     
     -- Sync to MP clients (server only - not needed in SP)
     if isServer() then
-        floor:transmitUpdatedSpriteToClients()
+        syncOverlayToClients(square, floor)
     end
     
-    DumpTruckOverlays.initializeOverlayMetadata(square, tileType, sprite)
     return true
 end
 
 -- Remove overlay from square (gap filler or edge blend)
--- Uses RemoveAttachedAnims to remove all attached sprites, clears metadata
+-- Uses RemoveAttachedAnims to remove all attached sprites
 function DumpTruckOverlays.removeOverlay(square)
     if not square then return false end
     
@@ -112,10 +78,9 @@ function DumpTruckOverlays.removeOverlay(square)
     
     -- Sync to MP clients (server only - not needed in SP)
     if isServer() then
-        floor:transmitUpdatedSpriteToClients()
+        syncOverlayToClients(square, floor)
     end
     
-    DumpTruckOverlays.resetOverlayMetadata(square)
     return true
 end
 
@@ -128,7 +93,6 @@ function DumpTruckOverlays.removeOverlayFromSquare(square)
     
     square:RecalcProperties()
     square:DirtySlice()
-    if square.transmitFloor then square:transmitFloor() end
     
     return true
 end
@@ -144,19 +108,12 @@ function DumpTruckOverlays.getBlendNaturalSprite(sq)
     if not floor then
         return nil
     end
-    
-    local spriteName = floor:getSprite():getName()
-    
-    if spriteName and spriteName:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-        -- Extract the tile number to verify it's a base terrain (0, 5, 6, or 7 within each row)
-        local tileNumber = tonumber(spriteName:match("blends_natural_%d+_(%d+)"))
-        if tileNumber then
-            local withinRow = tileNumber % 16
-            -- Only accept base terrain variants (0, 5, 6, 7)
-            if withinRow == 0 or withinRow == 5 or withinRow == 6 or withinRow == 7 then
-                return spriteName
-            end
-        end
+
+    local floorSprite = floor:getSprite()
+    local spriteName = floorSprite and floorSprite:getName()
+
+    if DumpTruckOverlayClassify.isBaseTerrainSprite(spriteName) then
+        return spriteName
     end
     
     return nil
@@ -165,34 +122,26 @@ end
 -- EDGE BLEND HELPERS
 
 -- Helper: Check if square has any blends pointing toward a gravel neighbor
-local function hasBlendPointingAtGravel(square, adjacentChecks)
+local function hasBlendPointingAtGravel(square, neighborIsGravelByDirection)
     if not square then return false end
     
     local floor = square:getFloor()
     if not floor then return false end
-    
-    local floorModData = floor:getModData()
-    if not floorModData or floorModData.overlayType ~= DumpTruckConstants.TILE_TYPES.EDGE_BLEND or not floorModData.overlaySprite then
-        return false
-    end
-    
-    -- Check if this square's edge blend points at any gravel neighbor
-    for _, check in ipairs(adjacentChecks) do
-        if check.square and DumpTruckCore.isPouredGravel(check.square) then
-            local baseNumber = tonumber(floorModData.overlaySprite:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
-            if baseNumber then
-                local baseRow = math.floor(baseNumber / 16)
-                local rowStartTile = baseRow * 16
-                
-                for _, offset in ipairs(check.offsets) do
-                    if baseNumber == rowStartTile + offset then
-                        return true
-                    end
-                end
-            end
-        end
-    end
-    return false
+
+    return DumpTruckOverlayClassify.anyBlendPointsAtGravel(
+        DumpTruckCore.getAttachedSpriteNames(floor),
+        neighborIsGravelByDirection
+    )
+end
+
+-- Helper: the four neighbors keyed by the direction they lie in
+local function getNeighborsByDirection(square)
+    return {
+        NORTH = square:getN(),
+        SOUTH = square:getS(),
+        EAST = square:getE(),
+        WEST = square:getW()
+    }
 end
 
 --[[
@@ -204,33 +153,30 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     if not square then 
         return 
     end
-    
+
+    local neighbors = getNeighborsByDirection(square)
+
     -- Check MY blends pointing at neighbors
-    local myChecks = {
-        {square = square:getN(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.NORTH},
-        {square = square:getS(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.SOUTH},
-        {square = square:getE(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.EAST},
-        {square = square:getW(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.WEST}
-    }
-    
-    if hasBlendPointingAtGravel(square, myChecks) then
+    local neighborIsGravel = {}
+    for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+        local neighbor = neighbors[direction]
+        neighborIsGravel[direction] = neighbor ~= nil and DumpTruckCore.isPouredGravel(neighbor)
+    end
+
+    if hasBlendPointingAtGravel(square, neighborIsGravel) then
         DumpTruckCore.debugPrint("[DumpTruck] cleanup (", square:getX(), ", ", square:getY(), ", ", square:getZ(), ")")
         DumpTruckOverlays.removeOverlayFromSquare(square)
     end
 
     -- Check NEIGHBOR blends pointing back at me
-    local neighborChecks = {
-        {square = square:getN(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.SOUTH},
-        {square = square:getS(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.NORTH},
-        {square = square:getE(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.WEST},
-        {square = square:getW(), offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS.EAST}
-    }
-    
-    for _, check in ipairs(neighborChecks) do
-        if check.square and DumpTruckCore.isPouredGravel(check.square) then
-            if hasBlendPointingAtGravel(check.square, {{square = square, offsets = check.offsets}}) then
-                DumpTruckCore.debugPrint("[DumpTruck] cleanup (", check.square:getX(), ", ", check.square:getY(), ", ", check.square:getZ(), ")")
-                DumpTruckOverlays.removeOverlayFromSquare(check.square)
+    local squareIsGravel = DumpTruckCore.isPouredGravel(square)
+    for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+        local neighbor = neighbors[direction]
+        if neighbor and DumpTruckCore.isPouredGravel(neighbor) then
+            local pointingBackAtMe = { [OPPOSITE_DIRECTION[direction]] = squareIsGravel }
+            if hasBlendPointingAtGravel(neighbor, pointingBackAtMe) then
+                DumpTruckCore.debugPrint("[DumpTruck] cleanup (", neighbor:getX(), ", ", neighbor:getY(), ", ", neighbor:getZ(), ")")
+                DumpTruckOverlays.removeOverlayFromSquare(neighbor)
             end
         end
     end
@@ -253,19 +199,6 @@ end
     Output: string - The edge blend sprite name, or nil if no edge blend is available
 ]]
 function DumpTruckOverlays.getEdgeBlendSprite(direction, terrainBlock)
-    if not terrainBlock or type(terrainBlock) ~= "string" or not terrainBlock:find("^" .. DumpTruckConstants.EDGE_BLEND_SPRITES .. "_") then
-        return nil
-    end
-    
-    -- Extract the base number from the sprite name
-    local baseNumber = tonumber(terrainBlock:match(DumpTruckConstants.EDGE_BLEND_SPRITES .. "_(%d+)"))
-    if not baseNumber then
-        return nil
-    end
-    
-    local baseRow = math.floor(baseNumber / 16)
-    local rowStartTile = baseRow * 16
-    
     local offsets = DumpTruckConstants.EDGE_BLEND_DIRECTION_OFFSETS[direction]
     if not offsets then 
         return nil 
@@ -274,12 +207,7 @@ function DumpTruckOverlays.getEdgeBlendSprite(direction, terrainBlock)
     -- Randomly choose between the two variations
     local offset = offsets[ZombRand(1, 3)] -- ZombRand(1,3) returns either 1 or 2
     
-    -- Calculate final overlay tile ID using the base number
-    local overlayTile = rowStartTile + offset
-    
-    local result = DumpTruckConstants.EDGE_BLEND_SPRITES .. "_" .. overlayTile
-    
-    return result
+    return DumpTruckOverlayClassify.getSpriteForOffset(terrainBlock, offset)
 end
 
 --[[
@@ -290,26 +218,7 @@ end
     Output: string - Natural terrain triangle sprite (e.g., "blends_natural_01_17")
 ]]
 function DumpTruckOverlays.getGapFillerTriangleSprite(triangleOffset, naturalTerrainSprite)
-    if not triangleOffset or not naturalTerrainSprite or type(naturalTerrainSprite) ~= "string" then
-        return nil
-    end
-    
-    -- Extract the base number from the natural terrain sprite (e.g., "blends_natural_01_64" -> 64)
-    local baseNumber = tonumber(naturalTerrainSprite:match("blends_natural_%d+_(%d+)"))
-    if not baseNumber then
-        return nil
-    end
-    
-    -- Calculate the row start tile (normalizes all variants like 64, 69, 70, 71 to row start 64)
-    local baseRow = math.floor(baseNumber / 16)
-    local rowStartTile = baseRow * 16
-    
-    -- Calculate final triangle tile in blends_natural_01 tileset
-    local triangleTile = rowStartTile + triangleOffset
-    
-    local result = "blends_natural_01_" .. triangleTile
-    
-    return result
+    return DumpTruckOverlayClassify.getSpriteForOffset(naturalTerrainSprite, triangleOffset)
 end
 
 -- PLACEMENT FUNCTIONS
@@ -365,7 +274,7 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
     end
     
     -- Add the natural terrain triangle as an overlay object
-    DumpTruckOverlays.placeOverlay(nonGravelSquare, triangleSprite, DumpTruckConstants.TILE_TYPES.GAP_FILLER)
+    DumpTruckOverlays.placeOverlay(nonGravelSquare, triangleSprite)
 
     nonGravelSquare:disableErosion()
     if isServer() then
@@ -374,7 +283,6 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
 
     DumpTruckOverlays.removeOppositeEdgeBlends(nonGravelSquare)
     
-    if nonGravelSquare.transmitFloor then nonGravelSquare:transmitFloor() end
     nonGravelSquare:RecalcProperties()
     nonGravelSquare:DirtySlice()
 
@@ -409,26 +317,26 @@ function DumpTruckOverlays.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
 
-    local floorModData = floor:getModData()
+    local overlay = DumpTruckCore.classifySquare(gravelSquare)
 
-    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+    -- Never blend over a gap filler triangle
+    if overlay and overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         return false
     end
 
-    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and floorModData.overlaySprite == blendSprite then
-        return false
-    end
-
-    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.EDGE_BLEND and floorModData.overlaySprite and floorModData.overlaySprite ~= blendSprite then
+    if overlay and overlay.type == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
+        if overlay.sprite == blendSprite then
+            return false
+        end
+        -- Different blend already attached: replace it
         DumpTruckOverlays.removeOverlay(gravelSquare)
     end
 
-    if not DumpTruckOverlays.placeOverlay(gravelSquare, blendSprite, DumpTruckConstants.TILE_TYPES.EDGE_BLEND) then
+    if not DumpTruckOverlays.placeOverlay(gravelSquare, blendSprite) then
         return false
     end
     DumpTruckCore.debugPrint("[DumpTruck] edgeBlend (", gravelSquare:getX(), ", ", gravelSquare:getY(), ", ", gravelSquare:getZ(), ") ", blendSprite)
 
-    if gravelSquare.transmitFloor then gravelSquare:transmitFloor() end
     gravelSquare:RecalcProperties()
     gravelSquare:DirtySlice()
 
@@ -599,9 +507,10 @@ function DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
     -- Order: gap fillers first, then edge blends, then cleanup
     DumpTruckOverlays.fillGaps(leftSquare, rightSquare)
     DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
-    -- Only remove "blend between two gravel" for inner squares; skip row ends so we don't strip
-    -- the blends we just placed when the road continues (next row is gravel).
-    for i = 2, #currentSquares - 1 do
+    -- Every square in the row, ends included: a blend only counts as stale when it faces
+    -- gravel, so the outward blends just placed on the ends are left alone. Squares skipped
+    -- as already-gravel are covered too, which heals seams when re-driving beside an old road.
+    for i = 1, #currentSquares do
         DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(currentSquares[i])
     end
 end
