@@ -37,7 +37,12 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         floorModData.shovelledSprites = shovelledSprites
         floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
-        newFloor:transmitModData()  -- Sync to other clients
+        -- Server only: client floor objects have no resolvable id on the server; the
+        -- ObjectModData null path leaves the payload unread and desyncs the stream,
+        -- which can destroy the square's floor. See docs/bugs.md and multiplayer-architecture.
+        if isServer() then
+            newFloor:transmitModData()
+        end
     end
     if newFloor then
         DumpTruckCore.debugPrint("[DumpTruck] tile (", sq:getX(), ", ", sq:getY(), ", ", sq:getZ(), ")")

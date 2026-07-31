@@ -50,6 +50,41 @@
 
 **Fix:** In the server `OnClientCommand` handler for `consumeGravel`, only call `placeGravelFloorOnSquare` when `isServer()` is true (dedicated server). In SP `isServer()` is false, so we skip the server-side place and only run `consumeGravelFromTruckBed`, preserving the floor (and blends) already placed by the client path.
 
+### MP: poured floors destroyed after placement
+
+**Problem:** In multiplayer, roads look correct while pouring and are littered with black voids after leaving the area and returning. The voids give no right-click menu. Edge blends along the same stretch are missing or patchy. Neither symptom occurs in singleplayer.
+
+**Measurements** (dedicated server, instrumented pour of 123 squares):
+
+| Observation | Result |
+|---|---|
+| Floor present immediately after `addFloor` | 123 / 123 |
+| Floor present at end of `placeGravelFloorOnSquare` | 123 / 123 |
+| Floor gone 2s later, `objects=0` | 42 / 123 |
+| Floors that recovered by 20s | 0 |
+| Destroyed squares with an `object is null` packet | 42 / 42 |
+| Surviving squares with one | 3 / 81 |
+
+A client-side scan of the damaged area reported `nilSquare=0`, `blankFloor=0`, and 46 squares with no floor and no objects at all — the original terrain is gone too, which is the signature of `addFloor`'s remove step running without its add surviving.
+
+**Root cause:** Clients called `transmitModData()` on floor objects they had placed locally. Object references are sent as a position in the square's object list, so a client-placed floor resolves to nothing on the server; the engine's null path then leaves the packet payload unread and desyncs the stream. See "Only the server may transmit modData for world objects" in `reference/general/multiplayer-architecture.md` for the engine-level detail.
+
+Only the server's copy is damaged, which is why the road renders correctly until the client refetches the square, and why singleplayer is unaffected.
+
+**Fix:** Guard all three `transmitModData()` calls with `isServer()` — in `placeGravelFloorOnSquare` (`DumpTruckGravel.lua`) and in `initializeOverlayMetadata` and `resetOverlayMetadata` (`DumpTruckOverlays.lua`). The server places and announces its own floor; the client keeps drawing its local copy for responsiveness.
+
+**Verified:** 90-square pour after the fix, then leaving the area and returning.
+
+| Metric | Before | After |
+|---|---|---|
+| `object is null` warnings | 91 | 0 |
+| `not consistent` warnings | 91 | 0 |
+| Floors lost by 2s | 42 / 123 | 0 / 90 |
+| Floors lost by 20s | 41 / 123 | 0 / 90 |
+| Blend skips from `notGravel` | 30 | 0 |
+
+Road renders correctly after the chunks unload and reload. The packet was causal, not a symptom of an already-empty square — removing it removed the floor loss. `notGravel` skips falling to zero confirms the missing edge blends were downstream of the floor loss rather than a fault in the blend logic.
+
 ## Known Limitations
 
 - **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
@@ -60,8 +95,16 @@
 
 ## Open Issues
 
+### MP: edge blend cleanup never runs
+
+**Problem:** Stale edge blends accumulate in multiplayer and are never removed. Singleplayer cleans up correctly.
+
+**Root cause:** `hasBlendPointingAtGravel` returns false unless `floor:getModData().overlayType` is `EDGE_BLEND`. On a dedicated server that modData is absent, so the check never matches and no blend is ever removed. Across 363 blends placed in one instrumented session, cleanup ran 0 times. Singleplayer works because the modData is present in the same process.
+
+**Fix direction:** Classify blends by inspecting the attached sprite name rather than modData, so the server can recognise its own blends without any modData sync. This is the sprite-based classification in the overlay metadata ectomy plan.
+
 - **Straightaways: edge blends not filling in** – SP and MP verified for pour effect and edge blends (SP fix: server no longer re-places in same process; MP: dedicated server still places and syncs). If rare edge cases appear, investigate.
 - **One unclean edge blend observed** – Server coords (16360, 702): tile is on the **edge next to a gap filler**; several other gap-filler edges are fine, this was the only one. **Note:** Something about this spot left a blend we didn't clean. Cleanup only runs on inner row squares, so the square next to the gap filler is often a row-end and never gets removeOppositeEdgeBlends. If we can reproduce, consider cleanup on row-end squares when the blend points at gravel, or ensuring gap-filler-adjacent edges are covered.
-- **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` is currently `true` (console + unlimited gravel for testing). Set to `false` before packaging/release (see design-notes “Debug”).
+- **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` must be `false` before packaging/release (see design-notes “Debug”).
 - **Zoom-based gravel loop volume** – Optional: while loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)`.
 - **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.
