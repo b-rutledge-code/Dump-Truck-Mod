@@ -93,6 +93,80 @@ Only the server’s copy is damaged, which is why the road renders correctly unt
 
 Road renders correctly after the chunks unload and reload. The packet was causal, not a symptom of an already-empty square — removing it removed the floor loss. `notGravel` skips falling to zero confirms the missing edge blends were downstream of the floor loss rather than a fault in the blend logic.
 
+### MP: black voids on gap-filler squares (second mechanism)
+
+**Problem:** Same empty-square symptom as above — `getFloor()` nil, `objects=0`, black on return — but only on gap-filler squares, and only after the overlay metadata ectomy removed the `transmitModData()` calls that caused the first mechanism.
+
+**Root cause:** `IsoGridSquare.addFloor` is asymmetric across the network.
+
+| Half of `addFloor` | Call | Fires on |
+|---|---|---|
+| Remove the existing floor | `transmitRemoveItemFromSquare(o)` | `GameClient.client` — sends `RemoveItemFromSquare` |
+| Add the replacement | `obj.transmitCompleteItemToClients()` | `GameServer.server` — sends `AddItemToMap` |
+
+A client calling `addFloor` therefore tells the server to delete that square's terrain floor and never sends a replacement. The server's copy is left with no floor at all.
+
+Ordinary poured tiles hide this: the client's removal reaches the server, then `consumeGravel` makes the server run `placeGravelFloorOnSquare`, so the server ends up with its own gravel floor. Gap fillers were the one path where the server placed nothing, so the deletion stood.
+
+**How we proved it:** Instrumented `checkForCornerPattern` and `placeGapFiller` on both sides and poured one road.
+
+| Metric | Client | Server |
+|---|---|---|
+| Corner evaluations | 126 | 126 |
+| `corner noMapping` | 2 | 2 |
+| `corner HIT` | 42 | 0 |
+| Gap fillers placed | 42 | 0 |
+
+Identical evaluation counts confirm both sides ran the same pass over the same rows; 0 of 42 rules out a race. A tile-by-tile diff showed all 163 client-poured tiles present on the server, so gravel replication was never the problem.
+
+**Fix:** `applySmoothRoad` in `DumpTruckGravel.lua`. An MP client sends the row to the server and runs nothing locally; SP and the dedicated server compute in place. Both halves of `addFloor` transmit correctly from the server, so its result reaches every client.
+
+This also removes a quieter failure. Blends and gap fillers are derived from neighbour state, so running the pass on both sides computed them against two different worlds and drifted the copies apart even where no floor was destroyed.
+
+### MP: edge blend cleanup never runs
+
+**Problem:** Stale edge blends accumulate in multiplayer and are never removed. Singleplayer cleans up correctly.
+
+**Root cause:** `hasBlendPointingAtGravel` returned false unless `floor:getModData().overlayType` was `EDGE_BLEND`. On a dedicated server that modData is absent, so the check never matched and no blend was ever removed. Across 363 blends placed in one instrumented session, cleanup ran 0 times. Singleplayer worked because the modData is present in the same process.
+
+A second cause hit every width-2 road in SP and MP alike: `smoothRoad` ran cleanup over `for i = 2, #currentSquares - 1`, which is an empty range for a 2-square row. The default road width is the vehicle width, so the common case never cleaned up at all.
+
+**Fix:** Overlay identity now comes from the sprites attached to the floor (`DumpTruckOverlayClassify` + `DumpTruckCore.classifySquare`), which the engine saves and syncs on its own, so the server recognises its own blends and roads poured before the mod tracked overlays classify correctly too. Cleanup runs on every square in the row including the ends — safe because a blend counts as stale only when its own direction faces gravel, which the unit tests lock down.
+
+Shovelling routes the same way. `ISShovelGround:perform()` reaches onto neighbouring squares, so an MP client sends `cleanupBlendsAt` and the server does the work and syncs the result, matching `applySmoothRoad`.
+
+**Measured:** client and server scans agree exactly after a relog, with `stale=0` on both.
+
+**Verify:** `docs/test-checklist-overlays.md`, MP section.
+
+### MP: edge blends invisible until relog (third mechanism)
+
+**Problem:** Poured roads looked correct, but their edge blends did not appear on the client until the player logged out and back in. The server's own scan reported the blends present the whole time.
+
+**Root cause:** The client and the server each placed a gravel floor on the same square, leaving two stacked floors.
+
+| Placer | Call site | Reaches the client as |
+|---|---|---|
+| Client | `DumpTruckPourEffect.schedulePlaceAndEffect` → `placeGravelFloorOnSquare` | placed directly in the local world |
+| Server | `consumeGravel` handler → `placeGravelFloorOnSquare` | `AddItemToMap` |
+
+`getFloor()` returns the first solid floor in the square's object list, so it resolved to the client's own copy. The coordinate-addressed `syncOverlay` handler attached the blend to that floor, while the server's floor sat later in the list and drew over it. The blend existed and was simply covered. Relogging discarded the local world and rebuilt the square from the server, which had one floor with the blend attached, so the blend appeared.
+
+**How we proved it:** Logged the full object list on `syncOverlay` receipt. Every poured square carried two gravel floors ahead of the pour effect's own objects:
+
+```
+objects=[blends_street_01_55 blends_street_01_55 blends_natural_01_22 ?]
+              client's            server's         fake floor      speckle
+```
+
+38 local placements across 38 unique coordinates ruled out the client placing twice, leaving the server's copy as the only source of the second floor.
+
+**Fix:** An MP client no longer places the floor at all. `schedulePlaceAndEffect` gates `placeGravelFloorOnSquare` behind `not isClient()` and lets the server's `AddItemToMap` deliver the only floor, so `getFloor()` resolves to the copy that is actually drawn. The pour animation's fake terrain floor is skipped for the same reason: it stands in for terrain the local placement replaced, and with no local placement the real terrain is still there. SP and the host are unaffected, since the server-side handler already gates its own placement behind `isServer()`.
+
+`DumpTruckPourEffect.isPending` covers the consequence. Without a local placement a poured square keeps reading as plain terrain until the server's copy arrives, and the overlapping rows the pour loop generates would pour it a second time and charge the truck twice. Squares stay pending for the length of the pour animation, comfortably longer than the round trip.
+
+**Measured:** 60 sync events with zero duplicate floors, against every square before the fix. After a relog the two sides agreed exactly: `gravel=61 blends=40 gapFillers=10 stale=0 multiAttach=0 orphan=0 noFloor=0`.
+
 ## Known Limitations
 
 - **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
@@ -102,14 +176,6 @@ Road renders correctly after the chunks unload and reload. The packet was causal
 - **Gravel loop volume not zoom-dependent** – Dump truck sounds are script clips, not FMOD; zoom-based volume (fridge-style) is documented as a Lua follow-up (`getCore():getZoom()`, `setVolume(handle, volume)`), not yet implemented.
 
 ## Open Issues
-
-### MP: edge blend cleanup never runs
-
-**Problem:** Stale edge blends accumulate in multiplayer and are never removed. Singleplayer cleans up correctly.
-
-**Root cause:** `hasBlendPointingAtGravel` returns false unless `floor:getModData().overlayType` is `EDGE_BLEND`. On a dedicated server that modData is absent, so the check never matches and no blend is ever removed. Across 363 blends placed in one instrumented session, cleanup ran 0 times. Singleplayer works because the modData is present in the same process.
-
-**Fix direction:** Classify blends by inspecting the attached sprite name rather than modData, so the server can recognise its own blends without any modData sync. This is the sprite-based classification in the overlay metadata ectomy plan.
 
 - **Straightaways: edge blends not filling in** – SP and MP verified for pour effect and edge blends (SP fix: server no longer re-places in same process; MP: dedicated server still places and syncs). If rare edge cases appear, investigate.
 - **One unclean edge blend observed** – Server coords (16360, 702): tile is on the **edge next to a gap filler**; several other gap-filler edges are fine, this was the only one. **Note:** Something about this spot left a blend we didn't clean. Cleanup only runs on inner row squares, so the square next to the gap filler is often a row-end and never gets removeOppositeEdgeBlends. If we can reproduce, consider cleanup on row-end squares when the blend points at gravel, or ensuring gap-filler-adjacent edges are covered.

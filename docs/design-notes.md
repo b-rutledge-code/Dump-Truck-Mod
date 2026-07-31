@@ -15,6 +15,28 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 ---
 
+## Overlays are classified from sprites
+
+An overlay is a sprite attached to the gravel floor with `AttachExistingAnim`, and that attachment is the only record of it. The engine serializes attached sprites in `IsoObject.save`/`load` and ships them inside the `UpdateItemSprite` packet, so both persistence and multiplayer sync come for free.
+
+**Reading an overlay back:** `DumpTruckCore.classifySquare(square)` collects the attached sprite names and hands them to `DumpTruckOverlayClassify`, which returns `gravel`, `edgeBlend` (with the cardinal it faces) or `gapFiller` (with its triangle offset), or nil when the floor is not ours.
+
+**The tileset math:** Blend and triangle sprites share the `blends_natural_01` sheet, 16 tiles per row, one row per terrain. Position within the row is what carries meaning:
+
+| In-row offset | Meaning |
+|---|---|
+| 0, 5, 6, 7 | Whole terrain tile — a square we can blend against |
+| 1-4 | Gap filler triangle |
+| 8-15 | Edge blend, two variants per cardinal (N 8/12, W 9/13, E 10/14, S 11/15) |
+
+Dividing by 16 normalizes any variant to its row start, which is how a blend for one terrain is derived from a neighbor's sprite.
+
+**Cleanup rule:** A blend belongs on a gravel-to-terrain edge, so one whose direction faces a gravel neighbor is a stale seam and gets removed. Direction is what makes this safe at the end of a road row, where the blend faces outward at terrain while gravel continues behind it.
+
+`DumpTruckOverlayClassify` is pure Lua — strings and tables, no game globals — so `scripts/run-overlay-tests.sh` runs it under plain `lua`. Keep it that way; live-square access belongs in `DumpTruckCore`.
+
+---
+
 ## Sandbox option: admin-only dump trucks (no world spawn)
 
 **Desired behaviour:** A sandbox (or mod) option so dump trucks **do not** appear in normal vehicle spawn tables—i.e. they are only available to admins (spawn menu) or when explicitly added to the world. Useful for servers that want the truck as a tool without it spawning in the world.
