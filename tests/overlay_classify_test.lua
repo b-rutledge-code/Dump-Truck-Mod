@@ -92,22 +92,22 @@ equals(Classify.classify(GRAVEL, { false, 42, "blends_natural_01_72" }).type, TI
 equals(Classify.getEdgeBlendDirection("blends_natural_01_72_extra"), nil, "trailing junk does not match")
 equals(Classify.getEdgeBlendDirection("mymod_natural_01_72"), nil, "other tilesets do not match")
 
--- blendPointsAtGravel: a blend is stale only when it faces gravel
+-- blendBordersGravel: a blend is stale only when its own edge is shared with gravel
 local northBlend = "blends_natural_01_72"
-check(Classify.blendPointsAtGravel(northBlend, { NORTH = true }), "north blend facing gravel is stale")
-check(not Classify.blendPointsAtGravel(northBlend, { NORTH = false }), "north blend facing terrain is kept")
-check(not Classify.blendPointsAtGravel(northBlend, { SOUTH = true, EAST = true, WEST = true }), "gravel on other sides does not matter")
-check(not Classify.blendPointsAtGravel("blends_natural_01_65", { NORTH = true }), "a gap filler triangle never points at gravel")
-check(not Classify.blendPointsAtGravel(northBlend, nil), "missing neighbor map is not a match")
+check(Classify.blendBordersGravel(northBlend, { NORTH = true }), "north blend bordering gravel is stale")
+check(not Classify.blendBordersGravel(northBlend, { NORTH = false }), "north blend bordering terrain is kept")
+check(not Classify.blendBordersGravel(northBlend, { SOUTH = true, EAST = true, WEST = true }), "gravel on other sides does not matter")
+check(not Classify.blendBordersGravel("blends_natural_01_65", { NORTH = true }), "a gap filler triangle never borders gravel")
+check(not Classify.blendBordersGravel(northBlend, nil), "missing neighbor map is not a match")
 
--- End of a road row: the blend faces outward at grass while gravel continues behind it,
+-- End of a road row: the blend sits on the outward grass edge while gravel continues behind it,
 -- so widening cleanup to the row ends cannot strip the blend we just placed.
 local rowEndNeighbors = { WEST = false, EAST = true, NORTH = false, SOUTH = false }
 local westFacingBlend = "blends_natural_01_73"
-equals(Classify.getEdgeBlendDirection(westFacingBlend), "WEST", "offset 9 faces west")
-check(not Classify.anyBlendPointsAtGravel({ westFacingBlend }, rowEndNeighbors), "outward end-of-row blend survives cleanup")
-check(Classify.anyBlendPointsAtGravel({ "blends_natural_01_74" }, rowEndNeighbors), "inward blend over gravel is stripped")
-check(not Classify.anyBlendPointsAtGravel(nil, rowEndNeighbors), "no attachments means nothing to strip")
+equals(Classify.getEdgeBlendDirection(westFacingBlend), "WEST", "offset 9 is the west edge")
+check(not Classify.anyBlendBordersGravel({ westFacingBlend }, rowEndNeighbors), "outward end-of-row blend survives cleanup")
+check(Classify.anyBlendBordersGravel({ "blends_natural_01_74" }, rowEndNeighbors), "inward blend over gravel is stripped")
+check(not Classify.anyBlendBordersGravel(nil, rowEndNeighbors), "no attachments means nothing to strip")
 
 if #failures > 0 then
     print(#failures .. " of " .. checks .. " checks FAILED:")

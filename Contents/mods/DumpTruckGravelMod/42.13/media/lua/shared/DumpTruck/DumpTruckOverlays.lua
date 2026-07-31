@@ -121,14 +121,14 @@ end
 
 -- EDGE BLEND HELPERS
 
--- Helper: Check if square has any blends pointing toward a gravel neighbor
-local function hasBlendPointingAtGravel(square, neighborIsGravelByDirection)
+-- Helper: Check if square has any blends on an edge it shares with a gravel neighbor
+local function hasBlendBorderingGravel(square, neighborIsGravelByDirection)
     if not square then return false end
     
     local floor = square:getFloor()
     if not floor then return false end
 
-    return DumpTruckOverlayClassify.anyBlendPointsAtGravel(
+    return DumpTruckOverlayClassify.anyBlendBordersGravel(
         DumpTruckCore.getAttachedSpriteNames(floor),
         neighborIsGravelByDirection
     )
@@ -146,8 +146,8 @@ end
 
 --[[
     removeOppositeEdgeBlends: Removes edge blends between this square and gravel neighbors
-    Clears edge blends on this square pointing at gravel neighbors
-    Clears edge blends on gravel neighbors pointing back at this square
+    Clears edge blends on this square that border gravel neighbors
+    Clears edge blends on gravel neighbors that border this square
 ]]
 function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     if not square then 
@@ -156,25 +156,25 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
 
     local neighbors = getNeighborsByDirection(square)
 
-    -- Check MY blends pointing at neighbors
+    -- Check MY blends on edges shared with neighbors
     local neighborIsGravel = {}
     for _, direction in ipairs(CARDINAL_DIRECTIONS) do
         local neighbor = neighbors[direction]
         neighborIsGravel[direction] = neighbor ~= nil and DumpTruckCore.isPouredGravel(neighbor)
     end
 
-    if hasBlendPointingAtGravel(square, neighborIsGravel) then
+    if hasBlendBorderingGravel(square, neighborIsGravel) then
         DumpTruckCore.debugPrint("[DumpTruck] cleanup (", square:getX(), ", ", square:getY(), ", ", square:getZ(), ")")
         DumpTruckOverlays.removeOverlayFromSquare(square)
     end
 
-    -- Check NEIGHBOR blends pointing back at me
+    -- Check NEIGHBOR blends on the edge they share with me
     local squareIsGravel = DumpTruckCore.isPouredGravel(square)
     for _, direction in ipairs(CARDINAL_DIRECTIONS) do
         local neighbor = neighbors[direction]
         if neighbor and DumpTruckCore.isPouredGravel(neighbor) then
-            local pointingBackAtMe = { [OPPOSITE_DIRECTION[direction]] = squareIsGravel }
-            if hasBlendPointingAtGravel(neighbor, pointingBackAtMe) then
+            local sharedEdgeIsGravel = { [OPPOSITE_DIRECTION[direction]] = squareIsGravel }
+            if hasBlendBorderingGravel(neighbor, sharedEdgeIsGravel) then
                 DumpTruckCore.debugPrint("[DumpTruck] cleanup (", neighbor:getX(), ", ", neighbor:getY(), ", ", neighbor:getZ(), ")")
                 DumpTruckOverlays.removeOverlayFromSquare(neighbor)
             end

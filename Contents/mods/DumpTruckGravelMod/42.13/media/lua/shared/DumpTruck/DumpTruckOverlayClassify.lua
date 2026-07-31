@@ -130,14 +130,14 @@ function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames)
 end
 
 --[[
-    blendPointsAtGravel: Is this blend facing a neighbor that is already gravel?
-    A blend belongs on a gravel-to-terrain edge, so one facing gravel is a stale seam.
+    blendBordersGravel: Does this blend sit on an edge shared with a gravel neighbor?
+    A blend belongs on a gravel-to-terrain edge, so one bordering gravel is a stale seam.
     Input:
         blendSpriteName: string - attached sprite to test
         neighborIsGravelByDirection: table - {NORTH = bool, SOUTH = bool, EAST = bool, WEST = bool}
     Output: boolean
 ]]
-function DumpTruckOverlayClassify.blendPointsAtGravel(blendSpriteName, neighborIsGravelByDirection)
+function DumpTruckOverlayClassify.blendBordersGravel(blendSpriteName, neighborIsGravelByDirection)
     if not neighborIsGravelByDirection then
         return false
     end
@@ -148,13 +148,13 @@ function DumpTruckOverlayClassify.blendPointsAtGravel(blendSpriteName, neighborI
     return neighborIsGravelByDirection[direction] == true
 end
 
--- blendPointsAtGravel across every sprite attached to one floor
-function DumpTruckOverlayClassify.anyBlendPointsAtGravel(attachedSpriteNames, neighborIsGravelByDirection)
+-- blendBordersGravel across every sprite attached to one floor
+function DumpTruckOverlayClassify.anyBlendBordersGravel(attachedSpriteNames, neighborIsGravelByDirection)
     if not attachedSpriteNames then
         return false
     end
     for i = 1, #attachedSpriteNames do
-        if DumpTruckOverlayClassify.blendPointsAtGravel(attachedSpriteNames[i], neighborIsGravelByDirection) then
+        if DumpTruckOverlayClassify.blendBordersGravel(attachedSpriteNames[i], neighborIsGravelByDirection) then
             return true
         end
     end
