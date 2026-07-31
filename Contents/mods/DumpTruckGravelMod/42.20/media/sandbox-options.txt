@@ -1,0 +1,9 @@
+VERSION = 1,
+
+option DumpTruckGravelMod.AdminOnly
+{
+    type = boolean,
+    default = false,
+    page = DumpTruckGravelMod,
+    translation = DumpTruckGravelMod_AdminOnly,
+}

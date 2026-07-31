@@ -13,12 +13,12 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     end
     
     -- If upgrading a gap filler, remove the attached triangle overlay first
-    local existingFloor = sq:getFloor()
-    local floorModData = existingFloor and existingFloor:getModData()
-    if floorModData and floorModData.overlayType == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+    local existingOverlay = DumpTruckCore.classifySquare(sq)
+    if existingOverlay and existingOverlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        local existingFloor = sq:getFloor()
         existingFloor:RemoveAttachedAnims()
-        -- NOTE: Intentionally NOT calling resetOverlayMetadata or transmitUpdatedSpriteToClients here
-        -- The floor is about to be replaced by addFloor() below, which wipes everything anyway
+        -- No sync needed: addFloor below replaces this floor outright and announces the
+        -- replacement to clients as a whole object, which carries no attachments.
     end
     
     -- Save original floor sprite so it can be restored when shoveled
@@ -37,9 +37,17 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         floorModData.shovelledSprites = shovelledSprites
         floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
-        newFloor:transmitModData()  -- Sync to other clients
+        -- Server only: client floor objects have no resolvable id on the server; the
+        -- ObjectModData null path leaves the payload unread and desyncs the stream,
+        -- which can destroy the square's floor. See docs/bugs.md and multiplayer-architecture.
+        if isServer() then
+            newFloor:transmitModData()
+        end
     end
-    
+    if newFloor then
+        DumpTruckCore.debugPrint("[DumpTruck] tile (", sq:getX(), ", ", sq:getY(), ", ", sq:getZ(), ")")
+    end
+
     -- Disable erosion on this square
     sq:disableErosion()
     -- Tell clients to set doNothing on their copy (erosion state does not sync with floor change)
@@ -52,26 +60,38 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     
     sq:RecalcProperties()
     sq:DirtySlice()
-    if sq.transmitFloor then sq:transmitFloor() end
 end
 
--- Send current row to server so it can run smoothRoad (edge blends sync to all clients).
--- Caller already ran smoothRoad locally, so in SP we must NOT run it again (would run twice and second run replaces/clears blends).
-local function sendSmoothRoadToServer(currentSquares)
+--[[
+    applySmoothRoad: run the smoothing pass exactly once, on whoever owns the world.
+
+    An MP client must never run it itself. Gap filling calls IsoGridSquare.addFloor, which is
+    asymmetric across the network: the remove half goes out as a RemoveItemFromSquare packet
+    from a client, while the add half (transmitCompleteItemToClients) only fires on the server.
+    A client calling it therefore deletes the server's terrain floor and puts nothing back,
+    leaving an empty square that renders as a black void once the chunk reloads. The server
+    has no such problem: both halves transmit, so its result reaches every client.
+
+    Blends and gap fillers are also derived from neighbour state, so computing them twice
+    against two different worlds drifts the two copies apart even when nothing is destroyed.
+]]
+local function applySmoothRoad(currentSquares, fx, fy)
     if not currentSquares or #currentSquares < 2 then return end
-    if not isClient() then
-        -- SP: smoothRoad was already run by caller (tryPourGravelUnderTruck). Do not run again.
+
+    if isClient() then
+        local squareList = {}
+        for _, sq in ipairs(currentSquares) do
+            if sq then
+                table.insert(squareList, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+            end
+        end
+        if #squareList >= 2 then
+            sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
+        end
         return
     end
-    local squareList = {}
-    for _, sq in ipairs(currentSquares) do
-        if sq then
-            table.insert(squareList, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
-        end
-    end
-    if #squareList >= 2 then
-        sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
-    end
+
+    DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
 end
 
 function DumpTruck.consumeGravelFromTruckBed(vehicle)
@@ -277,11 +297,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local adjustedY = cy + (perpY * threshold)
     local tileX = math.floor(adjustedX)
     local tileY = math.floor(adjustedY)
-    
-    local tileX = math.floor(adjustedX)
-    local tileY = math.floor(adjustedY)
-    
-    DumpTruckCore.debugPrint("Vehicle pos: cx=", cx, " cy=", cy, " tile=", tileX, tileY)
+    DumpTruckCore.debugPrint("[DumpTruck] vehicle tile (", tileX, ", ", tileY, ", ", cz, ")")
     
     -- Road dimensions (needed for both single-tile and interpolation paths)
     local script = vehicle:getScript()
@@ -302,11 +318,10 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     -- First run: no previous tile — single-tile path only (avoid placing from 0,0 to current)
     if data.dumpLastTileX == nil then
-        DumpTruckCore.debugPrint("[interp] first run, single-tile at ", tileX, tileY)
         local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
         local currentSquares = DumpTruck.getBackSquares(fx, fy, snapCx, snapCy, cz, roadWidth, length)
         for _, sq in ipairs(currentSquares) do
-            if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+            if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
                 DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
                 if DumpTruck.getGravelCount(vehicle) <= 0 then
                     DumpTruck.stopDumping(vehicle)
@@ -314,8 +329,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
                 end
             end
         end
-        DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
-        sendSmoothRoadToServer(currentSquares)
+        applySmoothRoad(currentSquares, fx, fy)
         data.dumpLastTileX = tileX
         data.dumpLastTileY = tileY
         return
@@ -326,7 +340,6 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     -- Gap: step > 1 — Bresenham walk, skip first point, place at each (full road width per position)
     if math.abs(tileX - data.dumpLastTileX) > 1 or math.abs(tileY - data.dumpLastTileY) > 1 then
         local points = DumpTruck.getLinePoints(data.dumpLastTileX, data.dumpLastTileY, tileX, tileY)
-        DumpTruckCore.debugPrint("[interp] gap path: ", data.dumpLastTileX, data.dumpLastTileY, " -> ", tileX, tileY, " points=", #points)
         for i = 2, #points do
             local ix, iy = points[i].x, points[i].y
             local icx, icy = ix + 0.5, iy + 0.5
@@ -335,21 +348,19 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
             end
             local squares = DumpTruck.getBackSquares(fx, fy, icx, icy, cz, roadWidth, length)
             for _, sq in ipairs(squares) do
-                if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+                if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
                     DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
                     if DumpTruck.getGravelCount(vehicle) <= 0 then
                         DumpTruck.stopDumping(vehicle)
                         data.dumpLastTileX = tileX
                         data.dumpLastTileY = tileY
-                        DumpTruckOverlays.smoothRoad(squares, fx, fy)
-                        sendSmoothRoadToServer(squares)
+                        applySmoothRoad(squares, fx, fy)
                         return
                     end
                 end
             end
             -- Edge blends for this row (smoothRoad uses first/last of list only)
-            DumpTruckOverlays.smoothRoad(squares, fx, fy)
-            sendSmoothRoadToServer(squares)
+            applySmoothRoad(squares, fx, fy)
         end
         data.dumpLastTileX = tileX
         data.dumpLastTileY = tileY
@@ -357,24 +368,21 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     end
 
     -- Single-tile step: place at current position only
-    DumpTruckCore.debugPrint("[interp] single-tile step at ", tileX, tileY)
     cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
     local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
     for _, sq in ipairs(currentSquares) do
-        if sq and DumpTruckCore.isSquareValidForGravel(sq) then
+        if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
             DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
             if DumpTruck.getGravelCount(vehicle) <= 0 then
                 DumpTruck.stopDumping(vehicle)
                 data.dumpLastTileX = tileX
                 data.dumpLastTileY = tileY
-                DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
-                sendSmoothRoadToServer(currentSquares)
+                applySmoothRoad(currentSquares, fx, fy)
                 return
             end
         end
     end
-    DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
-    sendSmoothRoadToServer(currentSquares)
+    applySmoothRoad(currentSquares, fx, fy)
     data.dumpLastTileX = tileX
     data.dumpLastTileY = tileY
 end
@@ -457,8 +465,6 @@ function DumpTruck.stopDumping(vehicle)
 end
 
 
--- Recreate overlay sprites from floor modData when squares load (handles persistence)
--- Uses AttachExistingAnim to reattach sprite to floor
 -- MP: when server places gravel it sends disableErosionAt; clients run disableErosion() on their copy so erosion (trees/grass) does not run there
 -- Client receives commands FROM server (e.g. disableErosionAt after server places gravel)
 Events.OnServerCommand.Add(function(module, command, args)
@@ -469,6 +475,29 @@ Events.OnServerCommand.Add(function(module, command, args)
             local sq = cell:getGridSquare(args.x, args.y, args.z)
             if sq then sq:disableErosion() end
         end
+    elseif command == "syncOverlay" and args.x and args.y and args.z then
+        -- Overlays are addressed by coordinate, not by object index: see syncOverlayToClients
+        -- in DumpTruckOverlays for why the engine's UpdateItemSprite cannot be trusted here.
+        local cell = getCell()
+        if not cell then return end
+        local sq = cell:getGridSquare(args.x, args.y, args.z)
+        if not sq then return end
+        local floor = sq:getFloor()
+        if not floor then return end
+
+        floor:RemoveAttachedAnims()
+        if args.sprites then
+            for i = 1, #args.sprites do
+                local spriteObj = getSprite(args.sprites[i])
+                if spriteObj then
+                    floor:AttachExistingAnim(spriteObj, 0, 0, false, 0, false, 0.0)
+                end
+            end
+        end
+
+        floor:DirtySlice()
+        sq:RecalcProperties()
+        sq:DirtySlice()
     end
 end)
 
@@ -507,31 +536,14 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         if #serverSquares >= 2 then
             DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
         end
-    elseif command == "clearOverlayAt" and args.x and args.y and args.z then
+    elseif command == "cleanupBlendsAt" and args.x and args.y and args.z then
         local cell = getCell()
-        if cell then
-            local sq = cell:getGridSquare(args.x, args.y, args.z)
-            if sq then
-                DumpTruckOverlays.removeOverlayFromSquare(sq)
-            end
+        if not cell then return end
+        local sq = cell:getGridSquare(args.x, args.y, args.z)
+        if sq then
+            DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(sq)
         end
     end
 end)
-
-Events.LoadGridsquare.Add(function(square)
-    local floor = square:getFloor()
-    if not floor then return end
-
-    local floorModData = floor:getModData()
-    if floorModData and floorModData.overlaySprite then
-        if not floor:hasAttachedAnimSprites() then
-            local sprite = getSprite(floorModData.overlaySprite)
-            if sprite then
-                floor:AttachExistingAnim(sprite, 0, 0, false, 0, false, 0.0)
-            end
-        end
-    end
-end)
-
 
 return DumpTruck

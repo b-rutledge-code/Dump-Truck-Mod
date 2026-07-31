@@ -3,7 +3,7 @@
 -- or scripts/run-overlay-tests.sh.
 
 local testDir = ((arg and arg[0]) or ""):match("^(.*)[/\\][^/\\]*$") or "."
-package.path = testDir .. "/../Contents/mods/DumpTruckGravelMod/42.13/media/lua/shared/?.lua;" .. package.path
+package.path = testDir .. "/../Contents/mods/DumpTruckGravelMod/42.20/media/lua/shared/?.lua;" .. package.path
 
 local Classify = require("DumpTruck/DumpTruckOverlayClassify")
 local Constants = require("DumpTruck/DumpTruckConstants")
