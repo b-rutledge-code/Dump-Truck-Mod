@@ -54,22 +54,30 @@
 
 **Problem:** In multiplayer, roads look correct while pouring and are littered with black voids after leaving the area and returning. The voids give no right-click menu. Edge blends along the same stretch are missing or patchy. Neither symptom occurs in singleplayer.
 
+**Not the older “Black Squares Bug.”** That one was `AddSpecialObject(overlay, 0)` shoving an overlay to object index 0 and breaking rendering while the floor object still existed (see Lessons Learned in `reference/general/multiplayer-architecture.md`). This bug is different: the square is **completely empty** (`getFloor()` nil, `getObjects():size()` 0). Same black look, different mechanism.
+
+**How we proved it (reuse if it recurs):**
+
+1. Client scan (around player): classify each square as `NIL_SQUARE` / `NO_FLOOR` / `BLANK_FLOOR` / ok. Voids were `NO_FLOOR` with `objects=0` — not missing chunks, not unresolved sprites.
+2. Server lifecycle on every pour: log floor state immediately after `addFloor`, at end of `placeGravelFloorOnSquare` (after `transmitFloor` / `RecalcProperties`), then again ~2s and ~20s later by re-resolving the square from the cell.
+3. Correlate destroyed coords with `ObjectModDataPacket.parse: object is null` (and the paired `not consistent` line).
+
 **Measurements** (dedicated server, instrumented pour of 123 squares):
 
 | Observation | Result |
 |---|---|
 | Floor present immediately after `addFloor` | 123 / 123 |
-| Floor present at end of `placeGravelFloorOnSquare` | 123 / 123 |
+| Floor present at end of `placeGravelFloorOnSquare` (after `transmitFloor`) | 123 / 123 |
 | Floor gone 2s later, `objects=0` | 42 / 123 |
 | Floors that recovered by 20s | 0 |
 | Destroyed squares with an `object is null` packet | 42 / 42 |
 | Surviving squares with one | 3 / 81 |
 
-A client-side scan of the damaged area reported `nilSquare=0`, `blankFloor=0`, and 46 squares with no floor and no objects at all — the original terrain is gone too, which is the signature of `addFloor`'s remove step running without its add surviving.
+So placement and `transmitFloor` succeed; destruction is asynchronous in a sub-2s window. Client scan of the damaged stretch: `nilSquare=0`, `blankFloor=0`, dozens of `NO_FLOOR` with `objects=0` — original terrain gone too (`addFloor` remove half ran; the replacement did not survive on the server).
 
-**Root cause:** Clients called `transmitModData()` on floor objects they had placed locally. Object references are sent as a position in the square's object list, so a client-placed floor resolves to nothing on the server; the engine's null path then leaves the packet payload unread and desyncs the stream. See "Only the server may transmit modData for world objects" in `reference/general/multiplayer-architecture.md` for the engine-level detail.
+**Root cause:** Clients called `transmitModData()` on floor objects they had placed locally. Object references are sent as a **position in the square’s object list**, not a stable id, so a client-placed floor often resolves to nothing on the server. `ObjectModDataPacket.parse` then logs and returns **without reading the modData payload**, leaving unread bytes on the wire; each `object is null` is paired with `INetworkPacket.logInconsistentPacket`. Engine detail: “Only the server may transmit modData for world objects” in `reference/general/multiplayer-architecture.md`.
 
-Only the server's copy is damaged, which is why the road renders correctly until the client refetches the square, and why singleplayer is unaffected.
+Only the server’s copy is damaged, which is why the road renders correctly until the client refetches the square, and why singleplayer is unaffected (no packets).
 
 **Fix:** Guard all three `transmitModData()` calls with `isServer()` — in `placeGravelFloorOnSquare` (`DumpTruckGravel.lua`) and in `initializeOverlayMetadata` and `resetOverlayMetadata` (`DumpTruckOverlays.lua`). The server places and announces its own floor; the client keeps drawing its local copy for responsiveness.
 
@@ -107,4 +115,5 @@ Road renders correctly after the chunks unload and reload. The packet was causal
 - **One unclean edge blend observed** – Server coords (16360, 702): tile is on the **edge next to a gap filler**; several other gap-filler edges are fine, this was the only one. **Note:** Something about this spot left a blend we didn't clean. Cleanup only runs on inner row squares, so the square next to the gap filler is often a row-end and never gets removeOppositeEdgeBlends. If we can reproduce, consider cleanup on row-end squares when the blend points at gravel, or ensuring gap-filler-adjacent edges are covered.
 - **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` must be `false` before packaging/release (see design-notes “Debug”).
 - **Zoom-based gravel loop volume** – Optional: while loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)`.
+- **ShovelledSprites overlays** – Extend shovel restore so gap fillers and edge blends are preserved/restored the same way as for poured gravel (attached overlays, not only the base floor sprite in `shovelledSprites`).
 - **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.
