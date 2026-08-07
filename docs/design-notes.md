@@ -11,7 +11,7 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 - **Console logging:** `DumpTruckCore.debugPrint()` runs. Minimal logs (gated by this flag only): `[DumpTruck] vehicle tile (tx, ty, z)`; `[DumpTruck] tile (x, y, z)` on each gravel placement; `[DumpTruck] edgeBlend (x, y, z) <sprite>`; `[DumpTruck] gapFiller (x, y, z)`; `[DumpTruck] cleanup (x, y, z)` when a blend is removed. All in DumpTruckGravel.lua and DumpTruckOverlays.lua.
 - **Endless gravel:** `consumeGravelFromTruckBed` returns without consuming; `getGravelCount` returns 100. So the truck never runs out and you can test roads without loading sacks.
 
-**Set to `false` before release.** See bugs.md open issue.
+**Set to `false` before release.**
 
 ---
 
@@ -59,40 +59,23 @@ We use **vehicle `getAngleZ()`** (converted to a unit vector) for dump direction
 
 ---
 
-## Future idea: traffic maintains the road
+## Erosion and gravel (live street aging)
 
-If the game ever exposes a way to re-enable erosion (e.g. `square:enableErosion()` or callable `ErosionData.Square.reset()`):
+**Floor:** Poured gravel uses `blends_street_01_55` (street region), same as vanilla bag dump (`ISNaturalFloor`).
 
-- **"Traffic maintains the road"** – Gravel could expire / erosion could turn back on only when the road is no longer driven on; driving on it would stave off decay.
-- Would need per-tile "last driven" (or similar) and an API to re-enable erosion on that square.
+**On pour:** `DumpTruckCore.rebindErosionAfterPour(sq)` calls `getErosionData():reset()` and, when available, `ErosionMain.LoadGridsquare(sq)`. That clears leftover **nature** categories from the prior grass floor and re-runs `validateSpawn` against the street tile → **StreetCracks** (chance-based; some tiles stay `doNothing` with no cracks). Dedicated server also sends `resetErosionAt` so clients update their local erosion copy.
 
-Currently not possible: erosion can only be disabled from Lua, not re-enabled.
+**Plants:** Pour does not strip tall grass or trees. `addFloor` removes objects flagged `vegitation` (non-tree) and grass overlays; other pullables stay until the player pulls them. Same feel as bag dump.
 
----
+**On shovel:** After restoring the prior floor, reset erosion again so **nature** can re-bind on grass.
 
-## Erosion and gravel (custom tiles, re-enable)
+**Why not `disableErosion()`:** That flag freezes the square forever (`doNothing`), including street cracks. Leftover NatureTrees data was the real tree-through-gravel cause; reset clears it without killing street aging.
 
-**When erosion runs:** Erosion is driven by `EveryTenMinutes()` → `mainTimer()`. `eTicks` advance once per in-game day (144 × 10 min). Each loaded square is processed at most once per eTick. So erosion runs every 10 in-game minutes at the world level; per-square update is once per in-game day.
+**Helpers:** `DumpTruckCore.resetErosionLocal`, `DumpTruckCore.rebindErosionAfterPour`, `DumpTruckCore.getFloorSpriteNames` (vanilla shovel-restore sprite list).
 
-**Which floors get erosion:** Erosion only runs on a subset of floor types. The engine uses **ErosionRegions** (e.g. `blends_natural_01`, `blends_street`) plus null regions with wall/exterior checks. If the floor's sprite doesn't match any region, the square is still "seen" by erosion once—and that's when the trap happens.
+### Deferred
 
-**Why a "custom non-erodable" sprite is a bad idea:** The idea was: use a custom gravel sprite that doesn't match any erosion region, so we never call `disableErosion()`. Then when the player shovels the gravel or swaps the floor, erosion could run again. **In practice:** When a chunk is first processed by erosion and the square has that custom floor, `validateSpawn()` finds no matching region and sets `doNothing = true`. That value is persisted. Nothing in the game resets erosion when the floor changes (digging or swapping doesn't call `ErosionData.Square.reset()`). So the square is permanently non-eroding even after the gravel is gone. This "first seen with custom floor" case happens whenever someone crosses into a chunk that was gravelled before that chunk was ever processed by erosion—e.g. every new chunk boundary—so the edge case is common, not rare.
-
-**Vanilla tiles:** Vanilla base tiles match a region, so they never get `doNothing = true` from this path. Only our custom (non-region-matching) tile triggers it.
-
-**"Hitching a ride" on an existing region:** We could use a vanilla sprite that *does* match a region so `doNothing` is never set. Then the square would remain "erodable" after we swap or dig. But then that region's erosion category (cracks, vegetation, etc.) runs on that square. We'd need a vanilla tile that matches a region but is effectively a no-op for that category, or we'd have to accept some erosion (e.g. cracks or grass) on gravelled squares. Not explored further for this mod.
-
-**Conclusion for this mod:** We call `disableErosion()` after placing gravel so the tile stays clear. Re-enabling erosion (e.g. "traffic maintains the road") is not possible without a game API; avoiding `disableErosion()` via a custom non-matching sprite does not work because the engine sets `doNothing` on first encounter anyway.
-
-### Erosion on vanilla game roads
-
-Vanilla in-game roads use `blends_street` tiles that match the **street** erosion region. The erosion system does run on them, but vanilla erosion for streets is very mild—mostly cracks and minor vegetation at the edges over time, **not** trees or heavy foliage. Trees growing through roads would be a bug or unintended behavior; it's not how vanilla erosion works on `blends_street` tiles.
-
-Our gravel uses a different sprite (not `blends_street`), so it doesn't get the same "mild crack" erosion that vanilla streets do. Without `disableErosion()`, our gravel squares get the natural region's erosion (grass, trees, bushes), which is why trees grow right through the road. With `disableErosion()`, nothing grows but we can never re-enable it.
-
-### Idea: wipe foliage but allow cracks
-
-Let erosion run but periodically remove foliage objects (trees, bushes) from gravelled squares. This would let cracks appear (cosmetically appropriate) while preventing trees. Concern: polling all gravel squares for foliage objects could be expensive for large road networks.
+- **"Traffic maintains the road"** – Drive-on gravel to delay decay would need per-tile last-driven tracking on top of the current reset path.
 
 ---
 

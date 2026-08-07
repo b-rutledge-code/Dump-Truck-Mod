@@ -171,15 +171,12 @@ objects=[blends_street_01_55 blends_street_01_55 blends_natural_01_22 ?]
 
 - **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
 - **No bed tilt animation** – The truck bed does not visually tilt when dumping; would require model/animation support (see design-notes “Bed tilt animation”).
-- **Erosion cannot be re-enabled** – Once gravel is placed we call `disableErosion()`. If the player removes gravel (e.g. shovels), the game has no API to re-enable erosion on that square. “Traffic maintains the road” is not feasible without a game change.
+- **Street aging is chance-based** – After pour we `reset()` erosion so StreetCracks can bind; `validateSpawn` can still fail (noise/roll) and leave `doNothing` on that tile (no cracks). Nature leftover categories are cleared either way.
 - **Tile-gap when driving fast diagonally** – **Mitigated:** When the truck skips more than one tile between ticks, Bresenham-style interpolation places gravel at each intermediate position (full road width), so the gap is filled. Single-tile steps unchanged.
 - **Gravel loop volume not zoom-dependent** – Dump truck sounds are script clips, not FMOD; zoom-based volume (fridge-style) is documented as a Lua follow-up (`getCore():getZoom()`, `setVolume(handle, volume)`), not yet implemented.
 
 ## Open Issues
 
 - **Straightaways: edge blends not filling in** – SP and MP verified for pour effect and edge blends (SP fix: server no longer re-places in same process; MP: dedicated server still places and syncs). If rare edge cases appear, investigate.
-- **One unclean edge blend observed** – Server coords (16360, 702): tile is on the **edge next to a gap filler**; several other gap-filler edges are fine, this was the only one. **Note:** Something about this spot left a blend we didn't clean. Cleanup only runs on inner row squares, so the square next to the gap filler is often a row-end and never gets removeOppositeEdgeBlends. If we can reproduce, consider cleanup on row-end squares when the blend borders gravel, or ensuring gap-filler-adjacent edges are covered.
-- **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` must be `false` before packaging/release (see design-notes “Debug”).
 - **Zoom-based gravel loop volume** – Optional: while loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)`.
-- **ShovelledSprites overlays** – Extend shovel restore so gap fillers and edge blends are preserved/restored the same way as for poured gravel (attached overlays, not only the base floor sprite in `shovelledSprites`).
-- **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.
+- **Diagonal pour thickness** – **On hold.** Free-dump roads look uneven near 45° because `getBackSquares` snaps width to a cardinal axis. Plan: continuous thickness brush for free dump; Snap Line stays cardinal. Resume when ready.

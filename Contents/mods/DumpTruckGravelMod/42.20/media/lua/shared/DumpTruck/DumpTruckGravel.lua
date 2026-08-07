@@ -21,22 +21,24 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         -- replacement to clients as a whole object, which carries no attachments.
     end
     
-    -- Save original floor sprite so it can be restored when shoveled
-    local originalFloor = sq:getFloor()
+    -- Save prior floor sprites for shovel restore (vanilla ISNaturalFloor shape)
+    local existingFloor = sq:getFloor()
     local shovelledSprites = nil
-    if originalFloor and originalFloor:getSprite() then
-        shovelledSprites = {}
-        -- Save the main sprite only
-        table.insert(shovelledSprites, originalFloor:getSprite():getName())
+    if existingFloor and existingFloor:hasModData() and existingFloor:getModData().shovelledSprites then
+        shovelledSprites = existingFloor:getModData().shovelledSprites
+    else
+        shovelledSprites = DumpTruckCore.getFloorSpriteNames(sq)
     end
     
     local newFloor = sq:addFloor(sprite)
     -- Set modData on the new floor so it can be restored when shoveled
-    if newFloor and shovelledSprites and #shovelledSprites > 0 then
+    if newFloor then
         local floorModData = newFloor:getModData()
-        floorModData.shovelledSprites = shovelledSprites
         floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
+        if shovelledSprites and #shovelledSprites > 0 then
+            floorModData.shovelledSprites = shovelledSprites
+        end
         -- Server only: client floor objects have no resolvable id on the server; the
         -- ObjectModData null path leaves the payload unread and desyncs the stream,
         -- which can destroy the square's floor. See docs/bugs.md and multiplayer-architecture.
@@ -48,12 +50,8 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
         DumpTruckCore.debugPrint("[DumpTruck] tile (", sq:getX(), ", ", sq:getY(), ", ", sq:getZ(), ")")
     end
 
-    -- Disable erosion on this square
-    sq:disableErosion()
-    -- Tell clients to set doNothing on their copy (erosion state does not sync with floor change)
-    if isServer() then
-        sendServerCommand("DumpTruckGravelMod", "disableErosionAt", { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
-    end
+    -- Clear leftover nature erosion; re-bind from street floor (StreetCracks). Not disableErosion.
+    DumpTruckCore.rebindErosionAfterPour(sq)
 
     DumpTruckOverlays.removeOppositeEdgeBlends(sq)
 
@@ -465,15 +463,14 @@ function DumpTruck.stopDumping(vehicle)
 end
 
 
--- MP: when server places gravel it sends disableErosionAt; clients run disableErosion() on their copy so erosion (trees/grass) does not run there
--- Client receives commands FROM server (e.g. disableErosionAt after server places gravel)
+-- MP: server pour sends resetErosionAt; clients rebind local erosion (does not sync with floor packet)
 Events.OnServerCommand.Add(function(module, command, args)
     if module ~= "DumpTruckGravelMod" or not args then return end
-    if command == "disableErosionAt" and args.x and args.y and args.z then
+    if command == "resetErosionAt" and args.x and args.y and args.z then
         local cell = getCell()
         if cell then
             local sq = cell:getGridSquare(args.x, args.y, args.z)
-            if sq then sq:disableErosion() end
+            if sq then DumpTruckCore.resetErosionLocal(sq) end
         end
     elseif command == "syncOverlay" and args.x and args.y and args.z then
         -- Overlays are addressed by coordinate, not by object index: see syncOverlayToClients
@@ -542,6 +539,14 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         local sq = cell:getGridSquare(args.x, args.y, args.z)
         if sq then
             DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(sq)
+        end
+    elseif command == "resetErosionAt" and args.x and args.y and args.z then
+        -- Client shoveled poured gravel: rebind nature on restored floor and notify peers
+        local cell = getCell()
+        if not cell then return end
+        local sq = cell:getGridSquare(args.x, args.y, args.z)
+        if sq then
+            DumpTruckCore.rebindErosionAfterPour(sq)
         end
     end
 end)

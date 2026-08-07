@@ -2,7 +2,7 @@
 
 ## Goal
 
-Enable players to build gravel roads in Project Zomboid using a dump truck: place gravel from the truck bed while driving, with straight roads (Snap Line), edge blending, and erosion prevention. The mod should feel like a natural extension of vanilla (no steering hijacking, Lua-only where possible).
+Enable players to build gravel roads in Project Zomboid using a dump truck: place gravel from the truck bed while driving, with straight roads (Snap Line), edge blending, and street-style aging (StreetCracks after erosion reset). The mod should feel like a natural extension of vanilla (no steering hijacking, Lua-only where possible).
 
 ## Functional
 
@@ -11,14 +11,14 @@ Enable players to build gravel roads in Project Zomboid using a dump truck: plac
 3. **Road width** – Toggle 2 or 3 tiles wide via radial menu (for vehicles &lt; 3 tiles wide). Stored in vehicle modData `wideRoadMode`.
 4. **Edge blending** – Gravel roads blend smoothly with grass/terrain (`smoothRoad`). Gravel must be placed synchronously so edge blends see the real floor; pour effect uses overlays for animation only.
 5. **Pour effect** – Short visual animation when gravel lands (synchronous floor + stacked overlays, ~360ms, three sprite stages). Gap fillers delayed by same duration so they don’t appear before pour finishes.
-6. **Erosion prevention** – After placing gravel, call `disableErosion()` on the square so grass/trees don’t grow. Re-enabling erosion is not possible from Lua (game limitation).
+6. **Live street erosion** – After placing gravel, `getErosionData():reset()` (and optional `ErosionMain.LoadGridsquare`) so leftover nature categories clear and StreetCracks can bind. Shovel restores prior floor and resets erosion again for nature. Tall grass/trees are not auto-stripped beyond what `addFloor` already removes.
 7. **Snap Line (v1.3.0)** – Radial option to snap gravel placement to a cardinal grid line (N/S/E/W). Engage when truck is within 25° of cardinal; brake or drift &gt;3 tiles off-line auto-disengages and stops dumping. Position and forward vector overridden in `tryPourGravelUnderTruck()` when active.
 8. **Radial menu icons** – Dump, road width, and Snap Line slices use 8-bit PNGs; UI icons have white stroke to match vanilla radial style. PZ does not support 16-bit PNGs.
 
 ## Constraints (By Design)
 
 - **No steering control from Lua** – CarController is not exposed; `setCurrentSteering` is overwritten; `setAngles` flips the vehicle. Straight roads are achieved by snapping gravel placement (Snap Line), not by locking steering.
-- **Erosion** – We only disable erosion; we never re-enable it (no game API). Custom non-erodable sprites are not used (engine sets `doNothing` on first encounter and never resets).
+- **Erosion** – Use street floor + `reset()` after pour/shovel; do not call `disableErosion()`. Custom non-region floor sprites are not used.
 - **Dump speed** – No artificial speed cap from Lua (`setMaxSpeed` was removed); player drives slowly by choice.
 - **Assets** – Tile/floor sprites from texture pack (`.pack`); UI icons loose PNGs under `media/ui/vehicles/`. All PNGs 8-bit for PZ compatibility.
 

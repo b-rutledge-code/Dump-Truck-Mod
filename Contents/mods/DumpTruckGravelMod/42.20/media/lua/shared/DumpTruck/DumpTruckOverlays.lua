@@ -252,11 +252,13 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
         return false
     end
     
-    -- Save original floor sprite for shoveling restoration
-    local originalFloor = nonGravelSquare:getFloor()
+    -- Save prior floor sprites for shovel restore (vanilla ISNaturalFloor shape)
+    local existingFloor = nonGravelSquare:getFloor()
     local shovelledSprites = nil
-    if originalFloor and originalFloor:getSprite() then
-        shovelledSprites = {originalFloor:getSprite():getName()}
+    if existingFloor and existingFloor:hasModData() and existingFloor:getModData().shovelledSprites then
+        shovelledSprites = existingFloor:getModData().shovelledSprites
+    else
+        shovelledSprites = DumpTruckCore.getFloorSpriteNames(nonGravelSquare)
     end
     
     -- Place GRAVEL floor (now it's a gravel square for shoveling)
@@ -269,17 +271,14 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
     local floorModData = newFloor:getModData()
     floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
     floorModData.shovelled = nil
-    if shovelledSprites then
+    if shovelledSprites and #shovelledSprites > 0 then
         floorModData.shovelledSprites = shovelledSprites
     end
     
     -- Add the natural terrain triangle as an overlay object
     DumpTruckOverlays.placeOverlay(nonGravelSquare, triangleSprite)
 
-    nonGravelSquare:disableErosion()
-    if isServer() then
-        sendServerCommand("DumpTruckGravelMod", "disableErosionAt", { x = nonGravelSquare:getX(), y = nonGravelSquare:getY(), z = nonGravelSquare:getZ() })
-    end
+    DumpTruckCore.rebindErosionAfterPour(nonGravelSquare)
 
     DumpTruckOverlays.removeOppositeEdgeBlends(nonGravelSquare)
     

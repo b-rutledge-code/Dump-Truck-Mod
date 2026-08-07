@@ -101,4 +101,62 @@ function DumpTruckCore.getVectorFromPlayer(vehicle)
     return vector:getX(), vector:getY()
 end
 
+--[[
+    Floor sprite names for shovel restore (vanilla ISNaturalFloor.getFloorSpriteNames).
+    Base floor first, then attached anim sprites.
+]]
+function DumpTruckCore.getFloorSpriteNames(square)
+    local sprites = {}
+    local floor = square and square:getFloor()
+    if not floor then
+        return sprites
+    end
+
+    local sprite = floor:getSprite()
+    if sprite and sprite:getName() then
+        table.insert(sprites, sprite:getName())
+        local attached = floor:getAttachedAnimSprite()
+        if attached then
+            for i = 1, attached:size() do
+                local parentSprite = attached:get(i - 1):getParentSprite()
+                if parentSprite and parentSprite:getName() then
+                    table.insert(sprites, parentSprite:getName())
+                end
+            end
+        end
+    end
+    return sprites
+end
+
+-- Local erosion rebind only (no network). Clears nature categories; next/current load binds from floor.
+function DumpTruckCore.resetErosionLocal(sq)
+    if not sq then
+        return
+    end
+
+    local erosion = sq:getErosionData()
+    if erosion and erosion.reset then
+        erosion:reset()
+    end
+
+    if ErosionMain and ErosionMain.LoadGridsquare then
+        ErosionMain.LoadGridsquare(sq)
+    end
+end
+
+--[[
+    After pour: clear leftover nature erosion and re-bind from the current street floor.
+    Replaces disableErosion so StreetCracks can run. Does not strip tall grass / trees.
+]]
+function DumpTruckCore.rebindErosionAfterPour(sq)
+    DumpTruckCore.resetErosionLocal(sq)
+    if isServer() then
+        sendServerCommand("DumpTruckGravelMod", "resetErosionAt", {
+            x = sq:getX(),
+            y = sq:getY(),
+            z = sq:getZ(),
+        })
+    end
+end
+
 return DumpTruckCore

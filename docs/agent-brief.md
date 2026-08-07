@@ -2,7 +2,7 @@
 
 ## What It Does
 
-Adds a dump truck (Volvo FE6) that places gravel on the ground to build roads. The player loads gravel sacks into the bed, raises the bed, and drives slowly while dumping; gravel is consumed from the bed and placed under the truck with a short pour animation. Roads blend at edges with terrain, and corners get gap fillers. **Snap Line** (v1.3.0) lets the player lock gravel placement to a cardinal grid line (N/S/E/W) via the radial menu so roads stay straight even if the truck wobbles. Erosion is disabled on placed gravel so grass and trees don’t grow through the road. All behavior is Lua-only; no steering control from Lua (see design-notes for why).
+Adds a dump truck (Volvo FE6) that places gravel on the ground to build roads. The player loads gravel sacks into the bed, raises the bed, and drives slowly while dumping; gravel is consumed from the bed and placed under the truck with a short pour animation. Roads blend at edges with terrain, and corners get gap fillers. **Snap Line** (v1.3.0) lets the player lock gravel placement to a cardinal grid line (N/S/E/W) via the radial menu so roads stay straight even if the truck wobbles. After pour, erosion is reset so street tiles age with StreetCracks instead of leftover nature growth. All behavior is Lua-only; no steering control from Lua (see design-notes for why).
 
 ## Build Support
 
@@ -23,7 +23,7 @@ Adds a dump truck (Volvo FE6) that places gravel on the ground to build roads. T
 - **Namespace / modules:** `DumpTruck` (shared, gravel placement), `DumpTruckCore` (shared, vector/position), `DumpTruckSnapLine` (shared, engage/disengage/snap), `DumpTruckConstants` (shared), `DumpTruckPourEffect` (client), `DumpTruckBed` (shared), `DumpTruckOverlays` (shared). Menu: `ISVehicleMenuDumpTruck.lua` (client, hooks radial).
 - **Config:** `DumpTruckConstants`: vehicle script name, drift/engage thresholds for Snap Line, pour stage ms, road width extents, etc. Vehicle modData: `dumpingGravelActive`, `wideRoadMode`, Snap Line keys (`snapLineAxis`, `snapLineValue`, `snapLineHeading`, `snapLineFx`, `snapLineFy`).
 - **Events:** Radial menu is hooked by overriding `ISVehicleMenu.showRadialMenu`. Pour effect and gravel tick are driven from existing game update paths (client/server as appropriate).
-- **APIs used:** `vehicle:getAngleZ()`, `getScript()`, `getModData()`, `getEmitter()`, `playSound`, `isBraking()`; `getCell()`, square methods, `AddTileObject`/`RemoveTileObject`, `getSprite()`, `DirtySlice()`, `RecalcProperties()`; `disableErosion()`; texture pack and sprite names from mod media. **Not used:** steering (CarController not exposed), `setAngles` (flips truck), re-enable erosion (no API).
+- **APIs used:** `vehicle:getAngleZ()`, `getScript()`, `getModData()`, `getEmitter()`, `playSound`, `isBraking()`; `getCell()`, square methods, `AddTileObject`/`RemoveTileObject`, `getSprite()`, `DirtySlice()`, `RecalcProperties()`; `getErosionData():reset()`, optional `ErosionMain.LoadGridsquare`; texture pack and sprite names from mod media. **Not used:** steering (CarController not exposed), `setAngles` (flips truck).
 
 ## References
 
