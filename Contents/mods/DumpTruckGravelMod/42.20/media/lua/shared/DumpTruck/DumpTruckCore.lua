@@ -57,7 +57,9 @@ function DumpTruckCore.classifySquare(square)
 end
 
 -- Check if a square is a full gravel floor (not a blend)
--- Gap fillers do NOT count, so corner detection cannot cascade into them
+-- Gap fillers do NOT count, so corner detection cannot cascade into them: each filler a
+-- corner check can see is a corner the next tick can build on, and the road grows a fresh
+-- row of teeth down its side every pass
 function DumpTruckCore.isFullGravelFloor(square)
     local overlay = DumpTruckCore.classifySquare(square)
     return overlay ~= nil and overlay.type ~= DumpTruckConstants.TILE_TYPES.GAP_FILLER

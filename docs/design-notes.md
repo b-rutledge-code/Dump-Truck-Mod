@@ -295,8 +295,8 @@ Instead of steering the truck (which is impossible from Lua — see "steering th
 3. In `tryPourGravelUnderTruck()`, when Snap Line is active:
    - **Brake check:** if `vehicle:isBraking()`, auto-disengage lock + stop dumping + warning sound.
    - **Drift check:** if the truck has drifted more than `SNAP_LINE_DRIFT_MAX` (3) tiles off the locked line, auto-disengage lock + stop dumping + warning sound.
-   - **Position snap:** override `cx` or `cy` with the locked value before calling `getBackSquares()`.
-   - **Forward vector override:** use the stored cardinal `fx, fy` instead of the driver's actual direction, so `getBackSquares` computes the perpendicular correctly.
+   - **Position snap:** override `cx` or `cy` with the locked value before the pour point is taken, so both ends of the swept band sit on the locked line.
+   - **Forward vector override:** use the stored cardinal `fx, fy` instead of the driver's actual direction, so the band runs along the lock.
 4. **All disengage paths stop dumping** — whether from drift, braking, or the radial menu toggle. The player must re-engage deliberately.
 5. The truck can wobble — the road still lands on a perfectly straight line of tiles.
 
@@ -384,14 +384,30 @@ Getting the truck pointed exactly cardinal and beginning to dump at the exact ri
 
 ---
 
-## Tile-gap interpolation (TODO)
+## Road geometry — the swept band (IMPLEMENTED)
 
-**Problem:** When driving at an angle (especially at moderate speed), the truck can skip over tiles between ticks. The dump logic only places gravel at the vehicle's current tile position each tick — if it jumps from tile (5,5) to tile (7,7), tile (6,6) gets no gravel, leaving a visible one-tile gap in the road.
+A pour tick lays the road the truck drove since the last one. `DumpTruckBandRaster.getColumns` takes the previous and current pour points and returns the tiles a road of the chosen width covers between them, so the tick rate decides how often the road is measured, not what shape it takes: a truck at speed builds the same road as one at a crawl.
 
-**Observed:** Gaps appear intermittently when driving diagonally. Straight cardinal driving is unaffected (axis lock makes this a non-issue for locked roads). Backing up and re-driving over the gap fills it, but it's annoying.
+**Coverage is measured per tile, against the swept area.** A tile joins the road when its centre lies inside the rectangle swept between the two pour points. Sampling points along the road's perpendicular instead would break on a 45 degree heading, where that perpendicular runs through tile corners: the tiles its samples land on touch only at their corners and leave holes between them. `tests/band_raster_test.lua` holds the line on this, asserting that a 45 degree sweep is reachable north/south/east/west from end to end.
 
-**Proposed fix:** When the new tile position differs from the previous by more than 1 in either axis, interpolate between `(oldX, oldY)` and `(tileX, tileY)` using a Bresenham-style line walk. Call `getBackSquares` and place gravel for each intermediate position. Only kicks in when there's a gap, so no performance cost during normal slow driving.
+**Across the road the test is half open** (`-width/2 <= across < width/2`), so a cardinal row is exactly `width` tiles wherever the truck sits inside its own tile. **Along the road it reaches half a tile past each end**, so a crawling truck still lays a row when one tick's pour point lands in the same tile as the last, and consecutive ticks overlap rather than leaving a seam. Re-covering a poured tile costs nothing: `isSquareValidForGravel` passes over finished gravel.
 
-**Scope:** This is a general dump logic fix, not specific to axis lock. Should be done on `main`, not the `feature/axis-lock` branch.
+**An even width has no middle tile,** so the band shifts half a tile across and rides the truck's right rather than straddling it. The across vector is held on the heading's side, which keeps that same side when reversing.
 
-**Status:** Not yet implemented.
+**Tiles come back grouped into columns,** ordered along the road and each column ordered across it. A column is the row shape the smoothing pass has always consumed: its two ends are the road's edges.
+
+### Smoothing a column
+
+`smoothRoad` runs per column. **Gap fillers are checked on every square in it**, because a diagonal road's outer hull is a staircase and its corner pockets sit beside squares in the middle of a column as readily as beside the ends.
+
+**A gap filler never counts as gravel during corner detection,** neither as a seed nor in a pocket's neighbour count. Every filler a corner check can see is a corner the next tick can build on, so the road grows a fresh row of teeth down its side on every pass. Tried and reverted: an offline simulation of a single run showed the growth converging after two to four tiles, but in the game the same edge squares seed the check tick after tick and it does not.
+
+**Edge blends border the column's two end squares,** facing outward from the road. The outward direction comes from the column's own shape: the vector from its first square to its last is the across direction, so the first square faces its negation and the last faces it. Reading it from the squares is what lets the multiplayer server agree, since it smooths a column it receives as bare coordinates and never learns which way the truck was pointing. On a cardinal column that vector lies on an axis and yields one direction.
+
+**A diagonal column yields two directions per end,** dominant axis first, and an end square on a staircase genuinely is exposed on both faces. The square takes the first of them that has terrain beside it, so a face abutting a gap filler falls through to the other one instead of costing the square its blend. A floor carries a single attached sprite, so the rare square exposed both ways gets the dominant face and leaves the other bare.
+
+### Where the pieces live
+
+- `DumpTruckBandRaster.lua` (shared) — `offsetBehind()`, `getColumns()`. Pure math on tile coordinates, no game objects, so `tests/band_raster_test.lua` runs it outside the game.
+- `DumpTruckGravel.lua` — `getPourCentre()` puts the pour point half a truck length behind the cab; `getBandColumns()` resolves tiles to squares; `tryPourGravelUnderTruck()` sweeps once per tick and remembers the pour point in `dumpLastCentreX/Y`.
+- `DumpTruckOverlays.lua` — `smoothRoad()` per column.

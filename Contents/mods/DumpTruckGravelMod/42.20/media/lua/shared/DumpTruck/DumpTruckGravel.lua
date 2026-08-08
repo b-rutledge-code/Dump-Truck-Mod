@@ -2,6 +2,7 @@ local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
 local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
+local DumpTruckBandRaster = require("DumpTruck/DumpTruckBandRaster")
 
 local DumpTruck = {}
 
@@ -75,7 +76,7 @@ end
     Blends and gap fillers are also derived from neighbour state, so computing them twice
     against two different worlds drifts the two copies apart even when nothing is destroyed.
 ]]
-local function applySmoothRoad(currentSquares, fx, fy)
+local function applySmoothRoad(currentSquares)
     if not currentSquares or #currentSquares < 2 then return end
 
     if isClient() then
@@ -91,7 +92,7 @@ local function applySmoothRoad(currentSquares, fx, fy)
         return
     end
 
-    DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
+    DumpTruckOverlays.smoothRoad(currentSquares)
 end
 
 function DumpTruck.consumeGravelFromTruckBed(vehicle)
@@ -165,97 +166,48 @@ end
 
 
 --[[
-    getBackSquares: Gets the squares behind the truck for gravel placement
-    Input:
-        fx: number - Forward vector X component
-        fy: number - Forward vector Y component
-        cx: number - Current X position
-        cy: number - Current Y position
-        cz: number - Z level (usually 0)
-        width: number - Width of gravel road in tiles
-        length: number - Length of truck in tiles
-    Output: array of IsoGridSquare - The squares where gravel should be placed
+    getPourCentre: where gravel lands for a truck at (cx, cy), behind the bed.
 ]]
-function DumpTruck.getBackSquares(fx, fy, cx, cy, cz, width, length)
-    
-    -- Calculate offset backwards along forward vector
-    local offsetDistance = (length/2)  -- Half truck length plus 1 tile
-    local offsetX = -fx * offsetDistance  -- Negative forward vector
-    local offsetY = -fy * offsetDistance
-    
-    -- Apply offset to center point
-    local centerX = cx + math.floor(offsetX + 0.5)  -- Round to nearest integer
-    local centerY = cy + math.floor(offsetY + 0.5)
-    
-    -- Calculate perpendicular vector (90 degrees) for road width
-    -- For a vector (x,y) in Zomboid's inverted Y coordinate system
-    -- We use (-y,x) because Y is inverted, so this gives us a vector to the right of the truck
-    local perpX = -fy   -- In inverted Y, this gives us right
-    local perpY = fx
-    
-    -- Find the dominant axis and snap to it
-    -- This ensures we get a clean cardinal direction
-    if math.abs(perpX) > math.abs(perpY) then
-        -- Snap to East/West
-        perpX = perpX > 0 and 1 or -1
-        perpY = 0
-    else
-        -- Snap to North/South
-        perpX = 0
-        perpY = perpY > 0 and 1 or -1
-    end
-    
-    -- Generate points based on width
-    local points = {}
-    for i = 0, width - 1 do
-        table.insert(points, {
-            x = centerX + (perpX * i),
-            y = centerY + (perpY * i),
-            z = cz
-        })
-    end
-    
-    -- Convert points to squares
-    local squares = {}
-    for _, point in ipairs(points) do
-        local square = getCell():getGridSquare(point.x, point.y, point.z)
-        if square then
-            table.insert(squares, square)
-        end
-    end
-    
-    return squares
+function DumpTruck.getPourCentre(cx, cy, fx, fy, length)
+    return DumpTruckBandRaster.offsetBehind(cx, cy, fx, fy, length / 2)
 end
 
 --[[
-    getLinePoints: Bresenham line from (x0,y0) to (x1,y1) inclusive.
-    Returns list of {x=int, y=int} for tile-gap interpolation.
+    getBandColumns: the squares a road of `width` covers sweeping between two pour points.
+
+    Columns arrive ordered along the road and each column ordered across it, so a column
+    is the same shape of list the smoothing pass has always taken: its two ends are the
+    road's edges.
 ]]
-function DumpTruck.getLinePoints(x0, y0, x1, y1)
-    local points = {}
-    local dx = math.abs(x1 - x0)
-    local dy = math.abs(y1 - y0)
-    local sx = x0 < x1 and 1 or -1
-    local sy = y0 < y1 and 1 or -1
-    local err = dx - dy
-    local x, y = x0, y0
-    while true do
-        table.insert(points, { x = x, y = y })
-        if x == x1 and y == y1 then break end
-        local e2 = 2 * err
-        if e2 > -dy then
-            err = err - dy
-            x = x + sx
+function DumpTruck.getBandColumns(lastX, lastY, currentX, currentY, fx, fy, width, z)
+    local cell = getCell()
+    if not cell then
+        return {}
+    end
+
+    local columns = {}
+    local tileColumns = DumpTruckBandRaster.getColumns(lastX, lastY, currentX, currentY, fx, fy, width)
+    for _, tiles in ipairs(tileColumns) do
+        local squares = {}
+        for _, tile in ipairs(tiles) do
+            local square = cell:getGridSquare(tile.x, tile.y, z)
+            if square then
+                table.insert(squares, square)
+            end
         end
-        if e2 < dx then
-            err = err + dx
-            y = y + sy
+        if #squares > 0 then
+            table.insert(columns, squares)
         end
     end
-    return points
+    return columns
 end
 
--- Modify tryPourGravelUnderTruck to handle transitions (per-vehicle last tile + gap interpolation)
+--[[
+    tryPourGravelUnderTruck: lay the road the truck has driven since the last pour.
+
+    One sweep covers the whole tick, so a truck at speed builds the same road as one at
+    a crawl: the tick rate decides how often the road is measured, not how it is shaped.
+]]
 function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not vehicle or vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
 
@@ -310,7 +262,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local tileY = math.floor(adjustedY)
     DumpTruckCore.debugPrint("[DumpTruck] vehicle tile (", tileX, ", ", tileY, ", ", cz, ")")
     
-    -- Road dimensions (needed for both single-tile and interpolation paths)
+    -- Road dimensions
     local script = vehicle:getScript()
     local extents = script:getExtents()
     local vehicleWidth = math.floor(extents:x() + 0.5)
@@ -325,77 +277,38 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         return
     end
 
-    local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
+    local firstPour = data.dumpLastCentreX == nil
+    if not firstPour and tileX == data.dumpLastTileX and tileY == data.dumpLastTileY then return end
 
-    -- First run: no previous tile — single-tile path only (avoid placing from 0,0 to current)
-    if data.dumpLastTileX == nil then
-        local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
-        local currentSquares = DumpTruck.getBackSquares(fx, fy, snapCx, snapCy, cz, roadWidth, length)
-        for _, sq in ipairs(currentSquares) do
-            if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
+    local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
+    local centreX, centreY = DumpTruck.getPourCentre(snapCx, snapCy, fx, fy, length)
+
+    -- The first pour of a run has nothing to sweep from, so it lays a single row under
+    -- the bed and the run builds on it from the next tick
+    local lastCentreX = firstPour and centreX or data.dumpLastCentreX
+    local lastCentreY = firstPour and centreY or data.dumpLastCentreY
+
+    local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
+    local columns = DumpTruck.getBandColumns(lastCentreX, lastCentreY, centreX, centreY, fx, fy, roadWidth, cz)
+
+    for _, column in ipairs(columns) do
+        for _, sq in ipairs(column) do
+            if DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
                 DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
                 if DumpTruck.getGravelCount(vehicle) <= 0 then
+                    applySmoothRoad(column)
                     DumpTruck.stopDumping(vehicle)
                     return
                 end
             end
         end
-        applySmoothRoad(currentSquares, fx, fy)
-        data.dumpLastTileX = tileX
-        data.dumpLastTileY = tileY
-        return
+        applySmoothRoad(column)
     end
 
-    if tileX == data.dumpLastTileX and tileY == data.dumpLastTileY then return end
-
-    -- Gap: step > 1 — Bresenham walk, skip first point, place at each (full road width per position)
-    if math.abs(tileX - data.dumpLastTileX) > 1 or math.abs(tileY - data.dumpLastTileY) > 1 then
-        local points = DumpTruck.getLinePoints(data.dumpLastTileX, data.dumpLastTileY, tileX, tileY)
-        for i = 2, #points do
-            local ix, iy = points[i].x, points[i].y
-            local icx, icy = ix + 0.5, iy + 0.5
-            if DumpTruckSnapLine.isActive(vehicle) then
-                icx, icy = DumpTruckSnapLine.getSnappedPosition(vehicle, icx, icy)
-            end
-            local squares = DumpTruck.getBackSquares(fx, fy, icx, icy, cz, roadWidth, length)
-            for _, sq in ipairs(squares) do
-                if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
-                    DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
-                    if DumpTruck.getGravelCount(vehicle) <= 0 then
-                        DumpTruck.stopDumping(vehicle)
-                        data.dumpLastTileX = tileX
-                        data.dumpLastTileY = tileY
-                        applySmoothRoad(squares, fx, fy)
-                        return
-                    end
-                end
-            end
-            -- Edge blends for this row (smoothRoad uses first/last of list only)
-            applySmoothRoad(squares, fx, fy)
-        end
-        data.dumpLastTileX = tileX
-        data.dumpLastTileY = tileY
-        return
-    end
-
-    -- Single-tile step: place at current position only
-    cx, cy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
-    local currentSquares = DumpTruck.getBackSquares(fx, fy, cx, cy, cz, roadWidth, length)
-    for _, sq in ipairs(currentSquares) do
-        if sq and DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
-            DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
-            if DumpTruck.getGravelCount(vehicle) <= 0 then
-                DumpTruck.stopDumping(vehicle)
-                data.dumpLastTileX = tileX
-                data.dumpLastTileY = tileY
-                applySmoothRoad(currentSquares, fx, fy)
-                return
-            end
-        end
-    end
-    applySmoothRoad(currentSquares, fx, fy)
     data.dumpLastTileX = tileX
     data.dumpLastTileY = tileY
+    data.dumpLastCentreX = centreX
+    data.dumpLastCentreY = centreY
 end
 
 -- Update function for player actions
@@ -468,6 +381,8 @@ function DumpTruck.startDumping(vehicle)
     data.dumpingGravelActive = true
     data.dumpLastTileX = nil
     data.dumpLastTileY = nil
+    data.dumpLastCentreX = nil
+    data.dumpLastCentreY = nil
 
     -- Start dumping sounds
     vehicle:playSound("HydraulicLiftRaised")
@@ -490,6 +405,8 @@ function DumpTruck.stopDumping(vehicle)
     data.dumpingGravelActive = false
     data.dumpLastTileX = nil
     data.dumpLastTileY = nil
+    data.dumpLastCentreX = nil
+    data.dumpLastCentreY = nil
 end
 
 
@@ -562,7 +479,7 @@ Events.OnClientCommand.Add(function(module, command, player, args)
             end
         end
         if #serverSquares >= 2 then
-            DumpTruckOverlays.smoothRoad(serverSquares, 0, 0)
+            DumpTruckOverlays.smoothRoad(serverSquares)
         end
     elseif command == "cleanupBlendsAt" and args.x and args.y and args.z then
         local cell = getCell()

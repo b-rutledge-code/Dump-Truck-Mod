@@ -345,76 +345,90 @@ end
 
 -- ROAD SMOOTHING
 
+--[[
+    cardinalsAlong: the cardinal directions a vector points in, strongest first.
+
+    A vector on an axis gives one direction; a diagonal one gives two, the road's dominant
+    across axis first. A floor carries a single blend, so on a square exposed both ways the
+    dominant direction is the one that reads as the road's side.
+]]
+local function cardinalsAlong(dx, dy)
+    local horizontal = (dx > 0 and "EAST") or (dx < 0 and "WEST") or nil
+    local vertical = (dy > 0 and "SOUTH") or (dy < 0 and "NORTH") or nil
+
+    if not horizontal then
+        return { vertical }
+    end
+    if not vertical then
+        return { horizontal }
+    end
+    if math.abs(dx) >= math.abs(dy) then
+        return { horizontal, vertical }
+    end
+    return { vertical, horizontal }
+end
+
+local function getNeighbour(square, direction)
+    if direction == "NORTH" then return square:getN() end
+    if direction == "SOUTH" then return square:getS() end
+    if direction == "EAST" then return square:getE() end
+    if direction == "WEST" then return square:getW() end
+    return nil
+end
+
+--[[
+    blendTowards: border this square against the terrain on one side.
+
+    Reports whether that side was terrain to blend against at all, which is a different
+    question from whether the sprite changed: a square already wearing the right blend has
+    a finished side, and the caller must not go looking for another one.
+]]
+local function blendTowards(square, direction)
+    local sideSquare = getNeighbour(square, direction)
+    if not sideSquare or DumpTruckCore.isPouredGravel(sideSquare) then
+        return false
+    end
+
+    local terrain = DumpTruckOverlays.getBlendNaturalSprite(sideSquare)
+    if not terrain then
+        return false
+    end
+
+    local blend = DumpTruckOverlays.getEdgeBlendSprite(direction, terrain)
+    if blend then
+        DumpTruckOverlays.placeEdgeBlend(square, blend)
+    end
+
+    return true
+end
+
+--[[
+    addEdgeBlends: border a column's two outer squares against the terrain beside them.
+
+    The vector from the first square to the last is the road's across direction, so the
+    first square faces its negation and the last faces it. Taking it from the squares is
+    what lets the multiplayer server agree: it smooths a column it receives as bare
+    coordinates and never learns which way the truck was pointing.
+
+    A column that runs diagonally offers each end two outward faces instead of one, and on
+    a staircase an end square really is exposed on both. Offering only one spends it on
+    whichever face the road happens to present first, and when that face abuts a gap filler
+    the square is left with no blend at all.
+]]
 function DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
     if not leftSquare or not rightSquare then
         return
     end
 
-    local secondaryDir
-    if leftSquare:getX() == rightSquare:getX() then
-        -- For east-west roads, determine which direction to use based on Y coordinates
-        if leftSquare:getY() > rightSquare:getY() then
-            -- Going west: left square is south, right square is north
-            secondaryDir = {"SOUTH", "NORTH"}
-        else
-            -- Going east: left square is north, right square is south
-            secondaryDir = {"NORTH", "SOUTH"}
-        end
-    else
-        -- For north-south roads, determine which direction to use based on X coordinates
-        if leftSquare:getX() < rightSquare:getX() then
-            -- Going south: left square is west, right square is east
-            secondaryDir = {"WEST", "EAST"}
-        else
-            -- Going north: left square is east, right square is west
-            secondaryDir = {"EAST", "WEST"}
-        end
-    end
-    
-    -- Get the adjacent squares for edge blending
-    local leftSideSquare, rightSideSquare
-    if secondaryDir[1] == "NORTH" then
-        leftSideSquare = leftSquare:getN()
-    elseif secondaryDir[1] == "SOUTH" then
-        leftSideSquare = leftSquare:getS()
-    elseif secondaryDir[1] == "EAST" then
-        leftSideSquare = leftSquare:getE()
-    elseif secondaryDir[1] == "WEST" then
-        leftSideSquare = leftSquare:getW()
-    end
-    
-    if secondaryDir[2] == "NORTH" then
-        rightSideSquare = rightSquare:getN()
-    elseif secondaryDir[2] == "SOUTH" then
-        rightSideSquare = rightSquare:getS()
-    elseif secondaryDir[2] == "EAST" then
-        rightSideSquare = rightSquare:getE()
-    elseif secondaryDir[2] == "WEST" then
-        rightSideSquare = rightSquare:getW()
+    local acrossX = rightSquare:getX() - leftSquare:getX()
+    local acrossY = rightSquare:getY() - leftSquare:getY()
+
+    for _, direction in ipairs(cardinalsAlong(-acrossX, -acrossY)) do
+        if blendTowards(leftSquare, direction) then break end
     end
 
-    -- Add terrain blends for outer edges
-    for i, square in ipairs({leftSquare, rightSquare}) do
-        local sideSquare = i == 1 and leftSideSquare or rightSideSquare
-        local sideDir = i == 1 and secondaryDir[1] or secondaryDir[2]
-
-        if not sideSquare then
-            -- skip
-        elseif DumpTruckCore.isPouredGravel(sideSquare) then
-            -- skip
-        else
-            local terrain = DumpTruckOverlays.getBlendNaturalSprite(sideSquare)
-            if not terrain then
-                -- skip
-            else
-                local blend = DumpTruckOverlays.getEdgeBlendSprite(sideDir, terrain)
-                if not blend then
-                    -- skip
-                else
-                    DumpTruckOverlays.placeEdgeBlend(square, blend)
-                end
-            end
-        end
+    for _, direction in ipairs(cardinalsAlong(acrossX, acrossY)) do
+        if blendTowards(rightSquare, direction) then break end
     end
 end
 
@@ -483,30 +497,32 @@ function DumpTruckOverlays.checkForCornerPattern(gravelSquare)
     return nil, nil
 end
 
-function DumpTruckOverlays.fillGaps(leftSquare, rightSquare)
-    local adjacentSquare1, triangleOffset1 = DumpTruckOverlays.checkForCornerPattern(leftSquare)
-    local adjacentSquare2, triangleOffset2 = DumpTruckOverlays.checkForCornerPattern(rightSquare)
+--[[
+    fillGaps: place a triangle in every corner pocket this row leaves behind.
 
-    if adjacentSquare1 and triangleOffset1 then
-        DumpTruckOverlays.placeGapFiller(adjacentSquare1, triangleOffset1)
-    end
-
-    if adjacentSquare2 and triangleOffset2 then
-        DumpTruckOverlays.placeGapFiller(adjacentSquare2, triangleOffset2)
+    Every square gets checked, not just the row's two ends. A diagonal road's outer
+    hull is a staircase, so its pockets sit beside squares in the middle of the row as
+    readily as beside the ends.
+]]
+function DumpTruckOverlays.fillGaps(currentSquares)
+    for i = 1, #currentSquares do
+        local pocketSquare, triangleOffset = DumpTruckOverlays.checkForCornerPattern(currentSquares[i])
+        if pocketSquare and triangleOffset then
+            DumpTruckOverlays.placeGapFiller(pocketSquare, triangleOffset)
+        end
     end
 end
 
-function DumpTruckOverlays.smoothRoad(currentSquares, fx, fy)
+function DumpTruckOverlays.smoothRoad(currentSquares)
     if #currentSquares < 2 then
         return
     end
 
-    local leftSquare = currentSquares[1]
-    local rightSquare = currentSquares[#currentSquares]
-
     -- Order: gap fillers first, then edge blends, then cleanup
-    DumpTruckOverlays.fillGaps(leftSquare, rightSquare)
-    DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
+    DumpTruckOverlays.fillGaps(currentSquares)
+
+    DumpTruckOverlays.addEdgeBlends(currentSquares[1], currentSquares[#currentSquares])
+
     -- Every square in the row, ends included: a blend only counts as stale when it faces
     -- gravel, so the outward blends just placed on the ends are left alone. Squares skipped
     -- as already-gravel are covered too, which heals seams when re-driving beside an old road.
