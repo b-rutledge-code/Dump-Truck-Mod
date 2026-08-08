@@ -262,6 +262,17 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local data = vehicle:getModData()
     if not data.dumpingGravelActive then return end  -- Only proceed if dumping is active
 
+    --[[
+        The flag is saved with the vehicle, so a driver who disconnects mid-dump leaves it
+        set on a truck nobody is dumping from. Without a session on this client there is no
+        loop sound and nobody asked to pour, so retire the leftover flag and let the new
+        driver start their own run.
+    ]]
+    if not DumpTruck.hasLocalDumpSession(vehicle) then
+        DumpTruck.stopDumping(vehicle)
+        return
+    end
+
     local cx, cy, cz = vehicle:getX(), vehicle:getY(), vehicle:getZ()
     cz = 0 -- Assume ground level for simplicity
 
@@ -392,7 +403,10 @@ local elapsedTime = 0
 function DumpTruck.onPlayerUpdateFunc(player)
     if player then
         local vehicle = player:getVehicle()
-        if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
+        -- Driver only: a passenger's client shares the same vehicle and would pour the same
+        -- squares from a second machine, and would retire a session it does not own
+        if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME
+                and vehicle:getDriver() == player then
             local deltaTime = GameTime:getInstance():getRealworldSecondsSinceLastUpdate()
             elapsedTime = elapsedTime + deltaTime  -- Safe addition
             if elapsedTime < DumpTruckConstants.UPDATE_INTERVAL then
@@ -411,30 +425,45 @@ function DumpTruck.onPlayerUpdateFunc(player)
 end
 Events.OnPlayerUpdate.Add(DumpTruck.onPlayerUpdateFunc)
 
+--[[
+    A dump session belongs to the client that started it, because only that client runs the
+    pour loop and holds the loop sound on its own emitter. Vehicle modData is no place to
+    record it: modData syncs and is saved with the vehicle, so `dumpingGravelActive` cannot
+    answer "is a session live on this machine".
+]]
+DumpTruck.dumpSessionByVehicleId = {}
+
+function DumpTruck.hasLocalDumpSession(vehicle)
+    return DumpTruck.dumpSessionByVehicleId[vehicle:getId()] == true
+end
+
 -- Stop dumping sounds
-function DumpTruck.stopDumpingSounds(vehicle, soundID)
-    
-    -- Stop loop if playing
-    if soundID and soundID ~= 0 then
-        local emitter = vehicle:getEmitter()
-        if emitter then
-            emitter:stopSound(soundID)
+function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
+    local vehicleId = vehicle:getId()
+    local emitter = vehicle:getEmitter()
+    local wasPlaying = DumpTruck.dumpSessionByVehicleId[vehicleId] == true
+
+    if emitter then
+        -- By name rather than by handle, so the loop still ends when the handle is gone
+        if emitter:isPlaying("GravelDumpLoop") then
+            wasPlaying = true
         end
+        emitter:stopSoundByName("GravelDumpLoop")
     end
-    
-    -- Only play stop sounds if we have a valid soundID (meaning dumping was actually active)
-    if soundID and soundID ~= 0 then
+
+    DumpTruck.dumpSessionByVehicleId[vehicleId] = nil
+
+    if playEndSounds and wasPlaying then
         vehicle:playSound("HydraulicLiftDown")
         vehicle:playSound("GravelDumpEnd")
     end
-    
-    -- Clear from modData
-    local data = vehicle:getModData()
-    data.gravelLoopSoundID = nil
 end
 
 -- Start dumping
 function DumpTruck.startDumping(vehicle)
+    -- Clear any loop still running on this truck so repeat starts cannot stack
+    DumpTruck.stopDumpingSounds(vehicle, false)
+
     local data = vehicle:getModData()
     data.dumpingGravelActive = true
     data.dumpLastTileX = nil
@@ -444,24 +473,23 @@ function DumpTruck.startDumping(vehicle)
     vehicle:playSound("HydraulicLiftRaised")
     vehicle:playSound("GravelDumpStart")
     local emitter = vehicle:getEmitter()
-    data.gravelLoopSoundID = emitter:playSound("GravelDumpLoop")
+    if emitter then
+        emitter:playSound("GravelDumpLoop")
+    end
+    DumpTruck.dumpSessionByVehicleId[vehicle:getId()] = true
 end
 
 -- Stop dumping
 function DumpTruck.stopDumping(vehicle)
     local data = vehicle:getModData()
-    
-    -- Only stop if actually dumping (prevents repeated calls)
-    if not data.dumpingGravelActive then
-        return
-    end
-    
+
+    -- Sounds stop first and unconditionally: the flag can read false on a client whose
+    -- emitter is still looping, and that is the case most in need of a stop
+    DumpTruck.stopDumpingSounds(vehicle, true)
+
     data.dumpingGravelActive = false
     data.dumpLastTileX = nil
     data.dumpLastTileY = nil
-
-    -- Stop dumping sounds
-    DumpTruck.stopDumpingSounds(vehicle, data.gravelLoopSoundID)
 end
 
 

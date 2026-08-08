@@ -167,19 +167,43 @@ objects=[blends_street_01_55 blends_street_01_55 blends_natural_01_22 ?]
 
 **Measured:** 60 sync events with zero duplicate floors, against every square before the fix. After a relog the two sides agreed exactly: `gravel=61 blends=40 gapFillers=10 stale=0 multiAttach=0 orphan=0 noFloor=0`.
 
+### Gravel loop keeps playing after dumping stops
+
+**Problem:** Reported in multiplayer: after using the truck to dump gravel, the dumping sound plays continuously with no way to stop it. The radial can even offer "Start Dumping Gravel" while the loop is still audible.
+
+**Root cause:** Both halves of the dump session lived in vehicle modData, which syncs between client and server and is saved with the vehicle. `startDumping` stored the loop's play handle in `data.gravelLoopSoundID`, and `stopDumping` returned early unless `data.dumpingGravelActive` was still true, then stopped the loop by that handle. The handle is an emitter channel id meaningful only to the client that played the sound, so once a sync or race cleared either field the stop path could not reach the still-playing loop. A second Start then stacked another loop, and nothing stopped the sound on vehicle exit at all.
+
+**A second bug shares the cause.** `dumpingGravelActive` persists in the saved vehicle, while pouring runs only on the driver's client (`onPlayerUpdateFunc` skips when `isServer()`). A driver who logs out mid-dump halts placement but leaves the flag set, so the next person to drive that truck poured gravel immediately with no dump sound — the same desync heard from the other side.
+
+**Fix:** Session ownership is tracked in `DumpTruck.dumpSessionByVehicleId`, a plain Lua table keyed by `vehicle:getId()` that never leaves the client that started the run. Stopping is by sound name (`emitter:stopSoundByName("GravelDumpLoop")`, the same call vanilla uses for vehicle ignition sounds), so a lost handle no longer strands the loop, and `stopDumping` runs that stop unconditionally instead of returning early on the flag. `startDumping` stops first, so repeat Starts cannot stack. `HydraulicLiftDown` / `GravelDumpEnd` play only when a loop was actually playing, keeping an exit from an idle truck silent.
+
+For the armed truck, `tryPourGravelUnderTruck` retires a `dumpingGravelActive` it finds set with no local session, so an inherited flag clears on the next driver's first tick rather than pouring. `ISExitVehicle:perform` is overridden to end the session when the driver climbs out, reading the vehicle before calling the original: vanilla fires `OnExitVehicle` after `vehicle:exit()` and passes only the character, so the event itself is too late to identify the truck.
+
+`onPlayerUpdateFunc` now also requires `vehicle:getDriver() == player`. A passenger's client shares the same vehicle and previously ran the pour path from a second machine; it would also retire a session it does not own.
+
 ## Known Limitations
 
 - **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
 - **No bed tilt animation** – The truck bed does not visually tilt when dumping; would require model/animation support (see design-notes “Bed tilt animation”).
 - **Erosion cannot be re-enabled** – Once gravel is placed we call `disableErosion()`. If the player removes gravel (e.g. shovels), the game has no API to re-enable erosion on that square. “Traffic maintains the road” is not feasible without a game change.
-- **Tile-gap when driving fast diagonally** – **Mitigated:** When the truck skips more than one tile between ticks, Bresenham-style interpolation places gravel at each intermediate position (full road width), so the gap is filled. Single-tile steps unchanged.
+- **Tile-gap when skipping tiles between ticks** – **Mitigated on cardinal headings:** when the truck skips more than one tile between ticks, Bresenham-style interpolation places gravel at each intermediate position (full road width), so the gap is filled. On diagonals the interpolated rows are still cardinal-snapped and the road stays notched at any speed above a crawl — see Open Issues “Diagonal roads come out as a notched staircase”.
 - **Gravel loop volume not zoom-dependent** – Dump truck sounds are script clips, not FMOD; zoom-based volume (fridge-style) is documented as a Lua follow-up (`getCore():getZoom()`, `setVolume(handle, volume)`), not yet implemented.
 
 ## Open Issues
 
 - **Straightaways: edge blends not filling in** – SP and MP verified for pour effect and edge blends (SP fix: server no longer re-places in same process; MP: dedicated server still places and syncs). If rare edge cases appear, investigate.
 - **One unclean edge blend observed** – Server coords (16360, 702): tile is on the **edge next to a gap filler**; several other gap-filler edges are fine, this was the only one. **Note:** Something about this spot left a blend we didn't clean. Cleanup only runs on inner row squares, so the square next to the gap filler is often a row-end and never gets removeOppositeEdgeBlends. If we can reproduce, consider cleanup on row-end squares when the blend borders gravel, or ensuring gap-filler-adjacent edges are covered.
+- **Diagonal roads come out as a notched staircase** – Observed pouring at roughly 45° at ordinary driving speed: the road steps in one-tile jogs, changes width, and leaves bare corners. Avoiding it currently requires crawling. Four causes, all in the pour path:
+  1. `getBackSquares` snaps the perpendicular to the dominant cardinal axis, so the width row is always laid straight E/W or N/S. At 45° a row of `W` tiles spans only about `W × cos45°` across the direction of travel, and the overhang becomes the steps.
+  2. Near 45° `perpX` and `perpY` are nearly equal, so steering wobble flips which axis dominates from tick to tick. The row grows one-sided (`i = 0..width-1` in `+perp`, never centered on the truck), so a flip also swaps which side of the truck gets gravel — the notches and width changes.
+  3. `UPDATE_INTERVAL` is 0.5s, so position is sampled twice a second and any speed above a crawl moves several tiles per tick. Normal driving therefore runs through the Bresenham path on every tick, and that path drops the same cardinal-snapped row at each interpolated point — so interpolation reproduces the staircase rather than smoothing it. Crawling is clean because tile transitions then happen one axis at a time.
+  4. `applySmoothRoad` treats the first and last entries of the row as the road edges, which on a diagonal are the cardinal ends of a staircase step rather than the true sides.
+
+  Snap Line does not apply: it engages only within threshold of 0/90/180/270 and locks X or Y.
+
+  Fix direction (its own branch — this reworks the core pour geometry): keep the true perpendicular, sample across it at half-tile increments out to the road width centered on the truck, and dedupe the resulting squares. Apply that band at every interpolated point, not just the current position, so normal driving speeds get the same geometry as a crawl. A centered band fills corners naturally and gives `applySmoothRoad` real edge tiles, and centering also removes the side-jump on cardinal headings. A shorter `UPDATE_INTERVAL` samples the path more finely but does not fix the geometry on its own.
 - **Turn off debug before release** – `DumpTruckCore.debugMode` in `DumpTruckCore.lua` must be `false` before packaging/release (see design-notes “Debug”).
-- **Zoom-based gravel loop volume** – Optional: while loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)`.
+- **Zoom-based gravel loop volume** – Optional: while the loop is playing, set volume from `getCore():getZoom()` (normalize with min/max) and `vehicle:getEmitter():setVolume(handle, volume)`. Needs `startDumping` to keep the handle it currently discards.
+- **Nearby players do not hear dumping** – `vehicle:playSound` is local to the client that starts the run, so the gravel loop is inaudible to everyone else. Relaying `dumpSoundStart` / `dumpSoundStop` (vehicle id) through the server would let each nearby client play it on their own copy of the vehicle emitter; verifying it needs a second connected player.
 - **ShovelledSprites overlays** – Extend shovel restore so gap fillers and edge blends are preserved/restored the same way as for poured gravel (attached overlays, not only the base floor sprite in `shovelledSprites`).
 - **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.

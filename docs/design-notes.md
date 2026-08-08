@@ -334,6 +334,18 @@ See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering man
 
 ---
 
+## Sound — dump session ownership
+
+**A dump session belongs to the client that started it.** `DumpTruck.dumpSessionByVehicleId`, keyed by `vehicle:getId()`, records that ownership and stays in Lua. Vehicle modData is the wrong home for it: modData syncs between client and server and is saved with the vehicle, while a sound handle is an emitter channel id meaningful only where it was played, and only the driver's client runs the pour loop.
+
+**Stopping is by name.** `emitter:stopSoundByName("GravelDumpLoop")` ends the loop whether or not this client still holds a handle — the same call vanilla uses on vehicle ignition sounds (`BaseVehicle.java`). `stopDumping` runs that stop before touching `dumpingGravelActive`, so a flag that reads false on a client whose emitter is still looping is exactly the case it repairs. `startDumping` stops before it starts, so repeat Starts cannot stack loops. `HydraulicLiftDown` / `GravelDumpEnd` play only when a loop was in fact playing.
+
+**A truck with no live session is not dumping.** `dumpingGravelActive` is saved with the vehicle, so a driver who disconnects mid-dump leaves it set. `tryPourGravelUnderTruck` retires a flag it finds with no local session instead of pouring, and `onPlayerUpdateFunc` runs for the driver only, so a passenger neither pours nor retires someone else's session.
+
+**Exit is hooked at `ISExitVehicle:perform`,** capturing the vehicle before calling the original. Vanilla triggers `OnExitVehicle` after `vehicle:exit()` and passes only the character, so the event cannot tell which vehicle was left.
+
+---
+
 ## Sound — gravel loop volume by zoom (approach documented)
 
 **Goal:** Make the gravel dump loop (and optionally start/end) get quieter when the camera is zoomed out, similar to the fridge hum.
@@ -343,13 +355,13 @@ See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering man
 **Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
 
 - **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
-- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`, and we already store the loop handle in `data.gravelLoopSoundID` from `emitter:playSound("GravelDumpLoop")`.
+- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`. `startDumping` discards the handle `emitter:playSound("GravelDumpLoop")` returns, since stopping goes by name, so this would keep it on the session entry.
 
 **Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
 
 1. `local zoom = getCore():getZoom(getPlayer():getPlayerNum())`
 2. Normalize to 0–1 with min/max zoom (e.g. `(zoom - min) / (max - min)` or a curve) so “zoomed in = full volume, zoomed out = quieter”.
-3. `vehicle:getEmitter():setVolume(data.gravelLoopSoundID, volume)` with that factor.
+3. `vehicle:getEmitter():setVolume(loopHandle, volume)` with that factor.
 
 No FMOD changes required; the actual Lua change can be done in a follow-up.
 
