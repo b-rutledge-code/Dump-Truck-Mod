@@ -115,14 +115,14 @@ end
 --[[
     isJunk: bed contents the truck tips out rather than pours.
 
-    Empty sacks are the pour's own byproduct, so they stay in the bed to be refilled instead
-    of being strewn down the road the moment a bag runs dry. Everything else a player left
-    back there — including the shovel the bed spawns with — rides out, one item per tile.
+    Empty sacks and the stock shovel stay in the bed — empties for refill, shovel as the
+    truck's own tool. Everything else a player left back there rides out, one item per tile.
 ]]
 local function isJunk(item)
     local fullType = item:getFullType()
     return DumpTruckConstants.POURABLE_BY_BAG[fullType] == nil
         and fullType ~= DumpTruckConstants.EMPTY_BAG_TYPE
+        and fullType ~= DumpTruckConstants.INCLUDED_SHOVEL_TYPE
 end
 
 --[[

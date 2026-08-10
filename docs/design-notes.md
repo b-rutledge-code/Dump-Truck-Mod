@@ -68,7 +68,7 @@ Two mistakes this avoids, and they pull in opposite directions:
 
 ## Tipping out the rest of the bed (IMPLEMENTED)
 
-A poured tile also drops one non-pourable bed item when there is any. Junk is everything in the bed that is not a pourable bag and not `Base.EmptySandbag` — empties stay to be refilled; the stock shovel and any player stash tip out with the pour.
+A poured tile also drops one non-pourable bed item when there is any. Junk is everything in the bed that is not a pourable bag, not `Base.EmptySandbag`, and not the included `Base.Shovel2` — empties stay for refill, the stock shovel stays with the truck, player stash tips out.
 
 A run stays armed while the bed holds pours **or** junk, so a bed of loose items with no bags still empties itself along the sweep without laying any floor.
 

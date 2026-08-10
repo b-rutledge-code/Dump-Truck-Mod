@@ -39,6 +39,9 @@ end
 -- What a pourable bag becomes once drained, per the bags' own ReplaceOnDeplete
 DumpTruckConstants.EMPTY_BAG_TYPE = "Base.EmptySandbag"
 
+-- Spawned with the truck bed in DumpTruckBed; stays with the empties when stash tips out
+DumpTruckConstants.INCLUDED_SHOVEL_TYPE = "Base.Shovel2"
+
 -- Maps pairs of adjacent gravel tile directions to the appropriate gap filler triangle offset
 -- Each entry is {adjacent_directions = {dir1, dir2}, triangle_offset = N}
 DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING = {

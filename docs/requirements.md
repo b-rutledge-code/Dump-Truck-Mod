@@ -15,7 +15,7 @@ Enable players to build gravel roads in Project Zomboid using a dump truck: plac
 7. **Snap Line (v1.3.0)** – Radial option to snap gravel placement to a cardinal grid line (N/S/E/W). Engage when truck is within 25° of cardinal; brake or drift &gt;3 tiles off-line auto-disengages and stops dumping. Position and forward vector overridden in `tryPourGravelUnderTruck()` when active.
 8. **Radial menu icons** – Dump, road width, and Snap Line slices use 8-bit PNGs; UI icons have white stroke to match vanilla radial style. PZ does not support 16-bit PNGs.
 9. **Multi-material pouring** – Gravel, sand and dirt bags all pour, using vanilla's own bag/sprite/`pouredFloor` triples (`DumpTruckConstants.POURABLES`). A mixed bed is spent in bed order, giving a striped road. Poured floors are recognized by the `pouredFloor` stamp: natural sand/dirt still take a pour, the same material is not re-poured (covers band overlap), and a different material can overpour (e.g. dirt over gravel).
-10. **Tipping out the bed** – Each poured tile also drops one non-pourable bed item when the bed holds any (everything except pourable bags and `Base.EmptySandbag`). A run stays armed while either pours or junk remain, so a bed of loose items empties along the sweep with no floor laid.
+10. **Tipping out the bed** – Each poured tile also drops one non-pourable bed item when the bed holds any (stash only: not pourable bags, not empty sacks, not the included shovel). A run stays armed while either pours or junk remain, so a bed of loose items empties along the sweep with no floor laid.
 
 ## Constraints (By Design)
 
