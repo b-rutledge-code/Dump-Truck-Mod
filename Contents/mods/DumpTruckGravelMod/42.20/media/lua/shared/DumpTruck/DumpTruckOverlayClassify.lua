@@ -91,14 +91,40 @@ function DumpTruckOverlayClassify.getGapFillerOffset(spriteName)
 end
 
 --[[
+    getPouredMaterial: which material a floor was poured from, or nil if it was not poured.
+
+    Gravel answers from its sprite alone: `blends_street_01_55` is a street tile, and no
+    natural ground wears one. Sand and dirt pour onto `blends_natural_01_5` and `_64`, the
+    very tiles beaches and dirt fields are made of, so their sprite says only what the ground
+    looks like. The `pouredFloor` stamp is what separates a road we laid from ground that was
+    always there, which is the difference between skipping a tile and pouring it: natural
+    sand must take a pour, our own sand road must not take a second one.
+
+    The stamp is vanilla's, not ours: ISNaturalFloor writes it when a player spills a bag by
+    hand and ISShovelGround clears it when the ground is dug back up.
+]]
+function DumpTruckOverlayClassify.getPouredMaterial(floorSpriteName, pouredFloor)
+    if DumpTruckConstants.POURABLE_BY_FLOOR_TYPE[pouredFloor] then
+        return pouredFloor
+    end
+    if floorSpriteName == DumpTruckConstants.GRAVEL_SPRITE then
+        return "gravel"
+    end
+    return nil
+end
+
+--[[
     classify: What a floor is, from its own sprite plus the sprites attached to it.
     Input:
         floorSpriteName: string - the floor's own sprite
         attachedSpriteNames: table - array of attached sprite names (may be nil or empty)
-    Output: table {type, sprite, direction, triangleOffset} for our tiles, nil for anything else
+        pouredFloor: string - the floor's `pouredFloor` modData value (may be nil)
+    Output: table {type, material, sprite, direction, triangleOffset} for our tiles,
+            nil for anything else
 ]]
-function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames)
-    if floorSpriteName ~= DumpTruckConstants.GRAVEL_SPRITE then
+function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames, pouredFloor)
+    local material = DumpTruckOverlayClassify.getPouredMaterial(floorSpriteName, pouredFloor)
+    if not material then
         return nil
     end
 
@@ -110,6 +136,7 @@ function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames)
             if triangleOffset then
                 return {
                     type = DumpTruckConstants.TILE_TYPES.GAP_FILLER,
+                    material = material,
                     sprite = spriteName,
                     triangleOffset = triangleOffset
                 }
@@ -119,6 +146,7 @@ function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames)
             if direction then
                 return {
                     type = DumpTruckConstants.TILE_TYPES.EDGE_BLEND,
+                    material = material,
                     sprite = spriteName,
                     direction = direction
                 }
@@ -126,7 +154,7 @@ function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames)
         end
     end
 
-    return { type = DumpTruckConstants.TILE_TYPES.GRAVEL }
+    return { type = DumpTruckConstants.TILE_TYPES.GRAVEL, material = material }
 end
 
 --[[

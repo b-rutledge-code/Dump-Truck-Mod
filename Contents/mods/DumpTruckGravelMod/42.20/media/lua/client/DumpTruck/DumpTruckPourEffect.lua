@@ -28,8 +28,8 @@ function DumpTruckPourEffect.isPending(square)
     return expiry ~= nil and getTimestampMs() < expiry
 end
 
-function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
-    if not square or not vehicle then return end
+function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle, pourable)
+    if not square or not vehicle or not pourable then return end
 
     local DumpTruck = require("DumpTruck/DumpTruckGravel")
 
@@ -53,17 +53,18 @@ function DumpTruckPourEffect.schedulePlaceAndEffect(square, vehicle)
         a relog discards the local world and rebuilds the square from the server.
     ]]
     if not isClient() then
-        DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, square)
+        DumpTruck.placeRoadFloorOnSquare(pourable, square)
     end
 
     if isServer() then
-        DumpTruck.consumeGravelFromTruckBed(vehicle)
+        DumpTruck.consumePourableFromTruckBed(vehicle, pourable.bag)
     else
         sendClientCommand(getPlayer(), "DumpTruckGravelMod", "consumeGravel", {
             vehicle = vehicle:getId(),
             x = square:getX(),
             y = square:getY(),
             z = square:getZ(),
+            bag = pourable.bag,
         })
     end
 

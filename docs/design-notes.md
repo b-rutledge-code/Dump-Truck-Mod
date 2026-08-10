@@ -9,7 +9,7 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 **Single debug flag:** `DumpTruckCore.debugMode` in `DumpTruckCore.lua`. When `true` you get both:
 
 - **Console logging:** `DumpTruckCore.debugPrint()` runs. Minimal logs (gated by this flag only): `[DumpTruck] vehicle tile (tx, ty, z)`; `[DumpTruck] tile (x, y, z)` on each gravel placement; `[DumpTruck] edgeBlend (x, y, z) <sprite>`; `[DumpTruck] gapFiller (x, y, z)`; `[DumpTruck] cleanup (x, y, z)` when a blend is removed. All in DumpTruckGravel.lua and DumpTruckOverlays.lua.
-- **Endless gravel:** `consumeGravelFromTruckBed` returns without consuming; `getGravelCount` returns 100. So the truck never runs out and you can test roads without loading sacks.
+- **Endless gravel:** `consumePourableFromTruckBed` returns without consuming, `getPourableUses` returns 100, and `peekNextPourable` always answers gravel. So the truck never runs out and you can test roads without loading sacks. `getJunkCount` returns 0, so debug runs pour without emptying the bed of anything else.
 
 **Set to `false` before release.** See bugs.md open issue.
 
@@ -19,7 +19,7 @@ Mod-specific design and future ideas (not general PZ modding knowledge).
 
 An overlay is a sprite attached to the gravel floor with `AttachExistingAnim`, and that attachment is the only record of it. The engine serializes attached sprites in `IsoObject.save`/`load` and ships them inside the `UpdateItemSprite` packet, so both persistence and multiplayer sync come for free.
 
-**Reading an overlay back:** `DumpTruckCore.classifySquare(square)` collects the attached sprite names and hands them to `DumpTruckOverlayClassify`, which returns `gravel`, `edgeBlend` (with the cardinal it faces) or `gapFiller` (with its triangle offset), or nil when the floor is not ours.
+**Reading an overlay back:** `DumpTruckCore.classifySquare(square)` collects the attached sprite names and the floor's `pouredFloor` stamp and hands them to `DumpTruckOverlayClassify`, which returns `gravel`, `edgeBlend` (with the cardinal it faces) or `gapFiller` (with its triangle offset), each carrying the `material` it was poured from, or nil when the floor is not ours.
 
 **The tileset math:** Blend and triangle sprites share the `blends_natural_01` sheet, 16 tiles per row, one row per terrain. Position within the row is what carries meaning:
 
@@ -34,6 +34,47 @@ Dividing by 16 normalizes any variant to its row start, which is how a blend for
 **Cleanup rule:** A blend belongs on a gravel-to-terrain edge, so one whose direction faces a gravel neighbor is a stale seam and gets removed. Direction is what makes this safe at the end of a road row, where the blend faces outward at terrain while gravel continues behind it.
 
 `DumpTruckOverlayClassify` is pure Lua — strings and tables, no game globals — so `scripts/run-overlay-tests.sh` runs it under plain `lua`. Keep it that way; live-square access belongs in `DumpTruckCore`.
+
+---
+
+## Multi-material pouring (IMPLEMENTED)
+
+The truck pours gravel, sand or dirt. `DumpTruckConstants.POURABLES` holds the triple for each — bag, floor sprite, `pouredFloor` type — and they are vanilla's own: `ISInventoryBuildMenu` spills each bag onto that sprite and `ISNaturalFloor` stamps that type, so a road the truck lays is the tile a player lays by hand with the same bag.
+
+| Bag | Floor sprite | `pouredFloor` |
+|---|---|---|
+| `Base.Gravelbag` | `blends_street_01_55` | `gravel` |
+| `Base.Sandbag` | `blends_natural_01_5` | `sand` |
+| `Base.Dirtbag` | `blends_natural_01_64` | `dirt` |
+
+**A road is known by its stamp, not by its sprite.** Gravel could be read off its sprite alone, because a street tile is not something natural ground wears. Sand and dirt pour onto the tiles beaches and dirt fields are made of, and dirt in particular pours onto `blends_natural_01_64` — the same tile `ISShovelGround` leaves behind when ground is dug up. So `DumpTruckOverlayClassify.getPouredMaterial` reads `pouredFloor`, keeping the gravel sprite only as a fast path for roads poured before the truck recorded anything.
+
+Two mistakes this avoids, and they pull in opposite directions:
+
+- Refusing to pour on ground that merely looks like the material. A beach is a valid place to lay a sand road, and a sprite check would skip it.
+- Pouring a second time on a road we already laid. Sweeps between ticks overlap on purpose, so the same tile is offered repeatedly; without the stamp each pass would charge another bag.
+
+`isSquareValidForPour` matches vanilla's `ISNaturalFloor:isValid`: it skips only when the square is already a finished pour of the **same** material. Overlapping band ticks therefore do not re-charge sand-on-sand (or gravel-on-gravel), while a later pass dumping dirt can bury a gravel road.
+
+**Strict bed order.** `peekNextPourable` walks the bed container front to back and takes the first bag with uses left, so a striped road records how the truck was packed rather than any ranking of materials.
+
+**Consume by type.** The driver's client picks the material for a tile and sends that bag type with the pour; the server spends *that* bag. Picking again on the server would let the floor and the charge disagree when a bag empties while the message is in flight.
+
+**Gap fillers take the material of the road square that opened the pocket**, which `checkForCornerPattern` reports alongside the pocket. A column can straddle a stripe boundary, so there is no single material for a row.
+
+**Blends need nothing new.** They are derived from the *neighbour's* terrain row, not from the road, so the same offset math serves all three materials.
+
+---
+
+## Tipping out the rest of the bed (IMPLEMENTED)
+
+A poured tile also drops one non-pourable bed item when there is any. Junk is everything in the bed that is not a pourable bag and not `Base.EmptySandbag` — empties stay to be refilled; the stock shovel and any player stash tip out with the pour.
+
+A run stays armed while the bed holds pours **or** junk, so a bed of loose items with no bags still empties itself along the sweep without laying any floor.
+
+**The drop happens where the world is owned.** `IsoGridSquare.AddWorldInventoryItem` only transmits when the server makes the call, so a client doing it itself would create an item nobody else sees and that vanishes on reload. The client sends `ejectJunk`; the server removes from the bed and drops. Same split as the pour and as `applySmoothRoad`.
+
+**Squares already tipped onto are remembered for the run** (`DumpTruck.junkedSquaresByVehicleId`, client-local beside the dump session and cleared with it). A pour does not need this because a finished road square is skipped on sight, but a bare square carries no such mark, and consecutive sweeps overlap by design — without it a truck inching forward would pile item after item onto one tile.
 
 ---
 
@@ -120,8 +161,8 @@ The pour effect places gravel immediately but hides it behind temporary overlays
 **On each square when gravel is placed (`DumpTruckPourEffect.schedulePlaceAndEffect`):**
 
 1. Save the name of the existing floor sprite (e.g. `blends_natural_01_0`).
-2. Call `placeGravelFloorOnSquare()` immediately — the real gravel is now the floor.
-3. Call `consumeGravelFromTruckBed()` — deduct from inventory.
+2. Call `placeRoadFloorOnSquare()` immediately — the real road floor is now the floor.
+3. Call `consumePourableFromTruckBed()` with the bag the tile was scheduled with — deduct from inventory.
 4. Create **IsoObject #1 ("fakeFloor")** using the saved old floor sprite → `square:AddTileObject(fakeFloor)`. This visually hides the gravel underneath.
 5. Create **IsoObject #2 ("overlay")** using `POUR_SPRITES[1]` (sparse speckles on transparent background) → `square:AddTileObject(overlay)`. This sits on top of the fake floor.
 6. Store `{ fakeFloor, overlay, square, stage=1, nextSwapAt=now+POUR_STAGE_MS }` in a `pending` table.
@@ -390,7 +431,7 @@ A pour tick lays the road the truck drove since the last one. `DumpTruckBandRast
 
 **Coverage is measured per tile, against the swept area.** A tile joins the road when its centre lies inside the rectangle swept between the two pour points. Sampling points along the road's perpendicular instead would break on a 45 degree heading, where that perpendicular runs through tile corners: the tiles its samples land on touch only at their corners and leave holes between them. `tests/band_raster_test.lua` holds the line on this, asserting that a 45 degree sweep is reachable north/south/east/west from end to end.
 
-**Across the road the test is half open** (`-width/2 <= across < width/2`), so a cardinal row is exactly `width` tiles wherever the truck sits inside its own tile. **Along the road it reaches half a tile past each end**, so a crawling truck still lays a row when one tick's pour point lands in the same tile as the last, and consecutive ticks overlap rather than leaving a seam. Re-covering a poured tile costs nothing: `isSquareValidForGravel` passes over finished gravel.
+**Across the road the test is half open** (`-width/2 <= across < width/2`), so a cardinal row is exactly `width` tiles wherever the truck sits inside its own tile. **Along the road it reaches half a tile past each end**, so a crawling truck still lays a row when one tick's pour point lands in the same tile as the last, and consecutive ticks overlap rather than leaving a seam. Re-covering a poured tile of the same material costs nothing: `isSquareValidForPour` passes over it. A different material overwrites.
 
 **An even width has no middle tile,** so the band shifts half a tile across and rides the truck's right rather than straddling it. The across vector is held on the heading's side, which keeps that same side when reversing.
 

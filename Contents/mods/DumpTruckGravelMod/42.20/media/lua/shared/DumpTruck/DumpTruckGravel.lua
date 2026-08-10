@@ -6,12 +6,13 @@ local DumpTruckBandRaster = require("DumpTruck/DumpTruckBandRaster")
 
 local DumpTruck = {}
 
--- GRAVEL
+-- POURING
 
-function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
-    if not sprite or not sq then
+function DumpTruck.placeRoadFloorOnSquare(pourable, sq)
+    if not pourable or not sq then
         return
     end
+    local sprite = pourable.sprite
     
     -- If upgrading a gap filler, remove the attached triangle overlay first
     local existingOverlay = DumpTruckCore.classifySquare(sq)
@@ -36,7 +37,13 @@ function DumpTruck.placeGravelFloorOnSquare(sprite, sq)
     if newFloor and shovelledSprites and #shovelledSprites > 0 then
         local floorModData = newFloor:getModData()
         floorModData.shovelledSprites = shovelledSprites
-        floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+        --[[
+            The stamp that makes this square a road rather than ground that happens to look
+            like one. Sand and dirt pour onto the same tiles beaches and dirt fields wear, so
+            without it the next pass over this tile could not tell it had already been paid
+            for, and a natural beach could not be told apart from a finished road.
+        ]]
+        floorModData.pouredFloor = pourable.floorType
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
         -- Server only: client floor objects have no resolvable id on the server; the
         -- ObjectModData null path leaves the payload unread and desyncs the stream,
@@ -95,23 +102,79 @@ local function applySmoothRoad(currentSquares)
     DumpTruckOverlays.smoothRoad(currentSquares)
 end
 
-function DumpTruck.consumeGravelFromTruckBed(vehicle)
+-- THE BED
+
+local function getBedContainer(vehicle)
+    local truckBed = vehicle:getPartById(DumpTruckConstants.PART_NAME)
+    if not truckBed then
+        return nil
+    end
+    return truckBed:getItemContainer()
+end
+
+--[[
+    isJunk: bed contents the truck tips out rather than pours.
+
+    Empty sacks are the pour's own byproduct, so they stay in the bed to be refilled instead
+    of being strewn down the road the moment a bag runs dry. Everything else a player left
+    back there — including the shovel the bed spawns with — rides out, one item per tile.
+]]
+local function isJunk(item)
+    local fullType = item:getFullType()
+    return DumpTruckConstants.POURABLE_BY_BAG[fullType] == nil
+        and fullType ~= DumpTruckConstants.EMPTY_BAG_TYPE
+end
+
+--[[
+    peekNextPourable: what the next tile pours, without spending it.
+
+    The bed is walked in its own order rather than by any ranking of materials, so a load
+    packed gravel-then-sand lays gravel until it runs out and then sand. Peeking and
+    spending are separate because in multiplayer they happen on different machines: the
+    driver's client picks the material for a tile, and the server is told which bag to
+    charge for it, so the floor that appears always matches the bag that paid for it even
+    if the bed changed in between.
+]]
+function DumpTruck.peekNextPourable(vehicle)
+    if DumpTruckCore.debugMode then
+        return DumpTruckConstants.POURABLE_BY_FLOOR_TYPE.gravel
+    end
+
+    local container = getBedContainer(vehicle)
+    if not container then
+        return nil
+    end
+
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i)
+        local pourable = DumpTruckConstants.POURABLE_BY_BAG[item:getFullType()]
+        if pourable and item:getCurrentUses() > 0 then
+            return pourable
+        end
+    end
+
+    return nil
+end
+
+-- Spend one use of a named bag: the material the tile was scheduled with, not whatever
+-- happens to be first in the bed by the time this runs
+function DumpTruck.consumePourableFromTruckBed(vehicle, bagType)
     if DumpTruckCore.debugMode then
         return true
     end
 
-    local truckBed = vehicle:getPartById(DumpTruckConstants.PART_NAME)
-    if not truckBed or not truckBed:getItemContainer() then
+    local container = getBedContainer(vehicle)
+    if not container or not bagType then
         return false
     end
 
-    local container = truckBed:getItemContainer()
     local items = container:getItems()
 
     for i = 0, items:size() - 1 do
         local item = items:get(i)
 
-        if item:getFullType() == DumpTruckConstants.BAG_TYPE then
+        if item:getFullType() == bagType then
             local currentUses = item:getCurrentUses()
             if currentUses > 0 then
                 local newCount = currentUses - 1
@@ -122,7 +185,7 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
                         sendRemoveItemFromContainer(container, item)
                     end
                     container:Remove(item)
-                    local newItem = container:AddItem("Base.EmptySandbag")
+                    local newItem = container:AddItem(DumpTruckConstants.EMPTY_BAG_TYPE)
                     if isServer() and newItem then
                         sendAddItemToContainer(container, newItem)
                     end
@@ -141,25 +204,98 @@ function DumpTruck.consumeGravelFromTruckBed(vehicle)
     return false
 end
 
-function DumpTruck.getGravelCount(vehicle)
+-- Every pour left in the bed, across all materials
+function DumpTruck.getPourableUses(vehicle)
     if DumpTruckCore.debugMode then
         return 100
     end
 
     local totalUses = 0
-    local truckBed = vehicle:getPartById(DumpTruckConstants.PART_NAME)
-    if not truckBed or not truckBed:getItemContainer() then
+    local container = getBedContainer(vehicle)
+    if not container then
         return totalUses
     end
-    local items = truckBed:getItemContainer():getItems()
+
+    local items = container:getItems()
     for i = 0, items:size() - 1 do
         local item = items:get(i)
-        if item:getFullType() == DumpTruckConstants.BAG_TYPE then
-            local currentUses = item:getCurrentUses()
-            totalUses = totalUses + currentUses
+        if DumpTruckConstants.POURABLE_BY_BAG[item:getFullType()] then
+            totalUses = totalUses + item:getCurrentUses()
         end
     end
     return totalUses
+end
+
+function DumpTruck.getJunkCount(vehicle)
+    if DumpTruckCore.debugMode then
+        return 0
+    end
+
+    local count = 0
+    local container = getBedContainer(vehicle)
+    if not container then
+        return count
+    end
+
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        if isJunk(items:get(i)) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+-- A run keeps going while the bed holds anything to leave behind, poured or tipped out
+function DumpTruck.hasDumpableLoad(vehicle)
+    return DumpTruck.getPourableUses(vehicle) > 0 or DumpTruck.getJunkCount(vehicle) > 0
+end
+
+--[[
+    ejectJunkFromTruckBed: tip one loose item out of the bed onto a square.
+
+    Runs where the world is owned, never on a multiplayer client. AddWorldInventoryItem
+    transmits the dropped object to clients only when the server makes the call, so a client
+    doing this itself would create an item nobody else can see and that vanishes on reload,
+    while the bed it took the item from is the server's to change.
+]]
+function DumpTruck.ejectJunkFromTruckBed(vehicle, sq)
+    local container = getBedContainer(vehicle)
+    if not container or not sq then
+        return false
+    end
+
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i)
+        if isJunk(item) then
+            if isServer() then
+                sendRemoveItemFromContainer(container, item)
+            end
+            container:Remove(item)
+            container:setDrawDirty(true)
+            sq:AddWorldInventoryItem(item, ZombRandFloat(0.1, 0.9), ZombRandFloat(0.1, 0.9), 0)
+            DumpTruckCore.debugPrint("[DumpTruck] junk (", sq:getX(), ", ", sq:getY(), ", ", sq:getZ(), ") ", item:getFullType())
+            return true
+        end
+    end
+
+    return false
+end
+
+-- Same split as the pour itself: a client asks, whoever owns the world acts
+local function requestJunkEject(vehicle, sq)
+    if isClient() then
+        sendClientCommand(getPlayer(), "DumpTruckGravelMod", "ejectJunk", {
+            vehicle = vehicle:getId(),
+            x = sq:getX(),
+            y = sq:getY(),
+            z = sq:getZ(),
+        })
+        return
+    end
+
+    DumpTruck.ejectJunkFromTruckBed(vehicle, sq)
 end
 
 -- ROAD BUILDING
@@ -272,7 +408,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         roadWidth = vehicleWidth + 1
     end
 
-    if DumpTruck.getGravelCount(vehicle) <= 0 then
+    if not DumpTruck.hasDumpableLoad(vehicle) then
         DumpTruck.stopDumping(vehicle)
         return
     end
@@ -293,9 +429,25 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     for _, column in ipairs(columns) do
         for _, sq in ipairs(column) do
-            if DumpTruckCore.isSquareValidForGravel(sq) and not DumpTruckPourEffect.isPending(sq) then
-                DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle)
-                if DumpTruck.getGravelCount(vehicle) <= 0 then
+            if DumpTruckCore.isSquareOpenGround(sq) then
+                --[[
+                    A tile takes a floor and an item independently. A load of bags with a
+                    toolbox on top leaves both behind as it goes, and once the bags are gone
+                    the run carries on tipping out what is left.
+                ]]
+                local pourable = DumpTruck.peekNextPourable(vehicle)
+                if pourable
+                        and DumpTruckCore.isSquareValidForPour(sq, pourable.floorType)
+                        and not DumpTruckPourEffect.isPending(sq) then
+                    DumpTruckPourEffect.schedulePlaceAndEffect(sq, vehicle, pourable)
+                end
+
+                if DumpTruck.getJunkCount(vehicle) > 0 and not DumpTruck.hasJunkedSquare(vehicle, sq) then
+                    DumpTruck.markJunkedSquare(vehicle, sq)
+                    requestJunkEject(vehicle, sq)
+                end
+
+                if not DumpTruck.hasDumpableLoad(vehicle) then
                     applySmoothRoad(column)
                     DumpTruck.stopDumping(vehicle)
                     return
@@ -350,6 +502,36 @@ function DumpTruck.hasLocalDumpSession(vehicle)
     return DumpTruck.dumpSessionByVehicleId[vehicle:getId()] == true
 end
 
+--[[
+    Squares this run has already tipped an item onto, kept beside the session for the same
+    reason and cleared with it.
+
+    Consecutive sweeps overlap by design so a crawling truck leaves no seam, which means the
+    same tile is offered to the run several times. A pour shrugs that off, since a finished
+    road square is skipped on sight; a bare square has no such mark, so without this a truck
+    inching along would pile item after item onto one tile.
+]]
+DumpTruck.junkedSquaresByVehicleId = {}
+
+local function junkKey(sq)
+    return sq:getX() .. "," .. sq:getY() .. "," .. sq:getZ()
+end
+
+function DumpTruck.hasJunkedSquare(vehicle, sq)
+    local junked = DumpTruck.junkedSquaresByVehicleId[vehicle:getId()]
+    return junked ~= nil and junked[junkKey(sq)] == true
+end
+
+function DumpTruck.markJunkedSquare(vehicle, sq)
+    local vehicleId = vehicle:getId()
+    local junked = DumpTruck.junkedSquaresByVehicleId[vehicleId]
+    if not junked then
+        junked = {}
+        DumpTruck.junkedSquaresByVehicleId[vehicleId] = junked
+    end
+    junked[junkKey(sq)] = true
+end
+
 -- Stop dumping sounds
 function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
     local vehicleId = vehicle:getId()
@@ -383,6 +565,7 @@ function DumpTruck.startDumping(vehicle)
     data.dumpLastTileY = nil
     data.dumpLastCentreX = nil
     data.dumpLastCentreY = nil
+    DumpTruck.junkedSquaresByVehicleId[vehicle:getId()] = nil
 
     -- Start dumping sounds
     vehicle:playSound("HydraulicLiftRaised")
@@ -407,6 +590,7 @@ function DumpTruck.stopDumping(vehicle)
     data.dumpLastTileY = nil
     data.dumpLastCentreX = nil
     data.dumpLastCentreY = nil
+    DumpTruck.junkedSquaresByVehicleId[vehicle:getId()] = nil
 end
 
 
@@ -455,17 +639,32 @@ Events.OnClientCommand.Add(function(module, command, player, args)
             return
         end
         if vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
-        -- Only place gravel on dedicated server; in SP client already placed (blends would be wiped by a second place)
+        -- The bag the client picked for this tile, so the floor laid and the bag charged are
+        -- the same material even if the bed moved on while the message was in flight
+        local pourable = DumpTruckConstants.POURABLE_BY_BAG[args.bag]
+        if not pourable then return end
+        -- Only place the floor on a dedicated server; in SP the client already placed it
+        -- (blends would be wiped by a second place)
         if isServer() and args.x and args.y and args.z then
             local cell = getCell()
             if cell then
                 local sq = cell:getGridSquare(args.x, args.y, args.z)
                 if sq then
-                    DumpTruck.placeGravelFloorOnSquare(DumpTruckConstants.GRAVEL_SPRITE, sq)
+                    DumpTruck.placeRoadFloorOnSquare(pourable, sq)
                 end
             end
         end
-        DumpTruck.consumeGravelFromTruckBed(vehicle)
+        DumpTruck.consumePourableFromTruckBed(vehicle, pourable.bag)
+    elseif command == "ejectJunk" and args.vehicle and args.x and args.y and args.z then
+        local vehicle = getVehicleById(args.vehicle)
+        if not vehicle then return end
+        if vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
+        local cell = getCell()
+        if not cell then return end
+        local sq = cell:getGridSquare(args.x, args.y, args.z)
+        if sq then
+            DumpTruck.ejectJunkFromTruckBed(vehicle, sq)
+        end
     elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
         local cell = getCell()
         if not cell then

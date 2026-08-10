@@ -43,7 +43,15 @@ function DumpTruckCore.getAttachedSpriteNames(floor)
     return names
 end
 
--- Classify a live square: returns {type, sprite, direction, triangleOffset} or nil
+-- The floor's `pouredFloor` stamp, or nil on ground nobody has poured
+function DumpTruckCore.getPouredFloorStamp(floor)
+    if not floor or not floor:hasModData() then
+        return nil
+    end
+    return floor:getModData().pouredFloor
+end
+
+-- Classify a live square: returns {type, material, sprite, direction, triangleOffset} or nil
 function DumpTruckCore.classifySquare(square)
     if not square then return nil end
 
@@ -53,25 +61,40 @@ function DumpTruckCore.classifySquare(square)
     local floorSprite = floor:getSprite()
     if not floorSprite then return nil end
 
-    return DumpTruckOverlayClassify.classify(floorSprite:getName(), DumpTruckCore.getAttachedSpriteNames(floor))
+    return DumpTruckOverlayClassify.classify(
+        floorSprite:getName(),
+        DumpTruckCore.getAttachedSpriteNames(floor),
+        DumpTruckCore.getPouredFloorStamp(floor)
+    )
 end
 
--- Check if a square is a full gravel floor (not a blend)
+-- Which material a square's road was poured from, or nil when it is not a road of ours
+function DumpTruckCore.getPouredMaterial(square)
+    local overlay = DumpTruckCore.classifySquare(square)
+    return overlay and overlay.material or nil
+end
+
+-- Check if a square is a full road floor of any material (not a blend)
 -- Gap fillers do NOT count, so corner detection cannot cascade into them: each filler a
 -- corner check can see is a corner the next tick can build on, and the road grows a fresh
 -- row of teeth down its side every pass
-function DumpTruckCore.isFullGravelFloor(square)
+function DumpTruckCore.isFullRoadFloor(square)
     local overlay = DumpTruckCore.classifySquare(square)
     return overlay ~= nil and overlay.type ~= DumpTruckConstants.TILE_TYPES.GAP_FILLER
 end
 
--- Check if a square is poured gravel (full gravel or a gap filler)
-function DumpTruckCore.isPouredGravel(square)
+-- Check if a square is a poured road of any material (full floor or a gap filler)
+function DumpTruckCore.isPouredRoad(square)
     return DumpTruckCore.classifySquare(square) ~= nil
 end
 
--- Check if square is valid for gravel
-function DumpTruckCore.isSquareValidForGravel(sq)
+--[[
+    isSquareOpenGround: ground the truck is allowed to act on at all.
+
+    Mirrors the checks vanilla's own ISNaturalFloor:isValid makes before spilling a bag, so
+    the truck refuses the squares a player pouring by hand would be refused.
+]]
+function DumpTruckCore.isSquareOpenGround(sq)
     if not sq then
         return false
     end
@@ -81,13 +104,33 @@ function DumpTruckCore.isSquareValidForGravel(sq)
     if sq:getProperties() and sq:getProperties():has("water") then
         return false
     end
+    return true
+end
+
+--[[
+    isSquareValidForPour: can this material go here?
+
+    Same rule as vanilla ISNaturalFloor:isValid — refuse only when the square is already a
+    finished pour of this material. That is what stops a dump tick from charging again for
+    tiles the band still covers before the truck leaves them. A different material is allowed
+    through, so dirt can bury a gravel road on a later pass.
+
+    Gap fillers of any material can still be upgraded to a full floor: they are unfinished
+    corners, not a finished surface to protect.
+]]
+function DumpTruckCore.isSquareValidForPour(sq, floorType)
+    if not DumpTruckCore.isSquareOpenGround(sq) then
+        return false
+    end
 
     local overlay = DumpTruckCore.classifySquare(sq)
-    if overlay then
-        -- Gap fillers can be upgraded to full gravel; finished gravel is left alone
-        return overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+    if not overlay then
+        return true
     end
-    return true
+    if overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
+        return true
+    end
+    return overlay.material ~= floorType
 end
 
 -- Get forward vector from vehicle driver

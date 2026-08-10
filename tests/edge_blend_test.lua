@@ -38,10 +38,11 @@ end
 
 local world
 
-local function makeSquare(x, y, floorSprite, isGravel)
+local function makeSquare(x, y, floorSprite)
     local floor = {
         attached = {},
         sprite = getSprite(floorSprite),
+        pouredFloor = nil,
         getSprite = function(self) return self.sprite end,
         AttachExistingAnim = function(self, spriteObj)
             table.insert(self.attached, spriteObj:getName())
@@ -50,7 +51,7 @@ local function makeSquare(x, y, floorSprite, isGravel)
         DirtySlice = function() end
     }
     return {
-        x = x, y = y, gravel = isGravel, floor = floor,
+        x = x, y = y, floor = floor,
         getX = function(self) return self.x end,
         getY = function(self) return self.y end,
         getZ = function() return 0 end,
@@ -64,12 +65,12 @@ local function makeSquare(x, y, floorSprite, isGravel)
     }
 end
 
--- A 7x7 patch of grass, gravel painted on afterwards
+-- A 7x7 patch of grass, road painted on afterwards
 local function newWorld()
     world = {}
     for x = 7, 13 do
         for y = 7, 13 do
-            world[x .. "," .. y] = makeSquare(x, y, GRASS, false)
+            world[x .. "," .. y] = makeSquare(x, y, GRASS)
         end
     end
     return world
@@ -77,11 +78,18 @@ end
 
 local function at(x, y) return world[x .. "," .. y] end
 
-local function paveGravel(x, y)
+-- Pave with a real material: sprite and stamp both, the way a pour leaves the square,
+-- so the module recognizes the road the same way the game does
+local function pave(x, y, floorType)
+    local pourable = Constants.POURABLE_BY_FLOOR_TYPE[floorType]
     local square = at(x, y)
-    square.gravel = true
-    square.floor.sprite = getSprite(Constants.GRAVEL_SPRITE)
+    square.floor.sprite = getSprite(pourable.sprite)
+    square.floor.pouredFloor = pourable.floorType
     return square
+end
+
+local function paveGravel(x, y)
+    return pave(x, y, "gravel")
 end
 
 -- The direction of the blend now attached, or nil when the square carries none
@@ -93,13 +101,26 @@ local function blendDirection(square)
     return Classify.getEdgeBlendDirection(attached[#attached])
 end
 
+-- The real classifier over the fake floors, so "is this a road" is decided here the same
+-- way it is in game: gravel by its street sprite, sand and dirt by their poured stamp
+local function classifySquare(square)
+    if not square then return nil end
+    local floor = square:getFloor()
+    return Classify.classify(floor:getSprite():getName(), floor.attached, floor.pouredFloor)
+end
+
 package.loaded["DumpTruck/DumpTruckCore"] = {
-    isPouredGravel = function(square) return square ~= nil and square.gravel == true end,
-    isFullGravelFloor = function(square) return square ~= nil and square.gravel == true end,
-    getAttachedSpriteNames = function(floor) return floor.attached end,
-    classifySquare = function(square)
-        return Classify.classify(square:getFloor():getSprite():getName(), square:getFloor().attached)
+    isPouredRoad = function(square) return classifySquare(square) ~= nil end,
+    isFullRoadFloor = function(square)
+        local overlay = classifySquare(square)
+        return overlay ~= nil and overlay.type ~= Constants.TILE_TYPES.GAP_FILLER
     end,
+    getPouredMaterial = function(square)
+        local overlay = classifySquare(square)
+        return overlay and overlay.material or nil
+    end,
+    getAttachedSpriteNames = function(floor) return floor.attached end,
+    classifySquare = classifySquare,
     debugPrint = function() end
 }
 
@@ -171,9 +192,47 @@ newWorld()
 local pavedNeighbour = paveGravel(10, 9)
 paveGravel(10, 10)
 local pavedLast = paveGravel(10, 11)
-at(10, 8).floor.sprite = getSprite("blends_street_01_55") -- not terrain we can blend against
+at(10, 8).floor.sprite = getSprite("floors_interior_carpet_01_0") -- not terrain we can blend against
 Overlays.addEdgeBlends(pavedNeighbour, pavedLast)
 equals(blendDirection(pavedNeighbour), nil, "non-terrain neighbour: no blend")
+
+-- MATERIALS: a road is known by its stamp, not by looking like one
+
+-- Sand and dirt roads wear the same sprites as beaches and dirt fields, so the stamp is the
+-- only thing separating a road we laid from ground that was always there.
+newWorld()
+local sandFirst = pave(10, 9, "sand")
+pave(10, 10, "sand")
+local sandLast = pave(10, 11, "sand")
+Overlays.addEdgeBlends(sandFirst, sandLast)
+equals(blendDirection(sandFirst), "NORTH", "sand road: first square blends against terrain")
+equals(blendDirection(sandLast), "SOUTH", "sand road: last square blends against terrain")
+
+-- The same sprite without a stamp is ordinary ground, and a road blends against it
+newWorld()
+local besideBeach = paveGravel(10, 10)
+paveGravel(10, 11)
+at(10, 9).floor.sprite = getSprite(Constants.POURABLE_BY_FLOOR_TYPE.sand.sprite)
+Overlays.addEdgeBlends(besideBeach, at(10, 11))
+equals(blendDirection(besideBeach), "NORTH", "unstamped sand is terrain, so the road blends against it")
+
+-- Stamp that same neighbour and it becomes road: nothing to blend against any more
+newWorld()
+local besideSandRoad = paveGravel(10, 10)
+paveGravel(10, 11)
+pave(10, 9, "sand")
+Overlays.addEdgeBlends(besideSandRoad, at(10, 11))
+equals(blendDirection(besideSandRoad), nil, "a stamped sand road is not terrain to blend against")
+
+-- A dirt road wears the very sprite this world uses for grass
+newWorld()
+local dirtFirst = pave(9, 10, "dirt")
+pave(10, 10, "dirt")
+local dirtLast = pave(11, 10, "dirt")
+equals(at(9, 10).floor.sprite:getName(), GRASS, "dirt pours onto the same tile as the surrounding ground")
+Overlays.addEdgeBlends(dirtFirst, dirtLast)
+equals(blendDirection(dirtFirst), "WEST", "dirt road: first square still blends against the grass beside it")
+equals(blendDirection(dirtLast), "EAST", "dirt road: last square still blends against the grass beside it")
 
 -- A square already wearing the right blend keeps it instead of hunting for another face
 newWorld()

@@ -11,7 +11,7 @@ function ISBuildIsoEntity:create(x, y, z, north, sprite)
     end
 
     -- After the tile is placed, clean up any edge blends between adjacent gravel tiles
-    if self.sq and DumpTruckCore.isFullGravelFloor(self.sq) then
+    if self.sq and DumpTruckCore.isFullRoadFloor(self.sq) then
         DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(self.sq)
     end
 end

@@ -160,7 +160,7 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     local neighborIsGravel = {}
     for _, direction in ipairs(CARDINAL_DIRECTIONS) do
         local neighbor = neighbors[direction]
-        neighborIsGravel[direction] = neighbor ~= nil and DumpTruckCore.isPouredGravel(neighbor)
+        neighborIsGravel[direction] = neighbor ~= nil and DumpTruckCore.isPouredRoad(neighbor)
     end
 
     if hasBlendBorderingGravel(square, neighborIsGravel) then
@@ -169,10 +169,10 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     end
 
     -- Check NEIGHBOR blends on the edge they share with me
-    local squareIsGravel = DumpTruckCore.isPouredGravel(square)
+    local squareIsGravel = DumpTruckCore.isPouredRoad(square)
     for _, direction in ipairs(CARDINAL_DIRECTIONS) do
         local neighbor = neighbors[direction]
-        if neighbor and DumpTruckCore.isPouredGravel(neighbor) then
+        if neighbor and DumpTruckCore.isPouredRoad(neighbor) then
             local sharedEdgeIsGravel = { [OPPOSITE_DIRECTION[direction]] = squareIsGravel }
             if hasBlendBorderingGravel(neighbor, sharedEdgeIsGravel) then
                 DumpTruckCore.debugPrint("[DumpTruck] cleanup (", neighbor:getX(), ", ", neighbor:getY(), ", ", neighbor:getZ(), ")")
@@ -224,19 +224,25 @@ end
 -- PLACEMENT FUNCTIONS
 
 --[[
-    placeGapFiller: Places gravel floor with natural terrain triangle overlay
+    placeGapFiller: Places a road floor with natural terrain triangle overlay
     Input:
-        nonGravelSquare: IsoGridSquare - Square that doesn't have gravel (corner gap)
+        nonGravelSquare: IsoGridSquare - Square that doesn't have a road (corner gap)
         triangleOffset: number - Triangle offset (1-4) from corner pattern mapping
+        material: string - Poured material of the road that opened this pocket
     Output: boolean - true if successful, false otherwise
 ]]
-function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
+function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset, material)
     if not nonGravelSquare or not triangleOffset then
+        return false
+    end
+
+    local pourable = DumpTruckConstants.POURABLE_BY_FLOOR_TYPE[material]
+    if not pourable then
         return false
     end
     
     -- Check if already has gravel (don't overwrite)
-    if DumpTruckCore.isPouredGravel(nonGravelSquare) then
+    if DumpTruckCore.isPouredRoad(nonGravelSquare) then
         return false
     end
     
@@ -259,15 +265,15 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset)
         shovelledSprites = {originalFloor:getSprite():getName()}
     end
     
-    -- Place GRAVEL floor (now it's a gravel square for shoveling)
-    local newFloor = nonGravelSquare:addFloor(DumpTruckConstants.GRAVEL_SPRITE)
+    -- Place the road floor (now it's a road square for shoveling)
+    local newFloor = nonGravelSquare:addFloor(pourable.sprite)
     if not newFloor then
         return false
     end
     
-    -- Set metadata so it's recognized as gravel and can be shoveled
+    -- Set metadata so it's recognized as road and can be shoveled
     local floorModData = newFloor:getModData()
-    floorModData.pouredFloor = DumpTruckConstants.POURED_FLOOR_TYPE
+    floorModData.pouredFloor = pourable.floorType
     floorModData.shovelled = nil
     if shovelledSprites then
         floorModData.shovelledSprites = shovelledSprites
@@ -308,7 +314,7 @@ function DumpTruckOverlays.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
 
-    if not DumpTruckCore.isPouredGravel(gravelSquare) then
+    if not DumpTruckCore.isPouredRoad(gravelSquare) then
         return false
     end
 
@@ -385,7 +391,7 @@ end
 ]]
 local function blendTowards(square, direction)
     local sideSquare = getNeighbour(square, direction)
-    if not sideSquare or DumpTruckCore.isPouredGravel(sideSquare) then
+    if not sideSquare or DumpTruckCore.isPouredRoad(sideSquare) then
         return false
     end
 
@@ -434,10 +440,18 @@ end
 
 -- GAP FILLING
 
--- Check if a grass square adjacent to a gravel square forms a corner pattern
+--[[
+    checkForCornerPattern: find the pocket a corner of this road square leaves open.
+
+    Reports the road's own material alongside the pocket, so the filler is poured from what
+    the road beside it is made of. A column can straddle a stripe boundary when one bag runs
+    out mid-sweep, so the material belongs to the square that opened the pocket rather than
+    to the row as a whole.
+]]
 function DumpTruckOverlays.checkForCornerPattern(gravelSquare)
-    if not gravelSquare or not DumpTruckCore.isFullGravelFloor(gravelSquare) then
-        return nil, nil
+    local material = DumpTruckCore.getPouredMaterial(gravelSquare)
+    if not material or not DumpTruckCore.isFullRoadFloor(gravelSquare) then
+        return nil, nil, nil
     end
 
     -- Check each adjacent square
@@ -450,7 +464,7 @@ function DumpTruckOverlays.checkForCornerPattern(gravelSquare)
 
     for _, check in ipairs(adjacentChecks) do
         local adjacentSquare = check.square
-        if adjacentSquare and not DumpTruckCore.isPouredGravel(adjacentSquare) then
+        if adjacentSquare and not DumpTruckCore.isPouredRoad(adjacentSquare) then
             
             -- Found a non-gravel square, check its other adjacent squares
             local otherAdjacentChecks = {
@@ -471,7 +485,7 @@ function DumpTruckOverlays.checkForCornerPattern(gravelSquare)
             for _, otherCheck in ipairs(otherAdjacentChecks) do
                 -- Skip the direction that points back to our original gravel square
                 if otherCheck.dir ~= check.opposite then
-                    if otherCheck.square and DumpTruckCore.isFullGravelFloor(otherCheck.square) then
+                    if otherCheck.square and DumpTruckCore.isFullRoadFloor(otherCheck.square) then
                         gravelCount = gravelCount + 1
                         table.insert(gravelDirections, otherCheck.dir)
                     end
@@ -487,14 +501,14 @@ function DumpTruckOverlays.checkForCornerPattern(gravelSquare)
                     -- Check if our gravel directions match this mapping (order doesn't matter)
                     if (gravelDirections[1] == directions[1] and gravelDirections[2] == directions[2]) or
                        (gravelDirections[1] == directions[2] and gravelDirections[2] == directions[1]) then
-                        return adjacentSquare, mapping.triangle_offset
+                        return adjacentSquare, mapping.triangle_offset, material
                     end
                 end
             end
         end
     end
 
-    return nil, nil
+    return nil, nil, nil
 end
 
 --[[
@@ -506,9 +520,9 @@ end
 ]]
 function DumpTruckOverlays.fillGaps(currentSquares)
     for i = 1, #currentSquares do
-        local pocketSquare, triangleOffset = DumpTruckOverlays.checkForCornerPattern(currentSquares[i])
+        local pocketSquare, triangleOffset, material = DumpTruckOverlays.checkForCornerPattern(currentSquares[i])
         if pocketSquare and triangleOffset then
-            DumpTruckOverlays.placeGapFiller(pocketSquare, triangleOffset)
+            DumpTruckOverlays.placeGapFiller(pocketSquare, triangleOffset, material)
         end
     end
 end

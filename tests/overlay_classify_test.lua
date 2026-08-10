@@ -86,6 +86,37 @@ local existingRoad = Classify.classify(GRAVEL, { "blends_natural_01_75" })
 equals(existingRoad.type, TILE_TYPES.EDGE_BLEND, "existing road blend classifies from sprites alone")
 equals(existingRoad.sprite, "blends_natural_01_75", "classify reports which sprite it matched")
 
+-- POURED MATERIALS
+--
+-- Gravel is the one road that can be read off its sprite: no natural ground wears a street
+-- tile. Sand and dirt pour onto the tiles beaches and dirt fields are made of, so only the
+-- pouredFloor stamp separates a road we laid from ground that was always there. Getting this
+-- wrong either charges a second bag for a finished road or treats a beach as one.
+local SAND = Constants.POURABLE_BY_FLOOR_TYPE.sand.sprite
+local DIRT = Constants.POURABLE_BY_FLOOR_TYPE.dirt.sprite
+
+equals(Classify.getPouredMaterial(GRAVEL, nil), "gravel", "gravel is known by its sprite alone")
+equals(Classify.getPouredMaterial(GRAVEL, "gravel"), "gravel", "gravel stamp agrees with its sprite")
+equals(Classify.getPouredMaterial(SAND, "sand"), "sand", "a stamped sand road is a road")
+equals(Classify.getPouredMaterial(DIRT, "dirt"), "dirt", "a stamped dirt road is a road")
+equals(Classify.getPouredMaterial(SAND, nil), nil, "a natural beach is not a road")
+equals(Classify.getPouredMaterial(DIRT, nil), nil, "a natural dirt field is not a road")
+equals(Classify.getPouredMaterial(GRASS, nil), nil, "plain grass is not a road")
+equals(Classify.getPouredMaterial(GRASS, "clay"), nil, "a material the truck cannot pour is not ours")
+equals(Classify.getPouredMaterial(GRASS, "shovelled"), nil, "an unrelated stamp is not a material")
+
+-- Dirt pours onto the same tile the shovel leaves behind, so the stamp is doing all the work
+equals(DIRT, "blends_natural_01_64", "dirt and shovelled ground share a sprite")
+equals(Classify.classify(DIRT, {}, nil), nil, "shovelled ground carries no stamp and is not ours")
+equals(Classify.classify(DIRT, {}, "dirt").type, TILE_TYPES.GRAVEL, "a stamped dirt floor is a full road square")
+
+-- Material rides along on every classification, so a gap filler can be poured from whatever
+-- the road beside it is made of
+equals(Classify.classify(SAND, {}, "sand").material, "sand", "a bare sand road reports its material")
+equals(Classify.classify(SAND, { "blends_natural_01_72" }, "sand").material, "sand", "a blended sand road reports its material")
+equals(Classify.classify(SAND, { "blends_natural_01_65" }, "sand").type, TILE_TYPES.GAP_FILLER, "sand takes gap fillers too")
+equals(Classify.classify(GRAVEL, {}).material, "gravel", "gravel reports its material with no stamp present")
+
 -- Unrecognized and malformed attachments are ignored rather than misclassified
 equals(Classify.classify(GRAVEL, { "f_wallvines_1_39", "dumptruck_pour_01" }).type, TILE_TYPES.GRAVEL, "unknown attachments do not classify")
 equals(Classify.classify(GRAVEL, { false, 42, "blends_natural_01_72" }).type, TILE_TYPES.EDGE_BLEND, "malformed entries are skipped")
