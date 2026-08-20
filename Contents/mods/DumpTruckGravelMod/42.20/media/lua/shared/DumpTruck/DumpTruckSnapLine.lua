@@ -3,6 +3,24 @@ local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 
 local DumpTruckSnapLine = {}
 
+DumpTruckSnapLine.active = false
+DumpTruckSnapLine.axis = nil
+DumpTruckSnapLine.value = nil
+DumpTruckSnapLine.heading = nil
+DumpTruckSnapLine.fx = nil
+DumpTruckSnapLine.fy = nil
+
+local function clearSavedSnapLine(vehicle)
+    if not vehicle then return end
+    local data = vehicle:getModData()
+    data.snapLineActive = nil
+    data.snapLineAxis = nil
+    data.snapLineValue = nil
+    data.snapLineHeading = nil
+    data.snapLineFx = nil
+    data.snapLineFy = nil
+end
+
 local function normalizeAngle(a)
     a = a % 360
     if a < 0 then a = a + 360 end
@@ -70,63 +88,56 @@ function DumpTruckSnapLine.engage(vehicle)
         lockedValue = math.floor(cy + 0.5)
     end
 
-    local data = vehicle:getModData()
-    data.snapLineActive = true
-    data.snapLineAxis = lockAxis
-    data.snapLineValue = lockedValue
-    data.snapLineHeading = headingLabel(fx, fy)
-    data.snapLineFx = fx
-    data.snapLineFy = fy
+    DumpTruckSnapLine.active = true
+    DumpTruckSnapLine.axis = lockAxis
+    DumpTruckSnapLine.value = lockedValue
+    DumpTruckSnapLine.heading = headingLabel(fx, fy)
+    DumpTruckSnapLine.fx = fx
+    DumpTruckSnapLine.fy = fy
+    clearSavedSnapLine(vehicle)
 
     return true
 end
 
 function DumpTruckSnapLine.disengage(vehicle)
-    if not vehicle then return end
-    local data = vehicle:getModData()
-    data.snapLineActive = nil
-    data.snapLineAxis = nil
-    data.snapLineValue = nil
-    data.snapLineHeading = nil
-    data.snapLineFx = nil
-    data.snapLineFy = nil
+    DumpTruckSnapLine.active = false
+    DumpTruckSnapLine.axis = nil
+    DumpTruckSnapLine.value = nil
+    DumpTruckSnapLine.heading = nil
+    DumpTruckSnapLine.fx = nil
+    DumpTruckSnapLine.fy = nil
+    clearSavedSnapLine(vehicle)
 end
 
 function DumpTruckSnapLine.isActive(vehicle)
     if not vehicle then return false end
-    return vehicle:getModData().snapLineActive == true
+    return DumpTruckSnapLine.active == true
 end
 
 function DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
-    if not vehicle then return cx, cy end
-    local data = vehicle:getModData()
-    if not data.snapLineActive then return cx, cy end
+    if not vehicle or not DumpTruckSnapLine.active then return cx, cy end
 
-    if data.snapLineAxis == "X" then
-        return data.snapLineValue, cy
+    if DumpTruckSnapLine.axis == "X" then
+        return DumpTruckSnapLine.value, cy
     else
-        return cx, data.snapLineValue
+        return cx, DumpTruckSnapLine.value
     end
 end
 
 function DumpTruckSnapLine.getLockedForwardVector(vehicle)
-    if not vehicle then return nil, nil end
-    local data = vehicle:getModData()
-    if not data.snapLineActive then return nil, nil end
-    if not data.snapLineFx or not data.snapLineFy then return nil, nil end
-    return data.snapLineFx, data.snapLineFy
+    if not vehicle or not DumpTruckSnapLine.active then return nil, nil end
+    if not DumpTruckSnapLine.fx or not DumpTruckSnapLine.fy then return nil, nil end
+    return DumpTruckSnapLine.fx, DumpTruckSnapLine.fy
 end
 
 function DumpTruckSnapLine.checkDrift(vehicle, cx, cy)
-    if not vehicle then return false end
-    local data = vehicle:getModData()
-    if not data.snapLineActive then return false end
+    if not vehicle or not DumpTruckSnapLine.active then return false end
 
     local drift
-    if data.snapLineAxis == "X" then
-        drift = math.abs(cx - data.snapLineValue)
+    if DumpTruckSnapLine.axis == "X" then
+        drift = math.abs(cx - DumpTruckSnapLine.value)
     else
-        drift = math.abs(cy - data.snapLineValue)
+        drift = math.abs(cy - DumpTruckSnapLine.value)
     end
 
     return drift > DumpTruckConstants.SNAP_LINE_DRIFT_MAX

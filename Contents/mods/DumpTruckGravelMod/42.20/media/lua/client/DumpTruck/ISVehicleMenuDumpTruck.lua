@@ -16,19 +16,25 @@ function ISVehicleMenu.showRadialMenu(playerObj)
     local vehicle = playerObj:getVehicle()
     if vehicle and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
         local data = vehicle:getModData()
-        local isDumping = data.dumpingGravelActive or false
+        local isDumping = DumpTruck.dumpingActive
 
         -- Add your custom slice for gravel dumping
         local dumpIcon = isDumping and "media/ui/vehicles/not_dumping.png" or "media/ui/vehicles/dumping.png"
         
+        -- Label and action both follow this client's dump switch at menu open. The click
+        -- looks up the live truck (vanilla ignition slices do the same).
         menu:addSlice(
             isDumping and "Stop Dumping Gravel" or "Start Dumping Gravel",
             getTexture(dumpIcon),
             function()
+                local live = playerObj:getVehicle()
+                if not live or live:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then
+                    return
+                end
                 if isDumping then
-                    DumpTruck.stopDumping(vehicle)
+                    DumpTruck.stopDumping(live)
                 else
-                    DumpTruck.startDumping(vehicle)
+                    DumpTruck.startDumping(live)
                 end
             end
         )
@@ -47,7 +53,12 @@ function ISVehicleMenu.showRadialMenu(playerObj)
                 "Road Width: " .. nextWidth .. " tiles",
                 getTexture(roadIcon),
                 function()
-                    data.wideRoadMode = not wideMode
+                    local live = playerObj:getVehicle()
+                    if not live or live:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then
+                        return
+                    end
+                    local liveData = live:getModData()
+                    liveData.wideRoadMode = not (liveData.wideRoadMode or false)
                 end
             )
         end
@@ -55,7 +66,7 @@ function ISVehicleMenu.showRadialMenu(playerObj)
         local isLocked = DumpTruckSnapLine.isActive(vehicle)
         local lockLabel
         if isLocked then
-            lockLabel = "Disable Snap Line (" .. (data.snapLineHeading or "?") .. ")"
+            lockLabel = "Disable Snap Line (" .. (DumpTruckSnapLine.heading or "?") .. ")"
         else
             local nearestHeading = DumpTruckSnapLine.getNearestHeading(vehicle)
             lockLabel = "Enable Snap Line (" .. nearestHeading .. ")"
@@ -66,15 +77,19 @@ function ISVehicleMenu.showRadialMenu(playerObj)
             lockLabel,
             getTexture(lockIcon),
             function()
-                if isLocked then
-                    DumpTruckSnapLine.disengage(vehicle)
-                    vehicle:playSound("VehicleDoorCloseWindow")
+                local live = playerObj:getVehicle()
+                if not live or live:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then
+                    return
+                end
+                if DumpTruckSnapLine.isActive(live) then
+                    DumpTruckSnapLine.disengage(live)
+                    live:playSound("VehicleDoorCloseWindow")
                 else
-                    local ok = DumpTruckSnapLine.engage(vehicle)
+                    local ok = DumpTruckSnapLine.engage(live)
                     if ok then
-                        vehicle:playSound("VehicleSeatBelt")
+                        live:playSound("VehicleSeatBelt")
                     else
-                        vehicle:playSound("VehicleReverseBuzzer")
+                        live:playSound("VehicleReverseBuzzer")
                     end
                 end
             end

@@ -348,18 +348,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     if not vehicle or vehicle:getScriptName() ~= DumpTruckConstants.VEHICLE_SCRIPT_NAME then return end
 
     local data = vehicle:getModData()
-    if not data.dumpingGravelActive then return end  -- Only proceed if dumping is active
-
-    --[[
-        The flag is saved with the vehicle, so a driver who disconnects mid-dump leaves it
-        set on a truck nobody is dumping from. Without a session on this client there is no
-        loop sound and nobody asked to pour, so retire the leftover flag and let the new
-        driver start their own run.
-    ]]
-    if not DumpTruck.hasLocalDumpSession(vehicle) then
-        DumpTruck.stopDumping(vehicle)
-        return
-    end
+    if not DumpTruck.dumpingActive then return end
 
     local cx, cy, cz = vehicle:getX(), vehicle:getY(), vehicle:getZ()
     cz = 0 -- Assume ground level for simplicity
@@ -413,16 +402,16 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         return
     end
 
-    local firstPour = data.dumpLastCentreX == nil
-    if not firstPour and tileX == data.dumpLastTileX and tileY == data.dumpLastTileY then return end
+    local firstPour = DumpTruck.dumpLastCentreX == nil
+    if not firstPour and tileX == DumpTruck.dumpLastTileX and tileY == DumpTruck.dumpLastTileY then return end
 
     local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
     local centreX, centreY = DumpTruck.getPourCentre(snapCx, snapCy, fx, fy, length)
 
     -- The first pour of a run has nothing to sweep from, so it lays a single row under
     -- the bed and the run builds on it from the next tick
-    local lastCentreX = firstPour and centreX or data.dumpLastCentreX
-    local lastCentreY = firstPour and centreY or data.dumpLastCentreY
+    local lastCentreX = firstPour and centreX or DumpTruck.dumpLastCentreX
+    local lastCentreY = firstPour and centreY or DumpTruck.dumpLastCentreY
 
     local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
     local columns = DumpTruck.getBandColumns(lastCentreX, lastCentreY, centreX, centreY, fx, fy, roadWidth, cz)
@@ -457,10 +446,10 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         applySmoothRoad(column)
     end
 
-    data.dumpLastTileX = tileX
-    data.dumpLastTileY = tileY
-    data.dumpLastCentreX = centreX
-    data.dumpLastCentreY = centreY
+    DumpTruck.dumpLastTileX = tileX
+    DumpTruck.dumpLastTileY = tileY
+    DumpTruck.dumpLastCentreX = centreX
+    DumpTruck.dumpLastCentreY = centreY
 end
 
 -- Update function for player actions
@@ -491,16 +480,16 @@ end
 Events.OnPlayerUpdate.Add(DumpTruck.onPlayerUpdateFunc)
 
 --[[
-    A dump session belongs to the client that started it, because only that client runs the
-    pour loop and holds the loop sound on its own emitter. Vehicle modData is no place to
-    record it: modData syncs and is saved with the vehicle, so `dumpingGravelActive` cannot
-    answer "is a session live on this machine".
+    Dump switch, loop handle, and last-pour point live on this client. One driver, one
+    truck. Vehicle modData is not used — it syncs and is saved, which left trucks
+    "still dumping" after logout.
 ]]
-DumpTruck.dumpSessionByVehicleId = {}
-
-function DumpTruck.hasLocalDumpSession(vehicle)
-    return DumpTruck.dumpSessionByVehicleId[vehicle:getId()] == true
-end
+DumpTruck.dumpingActive = false
+DumpTruck.dumpLoopHandle = nil
+DumpTruck.dumpLastTileX = nil
+DumpTruck.dumpLastTileY = nil
+DumpTruck.dumpLastCentreX = nil
+DumpTruck.dumpLastCentreY = nil
 
 --[[
     Squares this run has already tipped an item onto, kept beside the session for the same
@@ -534,19 +523,22 @@ end
 
 -- Stop dumping sounds
 function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
-    local vehicleId = vehicle:getId()
-    local emitter = vehicle:getEmitter()
-    local wasPlaying = DumpTruck.dumpSessionByVehicleId[vehicleId] == true
+    if not vehicle then
+        return
+    end
 
+    local handle = DumpTruck.dumpLoopHandle
+    local emitter = vehicle:getEmitter()
+    local wasPlaying = handle ~= nil
     if emitter then
-        -- By name rather than by handle, so the loop still ends when the handle is gone
         if emitter:isPlaying("GravelDumpLoop") then
             wasPlaying = true
         end
-        emitter:stopSoundByName("GravelDumpLoop")
+        if handle ~= nil then
+            emitter:stopSound(handle)
+        end
     end
-
-    DumpTruck.dumpSessionByVehicleId[vehicleId] = nil
+    DumpTruck.dumpLoopHandle = nil
 
     if playEndSounds and wasPlaying then
         vehicle:playSound("HydraulicLiftDown")
@@ -556,15 +548,19 @@ end
 
 -- Start dumping
 function DumpTruck.startDumping(vehicle)
-    -- Clear any loop still running on this truck so repeat starts cannot stack
     DumpTruck.stopDumpingSounds(vehicle, false)
 
     local data = vehicle:getModData()
-    data.dumpingGravelActive = true
+    data.dumpingGravelActive = nil
     data.dumpLastTileX = nil
     data.dumpLastTileY = nil
     data.dumpLastCentreX = nil
     data.dumpLastCentreY = nil
+    DumpTruck.dumpingActive = true
+    DumpTruck.dumpLastTileX = nil
+    DumpTruck.dumpLastTileY = nil
+    DumpTruck.dumpLastCentreX = nil
+    DumpTruck.dumpLastCentreY = nil
     DumpTruck.junkedSquaresByVehicleId[vehicle:getId()] = nil
 
     -- Start dumping sounds
@@ -572,20 +568,22 @@ function DumpTruck.startDumping(vehicle)
     vehicle:playSound("GravelDumpStart")
     local emitter = vehicle:getEmitter()
     if emitter then
-        emitter:playSound("GravelDumpLoop")
+        DumpTruck.dumpLoopHandle = emitter:playSound("GravelDumpLoop")
     end
-    DumpTruck.dumpSessionByVehicleId[vehicle:getId()] = true
 end
 
 -- Stop dumping
 function DumpTruck.stopDumping(vehicle)
     local data = vehicle:getModData()
 
-    -- Sounds stop first and unconditionally: the flag can read false on a client whose
-    -- emitter is still looping, and that is the case most in need of a stop
     DumpTruck.stopDumpingSounds(vehicle, true)
 
-    data.dumpingGravelActive = false
+    DumpTruck.dumpingActive = false
+    DumpTruck.dumpLastTileX = nil
+    DumpTruck.dumpLastTileY = nil
+    DumpTruck.dumpLastCentreX = nil
+    DumpTruck.dumpLastCentreY = nil
+    data.dumpingGravelActive = nil
     data.dumpLastTileX = nil
     data.dumpLastTileY = nil
     data.dumpLastCentreX = nil

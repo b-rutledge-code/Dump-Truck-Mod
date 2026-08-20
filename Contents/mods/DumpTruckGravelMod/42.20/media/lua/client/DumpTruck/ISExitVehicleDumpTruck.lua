@@ -14,8 +14,8 @@ local originalPerform = ISExitVehicle.perform
 function ISExitVehicle:perform()
     local vehicle = self.character and self.character:getVehicle()
     -- A driverless truck covers the driver who switched to a passenger seat before getting out.
-    -- A passenger leaving while someone still drives is skipped: stopDumping writes synced
-    -- modData, so that client would disarm a session it does not own.
+    -- A passenger leaving while someone still drives is skipped: this client would
+    -- end a dump it does not own.
     local shouldEndDump = vehicle
             and (vehicle:getDriver() == self.character or vehicle:getDriver() == nil)
 

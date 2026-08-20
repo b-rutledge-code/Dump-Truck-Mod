@@ -13,7 +13,6 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
     local modData = vehicle:getModData()
     if modData.initialized == nil then
         modData.initialized = true
-        modData.dumpingGravelActive = false
 
         if not part then return end
 

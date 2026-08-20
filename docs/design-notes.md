@@ -332,7 +332,7 @@ Instead of steering the truck (which is impossible from Lua — see "steering th
 ### How it works
 
 1. Player opens radial menu and selects **"Enable Snap Line (N)"** (label shows predicted direction). The mod checks if the truck is within 25 degrees of a cardinal heading (`SNAP_LINE_ENGAGE_THRESHOLD`). If not, engage is refused with a buzzer sound.
-2. On engage: capture the actual forward vector from `DumpTruckCore.getVectorFromPlayer()` — the same function the normal dump path uses — and snap it to the nearest cardinal axis. Store the snapped `fx, fy`, the cross-axis coordinate, and heading label in vehicle modData (`snapLineAxis`, `snapLineValue`, `snapLineHeading`, `snapLineFx`, `snapLineFy`). This guarantees the locked vector uses the exact same sign convention as the working dump logic.
+2. On engage: capture the actual forward vector from `DumpTruckCore.getVectorFromPlayer()` — the same function the normal dump path uses — and snap it to the nearest cardinal axis. Store the snapped `fx, fy`, the cross-axis coordinate, and heading label on this client (`DumpTruckSnapLine.fx`, `fy`, `axis`, `value`, `heading`). This guarantees the locked vector uses the exact same sign convention as the working dump logic.
 3. In `tryPourGravelUnderTruck()`, when Snap Line is active:
    - **Brake check:** if `vehicle:isBraking()`, auto-disengage lock + stop dumping + warning sound.
    - **Drift check:** if the truck has drifted more than `SNAP_LINE_DRIFT_MAX` (3) tiles off the locked line, auto-disengage lock + stop dumping + warning sound.
@@ -377,11 +377,11 @@ See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering man
 
 ## Sound — dump session ownership
 
-**A dump session belongs to the client that started it.** `DumpTruck.dumpSessionByVehicleId`, keyed by `vehicle:getId()`, records that ownership and stays in Lua. Vehicle modData is the wrong home for it: modData syncs between client and server and is saved with the vehicle, while a sound handle is an emitter channel id meaningful only where it was played, and only the driver's client runs the pour loop.
+**Dump switch, loop handle, and last-pour point live on this client.** `DumpTruck.dumpingActive` is the Start/Stop switch (radial label and pour). `DumpTruck.dumpLoopHandle` is the one `playSound("GravelDumpLoop")` channel. `DumpTruck.dumpLastTileX/Y` and `dumpLastCentreX/Y` are this run’s last pour point. One driver, one truck. Vehicle modData is not used for these: it syncs and is saved. Start/Stop nil leftover `modData.dumpingGravelActive` and `dumpLast*` so old saves drop those keys.
 
-**Stopping is by name.** `emitter:stopSoundByName("GravelDumpLoop")` ends the loop whether or not this client still holds a handle — the same call vanilla uses on vehicle ignition sounds (`BaseVehicle.java`). `stopDumping` runs that stop before touching `dumpingGravelActive`, so a flag that reads false on a client whose emitter is still looping is exactly the case it repairs. `startDumping` stops before it starts, so repeat Starts cannot stack loops. `HydraulicLiftDown` / `GravelDumpEnd` play only when a loop was in fact playing.
+**Stop is by handle on this truck.** `stopDumpingSounds` calls `emitter:stopSound(DumpTruck.dumpLoopHandle)` when a handle is stored (`BaseVehicle.stopSound` / `BaseSoundEmitter.stopSound`). End clips play only when a loop was in fact playing. `startDumping` stops before it starts and stores the new handle. Radial Start/Stop looks up `playerObj:getVehicle()` at click time; the slice follows `DumpTruck.dumpingActive` at menu open.
 
-**A truck with no live session is not dumping.** `dumpingGravelActive` is saved with the vehicle, so a driver who disconnects mid-dump leaves it set. `tryPourGravelUnderTruck` retires a flag it finds with no local session instead of pouring, and `onPlayerUpdateFunc` runs for the driver only, so a passenger neither pours nor retires someone else's session.
+**Pour follows the same switch.** `tryPourGravelUnderTruck` runs only when `DumpTruck.dumpingActive` is true. `onPlayerUpdateFunc` runs for the driver only, so a passenger neither pours nor stops someone else's dump.
 
 **Exit is hooked at `ISExitVehicle:perform`,** capturing the vehicle before calling the original. Vanilla triggers `OnExitVehicle` after `vehicle:exit()` and passes only the character, so the event cannot tell which vehicle was left.
 
@@ -396,7 +396,7 @@ See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering man
 **Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
 
 - **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
-- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`. `startDumping` discards the handle `emitter:playSound("GravelDumpLoop")` returns, since stopping goes by name, so this would keep it on the session entry.
+- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`. `startDumping` stores the handle `emitter:playSound("GravelDumpLoop")` returns in `DumpTruck.dumpLoopHandle`.
 
 **Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
 
@@ -443,6 +443,21 @@ A pour tick lays the road the truck drove since the last one. `DumpTruckBandRast
 
 **A gap filler never counts as gravel during corner detection,** neither as a seed nor in a pocket's neighbour count. Every filler a corner check can see is a corner the next tick can build on, so the road grows a fresh row of teeth down its side on every pass. Tried and reverted: an offline simulation of a single run showed the growth converging after two to four tiles, but in the game the same edge squares seed the check tick after tick and it does not.
 
+### Gap filler neighbour rule (open issue)
+
+A gap filler is a **full road floor** plus a **natural-terrain triangle** over one corner of that square (`ADJACENT_TO_BLEND_MAPPING` offsets 1–4). The triangle marks the open half of an L-pocket: exactly two full-road neighbours on adjacent cardinals.
+
+Those two road arms are the only faces where a **solid** full-road neighbour is correct. The other two cardinals run along the triangle half of the tile. A solid square there puts full gravel against a half-grass edge and reads as a grass notch biting into the road (seen on diagonal staircase corners). Those two faces need the **opposite-facing** gap filler (complementary triangle), not another solid.
+
+| Triangle offset | Road arms (solid OK) | Triangle faces (need opposite GF) | Opposite offset |
+|---|---|---|---|
+| 1 | EAST, SOUTH | WEST, NORTH | 2 |
+| 2 | WEST, NORTH | EAST, SOUTH | 1 |
+| 3 | NORTH, EAST | SOUTH, WEST | 4 |
+| 4 | WEST, SOUTH | NORTH, EAST | 3 |
+
+Opposite pairs are complementary halves of the same square: 1 ↔ 2 and 3 ↔ 4. Today's `fillGaps` only plants an L-pocket when the open square has exactly those two solid neighbours; it does not require or place opposite fillers on the triangle faces, so a later solid pour or staircase step can leave the wrong neighbour there. See Open Issues in `bugs.md`.
+
 **Edge blends border the column's two end squares,** facing outward from the road. The outward direction comes from the column's own shape: the vector from its first square to its last is the across direction, so the first square faces its negation and the last faces it. Reading it from the squares is what lets the multiplayer server agree, since it smooths a column it receives as bare coordinates and never learns which way the truck was pointing. On a cardinal column that vector lies on an axis and yields one direction.
 
 **A diagonal column yields two directions per end,** dominant axis first, and an end square on a staircase genuinely is exposed on both faces. The square takes the first of them that has terrain beside it, so a face abutting a gap filler falls through to the other one instead of costing the square its blend. A floor carries a single attached sprite, so the rare square exposed both ways gets the dominant face and leaves the other bare.
@@ -450,5 +465,5 @@ A pour tick lays the road the truck drove since the last one. `DumpTruckBandRast
 ### Where the pieces live
 
 - `DumpTruckBandRaster.lua` (shared) — `offsetBehind()`, `getColumns()`. Pure math on tile coordinates, no game objects, so `tests/band_raster_test.lua` runs it outside the game.
-- `DumpTruckGravel.lua` — `getPourCentre()` puts the pour point half a truck length behind the cab; `getBandColumns()` resolves tiles to squares; `tryPourGravelUnderTruck()` sweeps once per tick and remembers the pour point in `dumpLastCentreX/Y`.
+- `DumpTruckGravel.lua` — `getPourCentre()` puts the pour point half a truck length behind the cab; `getBandColumns()` resolves tiles to squares; `tryPourGravelUnderTruck()` sweeps once per tick and remembers the pour point in `DumpTruck.dumpLastCentreX/Y`.
 - `DumpTruckOverlays.lua` — `smoothRoad()` per column.
