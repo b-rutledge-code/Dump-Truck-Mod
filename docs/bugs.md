@@ -201,6 +201,12 @@ Smoothing follows the same split. Gap fillers are checked on every square of a c
 
 **Fix:** The outward direction now comes from the column's own shape — the vector from its first square to its last is the across direction — so a cardinal column yields the single direction it always did and a diagonal one yields two, dominant axis first. Each end takes the first of its directions that has terrain beside it, so a face abutting gravel falls through to the other. The straightaway gate is gone. `tests/edge_blend_test.lua` pins the four cardinal columns to their previous directions and covers the diagonal and fall-through cases.
 
+### Opposite-facing gap filler beside solid road (grass notches)
+
+**Problem:** A gap filler's triangle allows solid full road on its two road-arm sides; the other two cardinals are triangle faces and need the complementary (opposite-facing) gap filler. Solid on a triangle face left a grass notch in the road on diagonal staircase corners.
+
+**Fix:** `healGapFillerTriangleFaces` runs after `fillGaps` in `smoothRoad` and converts solid road on a filler's triangle faces with `convertFullRoadToGapFiller`. The pour tick batches every column into one smooth pass and passes their union as `bandSet`, so squares under the band this tick stay solid (drive-over upgrades and the intentional spine). Full write-up: design-notes “Gap filler neighbour rule”.
+
 ## Known Limitations
 
 - **Mechanics diagram** – Uses vanilla pickup overlay via `carMechanicsOverlay = Base.PickUpTruck` in `vehicle_dumptruck.txt` (functional, not FE6-accurate). Custom overlay art is optional follow-up.
@@ -222,4 +228,4 @@ Smoothing follows the same split. Gap fillers are checked on every square of a c
 - **Shovel + overlays** – Separate follow-up: [`plan-shovel-overlays.md`](plan-shovel-overlays.md) (UC1 add beside road; UC2–UC6 remove edge/centre/gap filler/spur/last tile).
 - **Snap Line UX** – Future ideas in design-notes: auto-regulator on engage, preview line on ground, pre-aim mode. No decision yet on priority.
 - **Dumping on other vehicle models** – Players ask to use this dump/pour on more than the current dump-truck script (`VEHICLE_SCRIPT_NAME`). Follow-up; no work now.
-- **Opposite-facing gap filler beside solid road (edge case)** – A gap filler’s triangle only allows **solid** full road on its two **road-arm** sides. The other two cardinals are **triangle faces** and need the complementary (opposite-facing) gap filler, not a solid square. Solid on a triangle face leaves a grass notch in the road (seen on diagonal staircase corners). Offsets: 1 (E+S arms) ↔ opposite 2 (W+N); 3 (N+E) ↔ opposite 4 (W+S). Full write-up: design-notes “Gap filler neighbour rule”. Follow-up; no work now.
+- **Diagonal outer teeth / angle-dependent width** – Near-diagonal pours fill staircase L-pockets with gap fillers outside the band, so the road can look wider and toothier than on a cardinal; redriving can grow another row. Parked; tradeoff between stable one-time teeth and same-width-every-heading not chosen yet.

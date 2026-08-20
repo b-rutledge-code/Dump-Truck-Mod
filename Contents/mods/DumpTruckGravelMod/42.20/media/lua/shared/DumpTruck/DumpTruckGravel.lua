@@ -71,7 +71,11 @@ function DumpTruck.placeRoadFloorOnSquare(pourable, sq)
 end
 
 --[[
-    applySmoothRoad: run the smoothing pass exactly once, on whoever owns the world.
+    applySmoothRoad: run the smoothing pass exactly once per pour tick, on whoever owns the world.
+
+    Takes every column swept this tick so the heal pass can exempt the whole band — a filler
+    the truck just upgraded to solid must stay solid even when a complementary partner sits
+    outside the column currently being smoothed.
 
     An MP client must never run it itself. Gap filling calls IsoGridSquare.addFloor, which is
     asymmetric across the network: the remove half goes out as a RemoveItemFromSquare packet
@@ -83,23 +87,52 @@ end
     Blends and gap fillers are also derived from neighbour state, so computing them twice
     against two different worlds drifts the two copies apart even when nothing is destroyed.
 ]]
-local function applySmoothRoad(currentSquares)
-    if not currentSquares or #currentSquares < 2 then return end
-
-    if isClient() then
-        local squareList = {}
-        for _, sq in ipairs(currentSquares) do
+local function buildBandSet(columns)
+    local bandSet = {}
+    for _, column in ipairs(columns) do
+        for _, sq in ipairs(column) do
             if sq then
-                table.insert(squareList, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+                bandSet[sq:getX() .. "," .. sq:getY() .. "," .. sq:getZ()] = true
             end
         end
-        if #squareList >= 2 then
-            sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { squares = squareList })
+    end
+    return bandSet
+end
+
+local function applySmoothRoad(columns)
+    if not columns or #columns == 0 then return end
+
+    local columnsToSmooth = {}
+    for _, column in ipairs(columns) do
+        if column and #column >= 2 then
+            table.insert(columnsToSmooth, column)
+        end
+    end
+    if #columnsToSmooth == 0 then return end
+
+    if isClient() then
+        local payloadColumns = {}
+        for _, column in ipairs(columnsToSmooth) do
+            local squareList = {}
+            for _, sq in ipairs(column) do
+                if sq then
+                    table.insert(squareList, { x = sq:getX(), y = sq:getY(), z = sq:getZ() })
+                end
+            end
+            if #squareList >= 2 then
+                table.insert(payloadColumns, squareList)
+            end
+        end
+        if #payloadColumns > 0 then
+            sendClientCommand(getPlayer(), "DumpTruckGravelMod", "smoothRoad", { columns = payloadColumns })
         end
         return
     end
 
-    DumpTruckOverlays.smoothRoad(currentSquares)
+    local bandSet = buildBandSet(columnsToSmooth)
+    for _, column in ipairs(columnsToSmooth) do
+        DumpTruckOverlays.smoothRoad(column, bandSet)
+    end
 end
 
 -- THE BED
@@ -415,8 +448,10 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
 
     local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
     local columns = DumpTruck.getBandColumns(lastCentreX, lastCentreY, centreX, centreY, fx, fy, roadWidth, cz)
+    local pouredColumns = {}
 
     for _, column in ipairs(columns) do
+        table.insert(pouredColumns, column)
         for _, sq in ipairs(column) do
             if DumpTruckCore.isSquareOpenGround(sq) then
                 --[[
@@ -437,14 +472,15 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
                 end
 
                 if not DumpTruck.hasDumpableLoad(vehicle) then
-                    applySmoothRoad(column)
+                    applySmoothRoad(pouredColumns)
                     DumpTruck.stopDumping(vehicle)
                     return
                 end
             end
         end
-        applySmoothRoad(column)
     end
+
+    applySmoothRoad(pouredColumns)
 
     DumpTruck.dumpLastTileX = tileX
     DumpTruck.dumpLastTileY = tileY
@@ -663,20 +699,29 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         if sq then
             DumpTruck.ejectJunkFromTruckBed(vehicle, sq)
         end
-    elseif command == "smoothRoad" and args.squares and #args.squares >= 2 then
+    elseif command == "smoothRoad" and args.columns and #args.columns > 0 then
         local cell = getCell()
         if not cell then
             return
         end
-        local serverSquares = {}
-        for _, pt in ipairs(args.squares) do
-            if pt.x and pt.y and pt.z then
-                local sq = cell:getGridSquare(pt.x, pt.y, pt.z)
-                if sq then table.insert(serverSquares, sq) end
+        local serverColumns = {}
+        for _, squareList in ipairs(args.columns) do
+            local serverSquares = {}
+            for _, pt in ipairs(squareList) do
+                if pt.x and pt.y and pt.z then
+                    local sq = cell:getGridSquare(pt.x, pt.y, pt.z)
+                    if sq then table.insert(serverSquares, sq) end
+                end
+            end
+            if #serverSquares >= 2 then
+                table.insert(serverColumns, serverSquares)
             end
         end
-        if #serverSquares >= 2 then
-            DumpTruckOverlays.smoothRoad(serverSquares)
+        if #serverColumns > 0 then
+            local bandSet = buildBandSet(serverColumns)
+            for _, column in ipairs(serverColumns) do
+                DumpTruckOverlays.smoothRoad(column, bandSet)
+            end
         end
     elseif command == "cleanupBlendsAt" and args.x and args.y and args.z then
         local cell = getCell()

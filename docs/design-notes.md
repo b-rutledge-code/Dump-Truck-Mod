@@ -443,20 +443,26 @@ A pour tick lays the road the truck drove since the last one. `DumpTruckBandRast
 
 **A gap filler never counts as gravel during corner detection,** neither as a seed nor in a pocket's neighbour count. Every filler a corner check can see is a corner the next tick can build on, so the road grows a fresh row of teeth down its side on every pass. Tried and reverted: an offline simulation of a single run showed the growth converging after two to four tiles, but in the game the same edge squares seed the check tick after tick and it does not.
 
-### Gap filler neighbour rule (open issue)
+### Gap filler neighbour rule
 
 A gap filler is a **full road floor** plus a **natural-terrain triangle** over one corner of that square (`ADJACENT_TO_BLEND_MAPPING` offsets 1–4). The triangle marks the open half of an L-pocket: exactly two full-road neighbours on adjacent cardinals.
 
-Those two road arms are the only faces where a **solid** full-road neighbour is correct. The other two cardinals run along the triangle half of the tile. A solid square there puts full gravel against a half-grass edge and reads as a grass notch biting into the road (seen on diagonal staircase corners). Those two faces need the **opposite-facing** gap filler (complementary triangle), not another solid.
+Those two **road arms** are the faces where a solid full-road neighbour belongs. The other two cardinals are **triangle faces**, running along the triangle half of the tile, and they carry the **opposite-facing** gap filler, whose complementary triangle meets this one across the shared edge. A solid square on a triangle face puts full gravel against a half-grass edge and reads as a grass notch biting into the road.
 
-| Triangle offset | Road arms (solid OK) | Triangle faces (need opposite GF) | Opposite offset |
+| Triangle offset | Road arms (solid) | Triangle faces (opposite filler) | Opposite offset |
 |---|---|---|---|
 | 1 | EAST, SOUTH | WEST, NORTH | 2 |
 | 2 | WEST, NORTH | EAST, SOUTH | 1 |
 | 3 | NORTH, EAST | SOUTH, WEST | 4 |
 | 4 | WEST, SOUTH | NORTH, EAST | 3 |
 
-Opposite pairs are complementary halves of the same square: 1 ↔ 2 and 3 ↔ 4. Today's `fillGaps` only plants an L-pocket when the open square has exactly those two solid neighbours; it does not require or place opposite fillers on the triangle faces, so a later solid pour or staircase step can leave the wrong neighbour there. See Open Issues in `bugs.md`.
+Opposite pairs are complementary halves of the same square: 1 ↔ 2 and 3 ↔ 4. A filler's triangle faces are its opposite's road arms, which is the same fact read from the other side. `GAP_FILLER_OPPOSITE_OFFSET`, `GAP_FILLER_ROAD_ARMS` and `GAP_FILLER_TRIANGLE_FACES` in `DumpTruckConstants` carry it, the last two derived from `ADJACENT_TO_BLEND_MAPPING` so the arms a filler is placed for and the faces it heals stay one fact.
+
+**`healGapFillerTriangleFaces` settles the road against the fillers a column touches**, running right after `fillGaps` in `smoothRoad` and so on the server alone in multiplayer. It gathers the fillers beside the column, then converts solid road on their triangle faces to the complementary filler with `convertFullRoadToGapFiller`. Gathering first means a square that becomes a filler during the pass is judged on the next one, when the road around it has settled. Open ground on a triangle face is already the terrain the triangle shows, and an open L-pocket there is `fillGaps`' own work.
+
+**Squares under this pour tick's band stay solid.** The smooth pass runs once per tick over every column swept that tick (one MP `smoothRoad` command carrying all columns). The heal receives their union as `bandSet` and skips any triangle-face square whose key is in it, so a filler the truck has driven over and upgraded stays upgraded even when its complementary partner sits outside the column currently being smoothed. A conversion candidate always sits on a filler's triangle face, so one of its four neighbours is already a filler — a square enclosed by road on all four sides is never a candidate, and chains advance at most one square per pass.
+
+**The triangle is cut from the terrain the square was poured over,** read from the `shovelledSprites` stamp the pour leaves behind, since the square's own sprite is road by then. Road laid over pavement, or laid before that stamp existed, keeps its solid floor. Placement follows `placeGapFiller`: a fresh floor carries the road sprite and its stamps, then the triangle attaches, and the whole-object replacement takes any previous edge blend with it.
 
 **Edge blends border the column's two end squares,** facing outward from the road. The outward direction comes from the column's own shape: the vector from its first square to its last is the across direction, so the first square faces its negation and the last faces it. Reading it from the squares is what lets the multiplayer server agree, since it smooths a column it receives as bare coordinates and never learns which way the truck was pointing. On a cardinal column that vector lies on an axis and yields one direction.
 
@@ -466,4 +472,4 @@ Opposite pairs are complementary halves of the same square: 1 ↔ 2 and 3 ↔ 4.
 
 - `DumpTruckBandRaster.lua` (shared) — `offsetBehind()`, `getColumns()`. Pure math on tile coordinates, no game objects, so `tests/band_raster_test.lua` runs it outside the game.
 - `DumpTruckGravel.lua` — `getPourCentre()` puts the pour point half a truck length behind the cab; `getBandColumns()` resolves tiles to squares; `tryPourGravelUnderTruck()` sweeps once per tick and remembers the pour point in `DumpTruck.dumpLastCentreX/Y`.
-- `DumpTruckOverlays.lua` — `smoothRoad()` per column.
+- `DumpTruckOverlays.lua` — `smoothRoad()` per column, with the tick's band set for heal exemptions.
