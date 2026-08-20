@@ -63,6 +63,35 @@ DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING = {
     }
 }
 
+--[[
+    A gap filler's triangle covers the half of its tile away from the two road arms that
+    opened the pocket, so those arms are the only cardinals where a solid full road belongs.
+    The other two cardinals run along the triangle half and take the complementary filler,
+    whose triangle meets this one across the shared edge: 1 with 2, and 3 with 4.
+]]
+DumpTruckConstants.GAP_FILLER_OPPOSITE_OFFSET = {
+    [1] = 2,
+    [2] = 1,
+    [3] = 4,
+    [4] = 3
+}
+
+--[[
+    Road arms and triangle faces per triangle offset, derived from ADJACENT_TO_BLEND_MAPPING
+    so the arms a filler is placed for and the arms it is later judged by are one fact.
+]]
+DumpTruckConstants.GAP_FILLER_ROAD_ARMS = {}
+DumpTruckConstants.GAP_FILLER_TRIANGLE_FACES = {}
+local OPPOSITE_CARDINAL = { NORTH = "SOUTH", SOUTH = "NORTH", EAST = "WEST", WEST = "EAST" }
+for _, mapping in ipairs(DumpTruckConstants.ADJACENT_TO_BLEND_MAPPING) do
+    local arms = mapping.adjacent_directions
+    DumpTruckConstants.GAP_FILLER_ROAD_ARMS[mapping.triangle_offset] = { arms[1], arms[2] }
+    DumpTruckConstants.GAP_FILLER_TRIANGLE_FACES[mapping.triangle_offset] = {
+        OPPOSITE_CARDINAL[arms[1]],
+        OPPOSITE_CARDINAL[arms[2]]
+    }
+end
+
 -- Gravel alone is known by its sprite as well as by modData: it is the one poured floor
 -- that wears a street tile, which no natural ground uses. Sand and dirt pour onto the same
 -- tiles beaches and dirt fields are made of, so only `pouredFloor` tells those apart.

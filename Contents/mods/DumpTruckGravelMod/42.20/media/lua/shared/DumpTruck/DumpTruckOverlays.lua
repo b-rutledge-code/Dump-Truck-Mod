@@ -303,6 +303,86 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset, mater
 end
 
 --[[
+    convertFullRoadToGapFiller: give a finished road square the complementary triangle.
+
+    The triangle is drawn from the terrain this square was poured over, read from the
+    `shovelledSprites` stamp the pour left behind, since the square's own sprite is road now.
+    Ground poured over pavement, or road laid before the stamp existed, has no natural
+    terrain to cut a triangle from and keeps its solid floor.
+
+    Placement follows `placeGapFiller`: a fresh floor carries the road sprite and its stamps,
+    then the triangle attaches to it. The new floor arrives on clients as a whole object with
+    no attachments, so the previous edge blend goes with it.
+
+    Input:
+        roadSquare: IsoGridSquare - finished full road square on a filler's triangle face
+        triangleOffset: number - complementary triangle offset (1-4)
+    Output: boolean - true when the square now wears the triangle
+]]
+function DumpTruckOverlays.convertFullRoadToGapFiller(roadSquare, triangleOffset)
+    if not roadSquare or not triangleOffset then
+        return false
+    end
+
+    local overlay = DumpTruckCore.classifySquare(roadSquare)
+    if not overlay then
+        return false
+    end
+
+    local pourable = DumpTruckConstants.POURABLE_BY_FLOOR_TYPE[overlay.material]
+    if not pourable then
+        return false
+    end
+
+    local floor = roadSquare:getFloor()
+    if not floor or not floor:hasModData() then
+        return false
+    end
+
+    local shovelledSprites = floor:getModData().shovelledSprites
+    local naturalTerrainSprite = shovelledSprites and shovelledSprites[1] or nil
+    if not DumpTruckOverlayClassify.isBaseTerrainSprite(naturalTerrainSprite) then
+        return false
+    end
+
+    local triangleSprite = DumpTruckOverlays.getGapFillerTriangleSprite(triangleOffset, naturalTerrainSprite)
+    if not triangleSprite then
+        return false
+    end
+
+    local newFloor = roadSquare:addFloor(pourable.sprite)
+    if not newFloor then
+        return false
+    end
+
+    local floorModData = newFloor:getModData()
+    floorModData.pouredFloor = pourable.floorType
+    floorModData.shovelled = nil
+    floorModData.shovelledSprites = { naturalTerrainSprite }
+    -- Server only: a client floor object has no id the server can resolve, and the unread
+    -- payload desyncs the stream. See docs/bugs.md and multiplayer-architecture.
+    if isServer() then
+        newFloor:transmitModData()
+    end
+
+    DumpTruckOverlays.placeOverlay(roadSquare, triangleSprite)
+
+    roadSquare:disableErosion()
+    if isServer() then
+        sendServerCommand("DumpTruckGravelMod", "disableErosionAt", { x = roadSquare:getX(), y = roadSquare:getY(), z = roadSquare:getZ() })
+    end
+
+    DumpTruckOverlays.removeOppositeEdgeBlends(roadSquare)
+
+    roadSquare:RecalcProperties()
+    roadSquare:DirtySlice()
+
+    DumpTruckCore.debugPrint("[DumpTruck] gapFillerFromRoad (", roadSquare:getX(), ", ", roadSquare:getY(), ", ", roadSquare:getZ(), ") offset ", triangleOffset)
+
+    return true
+end
+
+--[[
     placeEdgeBlend: Attaches edge blend sprite to existing gravel floor
     Input:
         gravelSquare: IsoGridSquare - Square with gravel floor
@@ -527,13 +607,77 @@ function DumpTruckOverlays.fillGaps(currentSquares)
     end
 end
 
-function DumpTruckOverlays.smoothRoad(currentSquares)
+--[[
+    healTriangleFaces: put the complementary filler on a filler's two triangle faces.
+
+    Solid road on a triangle face butts a whole tile of gravel against a half tile of grass,
+    which reads as a notch bitten out of the road. The complementary filler carries the other
+    half of that same square, so the two triangles meet along the shared edge.
+
+    Squares under this pour tick's band stay solid: the truck may have just driven over a
+    filler and upgraded it, and a complementary partner outside the column would otherwise
+    convert it straight back. Open ground on a triangle face is already the terrain the
+    triangle shows, and an open L-pocket there belongs to `fillGaps`, so both are left as
+    they are.
+]]
+local function healTriangleFaces(fillerSquare, triangleOffset, bandSet)
+    local oppositeOffset = DumpTruckConstants.GAP_FILLER_OPPOSITE_OFFSET[triangleOffset]
+    local faces = DumpTruckConstants.GAP_FILLER_TRIANGLE_FACES[triangleOffset]
+    if not oppositeOffset or not faces then
+        return
+    end
+
+    for _, direction in ipairs(faces) do
+        local faceSquare = getNeighbour(fillerSquare, direction)
+        if faceSquare and DumpTruckCore.isFullRoadFloor(faceSquare) then
+            local key = faceSquare:getX() .. "," .. faceSquare:getY() .. "," .. faceSquare:getZ()
+            if not (bandSet and bandSet[key]) then
+                DumpTruckOverlays.convertFullRoadToGapFiller(faceSquare, oppositeOffset)
+            end
+        end
+    end
+end
+
+--[[
+    healGapFillerTriangleFaces: settle the road against every filler this row touches.
+
+    The fillers are gathered before any of them is acted on, so a square that becomes a
+    filler during the pass is judged on the next one, when the road around it has settled.
+    `bandSet` is the union of every column swept this pour tick; squares in it are not
+    converted, so drive-over upgrades and the intentional road spine stay solid.
+]]
+function DumpTruckOverlays.healGapFillerTriangleFaces(currentSquares, bandSet)
+    local fillers = {}
+
+    for i = 1, #currentSquares do
+        local square = currentSquares[i]
+        if square then
+            for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+                local neighbour = getNeighbour(square, direction)
+                local overlay = neighbour and DumpTruckCore.classifySquare(neighbour)
+                if overlay
+                        and overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+                        and overlay.triangleOffset then
+                    table.insert(fillers, { square = neighbour, triangleOffset = overlay.triangleOffset })
+                end
+            end
+        end
+    end
+
+    for i = 1, #fillers do
+        healTriangleFaces(fillers[i].square, fillers[i].triangleOffset, bandSet)
+    end
+end
+
+function DumpTruckOverlays.smoothRoad(currentSquares, bandSet)
     if #currentSquares < 2 then
         return
     end
 
-    -- Order: gap fillers first, then edge blends, then cleanup
+    -- Order: gap fillers first, then the road settles against them, then edge blends, then cleanup
     DumpTruckOverlays.fillGaps(currentSquares)
+
+    DumpTruckOverlays.healGapFillerTriangleFaces(currentSquares, bandSet)
 
     DumpTruckOverlays.addEdgeBlends(currentSquares[1], currentSquares[#currentSquares])
 
