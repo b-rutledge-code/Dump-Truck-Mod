@@ -101,6 +101,38 @@ local function blendDirection(square)
     return Classify.getEdgeBlendDirection(attached[#attached])
 end
 
+-- Every blend direction currently attached, in attach order
+local function blendDirections(square)
+    local dirs = {}
+    for _, name in ipairs(square:getFloor().attached) do
+        local direction = Classify.getEdgeBlendDirection(name)
+        if direction then
+            table.insert(dirs, direction)
+        end
+    end
+    return dirs
+end
+
+local function hasBlendDirection(square, direction)
+    for _, d in ipairs(blendDirections(square)) do
+        if d == direction then
+            return true
+        end
+    end
+    return false
+end
+
+local function sortedDirs(dirs)
+    local copy = {}
+    for i = 1, #dirs do copy[i] = dirs[i] end
+    table.sort(copy)
+    return table.concat(copy, ",")
+end
+
+local function equalsDirs(square, expected, message)
+    equals(sortedDirs(blendDirections(square)), sortedDirs(expected), message)
+end
+
 -- The real classifier over the fake floors, so "is this a road" is decided here the same
 -- way it is in game: gravel by its street sprite, sand and dirt by their poured stamp
 local function classifySquare(square)
@@ -144,18 +176,18 @@ cardinalCase("column running north", { {10,11}, {10,10}, {10,9} }, "SOUTH", "NOR
 cardinalCase("column running east", { {9,10}, {10,10}, {11,10} }, "WEST", "EAST")
 cardinalCase("column running west", { {11,10}, {10,10}, {9,10} }, "EAST", "WEST")
 
--- DIAGONAL COLUMNS: two outward faces per end, dominant axis first
+-- DIAGONAL COLUMNS: two outward faces per end, each open face gets its own blend
 
 newWorld()
 local diagonalFirst = paveGravel(10, 11)
 paveGravel(11, 11)
 local diagonalLast = paveGravel(11, 10)
 Overlays.addEdgeBlends(diagonalFirst, diagonalLast)
-equals(blendDirection(diagonalFirst), "WEST", "diagonal column: first square takes its outward face")
-equals(blendDirection(diagonalLast), "EAST", "diagonal column: last square takes its outward face")
+equalsDirs(diagonalFirst, { "WEST", "SOUTH" }, "diagonal column: first square blends both outward faces")
+equalsDirs(diagonalLast, { "EAST", "NORTH" }, "diagonal column: last square blends both outward faces")
 
--- The reported bug: the dominant face abuts gravel a gap filler left behind, so the blend
--- has to fall through to the square's other exposed face rather than be dropped
+-- The reported bug: the dominant face abuts gravel a gap filler left behind, so that face
+-- is skipped and the square's other exposed face still receives its blend
 newWorld()
 local blockedFirst = paveGravel(10, 11)
 paveGravel(11, 11)
@@ -163,8 +195,8 @@ local blockedLast = paveGravel(11, 10)
 paveGravel(9, 11)  -- gap filler west of the first square
 paveGravel(12, 10) -- gap filler east of the last square
 Overlays.addEdgeBlends(blockedFirst, blockedLast)
-equals(blendDirection(blockedFirst), "SOUTH", "blocked diagonal: first square falls through to its open face")
-equals(blendDirection(blockedLast), "NORTH", "blocked diagonal: last square falls through to its open face")
+equalsDirs(blockedFirst, { "SOUTH" }, "blocked diagonal: first square blends its open face")
+equalsDirs(blockedLast, { "NORTH" }, "blocked diagonal: last square blends its open face")
 
 -- A column that only wobbles off the axis still blends along the road's dominant side
 newWorld()
@@ -173,8 +205,8 @@ paveGravel(10, 10)
 paveGravel(11, 10)
 local wobbleLast = paveGravel(12, 11)
 Overlays.addEdgeBlends(wobbleFirst, wobbleLast)
-equals(blendDirection(wobbleFirst), "WEST", "wobbling column: first square uses the dominant axis")
-equals(blendDirection(wobbleLast), "EAST", "wobbling column: last square uses the dominant axis")
+check(hasBlendDirection(wobbleFirst, "WEST"), "wobbling column: first square uses the dominant axis")
+check(hasBlendDirection(wobbleLast, "EAST"), "wobbling column: last square uses the dominant axis")
 
 -- NOTHING TO BLEND AGAINST
 
@@ -240,9 +272,61 @@ local settledFirst = paveGravel(10, 11)
 paveGravel(11, 11)
 local settledLast = paveGravel(11, 10)
 Overlays.addEdgeBlends(settledFirst, settledLast)
+local settledCount = #settledFirst:getFloor().attached
 Overlays.addEdgeBlends(settledFirst, settledLast)
-equals(blendDirection(settledFirst), "WEST", "repeat pour: first square keeps its face")
-equals(#settledFirst:getFloor().attached, 1, "repeat pour: no second sprite stacked on")
+equals(#settledFirst:getFloor().attached, settledCount, "repeat pour: no duplicate sprites stacked on")
+equalsDirs(settledFirst, { "WEST", "SOUTH" }, "repeat pour: first square keeps both faces")
+
+-- Placing a second-face blend keeps the first face
+newWorld()
+local corner = paveGravel(10, 10)
+local northBlend = Overlays.getEdgeBlendSprite("NORTH", GRASS)
+local eastBlend = Overlays.getEdgeBlendSprite("EAST", GRASS)
+check(Overlays.placeEdgeBlend(corner, northBlend), "place north blend")
+check(Overlays.placeEdgeBlend(corner, eastBlend), "place east blend keeps north")
+equalsDirs(corner, { "NORTH", "EAST" }, "corner carries both north and east blends")
+equals(#corner:getFloor().attached, 2, "corner has exactly two attached blends")
+
+-- Same-direction different material replaces only that face
+local sandTerrain = Constants.POURABLE_BY_FLOOR_TYPE.sand.sprite
+local northSand = Overlays.getEdgeBlendSprite("NORTH", sandTerrain)
+check(Overlays.placeEdgeBlend(corner, northSand), "same-direction material replace")
+equalsDirs(corner, { "EAST", "NORTH" }, "material replace keeps the other face")
+check(hasBlendDirection(corner, "NORTH"), "replaced face is still north")
+check(not hasBlendDirection(corner, "SOUTH"), "no accidental south blend")
+local northSpriteAfter = nil
+for _, name in ipairs(corner:getFloor().attached) do
+    if Classify.getEdgeBlendDirection(name) == "NORTH" then
+        northSpriteAfter = name
+    end
+end
+equals(northSpriteAfter, northSand, "north face now uses the sand-row blend")
+
+-- removeAttachedSprite drops one face and keeps the other
+check(Overlays.removeAttachedSprite(corner, eastBlend), "remove east face")
+equalsDirs(corner, { "NORTH" }, "remove one face leaves the other")
+check(not Overlays.removeAttachedSprite(corner, eastBlend), "removing a missing sprite is a no-op")
+
+-- Stale-blend cleanup removes only the stale direction
+newWorld()
+local seam = paveGravel(10, 10)
+paveGravel(11, 10)
+local westBlend = Overlays.getEdgeBlendSprite("WEST", GRASS)
+local eastStale = Overlays.getEdgeBlendSprite("EAST", GRASS)
+Overlays.placeEdgeBlend(seam, westBlend)
+Overlays.placeEdgeBlend(seam, eastStale)
+equalsDirs(seam, { "WEST", "EAST" }, "seam starts with outward and inward blends")
+Overlays.removeEdgeBlendsBetweenPourableSquares(seam)
+equalsDirs(seam, { "WEST" }, "stale east blend cleaned; west outward blend kept")
+
+-- Full clear still empties every attached sprite
+newWorld()
+local wipe = paveGravel(10, 10)
+Overlays.placeEdgeBlend(wipe, Overlays.getEdgeBlendSprite("NORTH", GRASS))
+Overlays.placeEdgeBlend(wipe, Overlays.getEdgeBlendSprite("WEST", GRASS))
+check(#wipe:getFloor().attached == 2, "wipe candidate has two blends")
+Overlays.removeOverlay(wipe)
+equals(#wipe:getFloor().attached, 0, "full clear empties the attached list")
 
 if #failures > 0 then
     print("edge blends: " .. #failures .. " of " .. checks .. " checks FAILED")

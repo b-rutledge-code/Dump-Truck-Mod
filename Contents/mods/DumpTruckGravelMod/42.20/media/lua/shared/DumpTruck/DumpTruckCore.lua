@@ -5,6 +5,7 @@ local DumpTruckConstants = require("DumpTruck/DumpTruckConstants")
 local DumpTruckOverlayClassify = require("DumpTruck/DumpTruckOverlayClassify")
 
 local DumpTruckCore = {}
+-- Default off; toggle in-game with /dtdebug (see DumpTruckDebugChat.lua)
 DumpTruckCore.debugMode = false
 
 -- Utility function for debug printing
@@ -41,6 +42,81 @@ function DumpTruckCore.getAttachedSpriteNames(floor)
     end
 
     return names
+end
+
+--[[
+    getRestoreSpriteNames: what the shovel puts back when this square's road is dug up.
+
+    The floor's own sprite first, then the sprites attached to it, which is the order
+    vanilla's ISNaturalFloor.getFloorSpriteNames writes and ISShovelGround reads back.
+    Capturing the attachments is what preserves ground that came with its own overlay, a
+    grass tuft or a puddle, instead of restoring a bare tile.
+
+    Our own overlays are left out: a blend or a triangle belongs to the road, not to the
+    ground beneath it, and restoring one would put road decoration on open terrain.
+]]
+function DumpTruckCore.getRestoreSpriteNames(square)
+    if not square then
+        return nil
+    end
+
+    local floor = square:getFloor()
+    if not floor then
+        return nil
+    end
+
+    local sprite = floor:getSprite()
+    local baseName = sprite and sprite:getName()
+    if not baseName then
+        return nil
+    end
+
+    local names = { baseName }
+    local attached = DumpTruckCore.getAttachedSpriteNames(floor)
+    for i = 1, #attached do
+        local name = attached[i]
+        if not DumpTruckOverlayClassify.getEdgeBlendDirection(name)
+                and not DumpTruckOverlayClassify.getGapFillerOffset(name) then
+            table.insert(names, name)
+        end
+    end
+
+    return names
+end
+
+--[[
+    getShovelledSpritesForPour: the shovelledSprites to write on a floor this pour replaces.
+
+    Open ground is read from the floor sprite and its attachments via getRestoreSpriteNames.
+
+    A square that is already poured road (full or gap filler) must never re-read its floor:
+    that sprite is road, and writing it into shovelledSprites makes the first dig put gravel
+    back. Carry a good existing list; if there is none, use vanilla's dig-to-dirt sprite so
+    a gap-filler upgrade cannot record gravel as the ground beneath the road.
+]]
+function DumpTruckCore.getShovelledSpritesForPour(square)
+    if not square then
+        return nil
+    end
+
+    local floor = square:getFloor()
+    if floor and floor:hasModData() then
+        local existing = floor:getModData().shovelledSprites
+        if existing and existing[1]
+                and DumpTruckOverlayClassify.isBaseTerrainSprite(existing[1]) then
+            local carried = {}
+            for i = 1, #existing do
+                carried[i] = existing[i]
+            end
+            return carried
+        end
+    end
+
+    if DumpTruckCore.isPouredRoad(square) then
+        return { "blends_natural_01_64" }
+    end
+
+    return DumpTruckCore.getRestoreSpriteNames(square)
 end
 
 -- The floor's `pouredFloor` stamp, or nil on ground nobody has poured

@@ -14,7 +14,10 @@ function DumpTruck.placeRoadFloorOnSquare(pourable, sq)
     end
     local sprite = pourable.sprite
     
-    -- If upgrading a gap filler, remove the attached triangle overlay first
+    -- Gap-filler upgrade housekeeping: read shovelledSprites first (carry the filler's
+    -- list — never re-read this gravel floor), then strip the triangle, then replace floor.
+    local shovelledSprites = DumpTruckCore.getShovelledSpritesForPour(sq)
+
     local existingOverlay = DumpTruckCore.classifySquare(sq)
     if existingOverlay and existingOverlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER then
         local existingFloor = sq:getFloor()
@@ -23,25 +26,15 @@ function DumpTruck.placeRoadFloorOnSquare(pourable, sq)
         -- replacement to clients as a whole object, which carries no attachments.
     end
     
-    -- Save original floor sprite so it can be restored when shoveled
-    local originalFloor = sq:getFloor()
-    local shovelledSprites = nil
-    if originalFloor and originalFloor:getSprite() then
-        shovelledSprites = {}
-        -- Save the main sprite only
-        table.insert(shovelledSprites, originalFloor:getSprite():getName())
-    end
-    
     local newFloor = sq:addFloor(sprite)
     -- Set modData on the new floor so it can be restored when shoveled
     if newFloor and shovelledSprites and #shovelledSprites > 0 then
         local floorModData = newFloor:getModData()
         floorModData.shovelledSprites = shovelledSprites
         --[[
-            The stamp that makes this square a road rather than ground that happens to look
-            like one. Sand and dirt pour onto the same tiles beaches and dirt fields wear, so
-            without it the next pass over this tile could not tell it had already been paid
-            for, and a natural beach could not be told apart from a finished road.
+            pouredFloor marks this square as road we laid. Sand and dirt pour onto the same
+            tiles beaches and dirt fields wear, so without it the next pass could not tell
+            this tile was already paid for.
         ]]
         floorModData.pouredFloor = pourable.floorType
         floorModData.shovelled = nil  -- Clear shovelled flag (matches vanilla behavior)
@@ -723,13 +716,15 @@ Events.OnClientCommand.Add(function(module, command, player, args)
                 DumpTruckOverlays.smoothRoad(column, bandSet)
             end
         end
-    elseif command == "cleanupBlendsAt" and args.x and args.y and args.z then
-        local cell = getCell()
-        if not cell then return end
-        local sq = cell:getGridSquare(args.x, args.y, args.z)
-        if sq then
-            DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(sq)
+    elseif command == "setDebugMode" and args.enabled ~= nil then
+        -- Debug noise only; admin (or SP host) may flip it. Non-admins are ignored on
+        -- a dedicated server so a random client cannot spam server console.
+        if isServer() and player and player:getAccessLevel() == "None" then
+            return
         end
+        DumpTruckCore.debugMode = args.enabled and true or false
+        print("[DumpTruck] debugMode " .. (DumpTruckCore.debugMode and "ON" or "OFF")
+            .. " (from " .. (player and player:getUsername() or "?") .. ")")
     end
 end)
 
