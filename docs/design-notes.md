@@ -466,10 +466,28 @@ Opposite pairs are complementary halves of the same square: 1 ↔ 2 and 3 ↔ 4.
 
 **Edge blends border the column's two end squares,** facing outward from the road. The outward direction comes from the column's own shape: the vector from its first square to its last is the across direction, so the first square faces its negation and the last faces it. Reading it from the squares is what lets the multiplayer server agree, since it smooths a column it receives as bare coordinates and never learns which way the truck was pointing. On a cardinal column that vector lies on an axis and yields one direction.
 
-**A diagonal column yields two directions per end,** dominant axis first, and an end square on a staircase genuinely is exposed on both faces. The square takes the first of them that has terrain beside it, so a face abutting a gap filler falls through to the other one instead of costing the square its blend. A floor carries a single attached sprite, so the rare square exposed both ways gets the dominant face and leaves the other bare.
+**A diagonal column yields two directions per end,** dominant axis first, and an end square on a staircase genuinely is exposed on both faces. Each face that has terrain beside it takes its own edge blend; a face abutting poured road (including a gap filler) is skipped so the other face still receives its blend.
+
+### Shovelling a road square (IMPLEMENTED)
+
+Vanilla's shovel restores the ground under one square and clears that square's own attached sprites, on the server too. It knows nothing about the road around it, so the hole is left with road faces staring into open terrain and, sometimes, a triangle next door describing a corner that no longer exists. `DumpTruckOverlays.healAfterShovel` works on the hole and its four cardinals only.
+
+**The hole stays open ground.** It never gets a new filler or road from this path — digging a filler out must not put the triangle straight back. Open L-pockets among the four neighbours can still receive a triangle; nothing further out is seeded.
+
+**A filler is judged by the arms that earned it.** Its triangle covers the half of the tile away from the two road arms of the pocket (`GAP_FILLER_ROAD_ARMS`). Dig one of those arms out and the triangle describes a corner that is gone, so the square goes back to the ground in its `shovelledSprites` stamp: stamp sprite as the floor, the rest attached to it, floor replaced whole the way the pour places one.
+
+**No pour-style triangle-face conversion.** Digging does not run `healGapFillerTriangleFaces`; that pass belongs to `smoothRoad` and would eat solid road inward with nothing to protect it.
+
+**Blends into the hole** use `blendFaceTowards` on full-road cardinal neighbours, after stale-blend cleanup on those same squares.
+
+**Stamps carry the ground's own attachments.** `DumpTruckCore.getRestoreSpriteNames` records the floor sprite plus what was attached to it, the order `ISNaturalFloor.getFloorSpriteNames` writes and `ISShovelGround` reads back, so ground that came with a grass tuft gets the tuft back. Our own blends and triangles are filtered out: they belong to the road, not to the ground beneath it. A filler converted from full road carries the whole stamp across rather than just its terrain sprite.
+
+**The heal runs beside the restore on the world owner.** It hooks `ISShovelGround:complete`, which the engine runs only when `!GameClient.client` — so a multiplayer client's dig heals on the server next to vanilla's restore, with no command to route and no race against floor packets.
 
 ### Where the pieces live
 
 - `DumpTruckBandRaster.lua` (shared) — `offsetBehind()`, `getColumns()`. Pure math on tile coordinates, no game objects, so `tests/band_raster_test.lua` runs it outside the game.
 - `DumpTruckGravel.lua` — `getPourCentre()` puts the pour point half a truck length behind the cab; `getBandColumns()` resolves tiles to squares; `tryPourGravelUnderTruck()` sweeps once per tick and remembers the pour point in `DumpTruck.dumpLastCentreX/Y`.
-- `DumpTruckOverlays.lua` — `smoothRoad()` per column, with the tick's band set for heal exemptions.
+- `DumpTruckOverlays.lua` — `smoothRoad()` per column, with the tick's band set for heal exemptions; `healAfterShovel()` outward from a dug square, with `blendFaceTowards()` and `restoreGapFillerToTerrain()`.
+- `ISShovelGroundDumpTruck.lua` (shared) — hooks `complete` after vanilla restore, then `healAfterShovel`.
+- `tests/shovel_heal_test.lua` — the heal over a fake world with real floor modData.

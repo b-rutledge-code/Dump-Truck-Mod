@@ -1,17 +1,4 @@
-local DumpTruckCore = require("DumpTruck/DumpTruckCore")
-local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
-
-local originalBuildIsoEntityCreate = ISBuildIsoEntity.create
-
--- Override ISBuildIsoEntity:create to clean up edge blends after placing gravel from build menu
-function ISBuildIsoEntity:create(x, y, z, north, sprite)
-    -- Call the original ISBuildIsoEntity create method first
-    if originalBuildIsoEntityCreate then
-        originalBuildIsoEntityCreate(self, x, y, z, north, sprite)
-    end
-
-    -- After the tile is placed, clean up any edge blends between adjacent gravel tiles
-    if self.sq and DumpTruckCore.isFullRoadFloor(self.sq) then
-        DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(self.sq)
-    end
-end
+-- Hand-placed gravel/sand/dirt from the build menu settle in shared
+-- BuildRecipeCodeFloorDumpTruck.lua (BuildRecipeCode.floor.OnCreate). This file used to
+-- only strip blends between pourable neighbours and never wrote pouredFloor, so settle
+-- could not run. Kept as a no-op stub so older load-order expectations do not break.

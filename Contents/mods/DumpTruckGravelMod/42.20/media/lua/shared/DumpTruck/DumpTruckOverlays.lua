@@ -84,6 +84,71 @@ function DumpTruckOverlays.removeOverlay(square)
     return true
 end
 
+--[[
+    replaceAttachedSprites: rebuild this floor's attached list to exactly `spriteNames`.
+
+    The engine only offers RemoveAttachedAnims (clear all), so any surgical edit is
+    clear-then-reattach the keepers. Syncs the resulting list the same way place/remove do.
+]]
+local function replaceAttachedSprites(square, spriteNames)
+    local floor = square:getFloor()
+    if not floor then
+        return false
+    end
+
+    floor:RemoveAttachedAnims()
+    for i = 1, #spriteNames do
+        local spriteObj = getSprite(spriteNames[i])
+        if spriteObj then
+            floor:AttachExistingAnim(spriteObj, 0, 0, false, 0, false, 0.0)
+        end
+    end
+
+    if floor.DirtySlice then floor:DirtySlice() end
+    square:RecalcProperties()
+    square:DirtySlice()
+
+    if isServer() then
+        syncOverlayToClients(square, floor)
+    end
+
+    return true
+end
+
+--[[
+    removeAttachedSprite: drop one attached sprite and keep every other.
+
+    Used when a same-direction blend is replaced or a single stale blend is cleaned up
+    without wiping blends on the square's other faces.
+]]
+function DumpTruckOverlays.removeAttachedSprite(square, spriteName)
+    if not square or not spriteName then
+        return false
+    end
+
+    local floor = square:getFloor()
+    if not floor then
+        return false
+    end
+
+    local attached = DumpTruckCore.getAttachedSpriteNames(floor)
+    local keepers = {}
+    local found = false
+    for i = 1, #attached do
+        if attached[i] == spriteName and not found then
+            found = true
+        else
+            table.insert(keepers, attached[i])
+        end
+    end
+
+    if not found then
+        return false
+    end
+
+    return replaceAttachedSprites(square, keepers)
+end
+
 -- Remove overlay and update square properties (for shoveling/cleanup)
 -- Wrapper around removeOverlay with additional square updates
 function DumpTruckOverlays.removeOverlayFromSquare(square)
@@ -121,19 +186,6 @@ end
 
 -- EDGE BLEND HELPERS
 
--- Helper: Check if square has any blends on an edge it shares with a gravel neighbor
-local function hasBlendBorderingGravel(square, neighborIsGravelByDirection)
-    if not square then return false end
-    
-    local floor = square:getFloor()
-    if not floor then return false end
-
-    return DumpTruckOverlayClassify.anyBlendBordersGravel(
-        DumpTruckCore.getAttachedSpriteNames(floor),
-        neighborIsGravelByDirection
-    )
-end
-
 -- Helper: the four neighbors keyed by the direction they lie in
 local function getNeighborsByDirection(square)
     return {
@@ -145,9 +197,45 @@ local function getNeighborsByDirection(square)
 end
 
 --[[
+    removeStaleEdgeBlends: drop only the blend faces that border gravel neighbours.
+
+    Rebuilds the attached list once so blends on other faces (and any non-blend attaches)
+    stay put. Full clear remains available via removeOverlay for whole-square resets.
+]]
+local function removeStaleEdgeBlends(square, neighborIsGravelByDirection)
+    if not square then
+        return false
+    end
+
+    local floor = square:getFloor()
+    if not floor then
+        return false
+    end
+
+    local attached = DumpTruckCore.getAttachedSpriteNames(floor)
+    local keepers = {}
+    local removedAny = false
+    for i = 1, #attached do
+        local name = attached[i]
+        if DumpTruckOverlayClassify.blendBordersGravel(name, neighborIsGravelByDirection) then
+            removedAny = true
+        else
+            table.insert(keepers, name)
+        end
+    end
+
+    if not removedAny then
+        return false
+    end
+
+    DumpTruckCore.debugPrint("[DumpTruck] cleanup (", square:getX(), ", ", square:getY(), ", ", square:getZ(), ")")
+    return replaceAttachedSprites(square, keepers)
+end
+
+--[[
     removeOppositeEdgeBlends: Removes edge blends between this square and gravel neighbors
-    Clears edge blends on this square that border gravel neighbors
-    Clears edge blends on gravel neighbors that border this square
+    Clears stale-direction blends on this square that border gravel neighbors
+    Clears stale-direction blends on gravel neighbors that border this square
 ]]
 function DumpTruckOverlays.removeOppositeEdgeBlends(square)
     if not square then 
@@ -163,10 +251,7 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
         neighborIsGravel[direction] = neighbor ~= nil and DumpTruckCore.isPouredRoad(neighbor)
     end
 
-    if hasBlendBorderingGravel(square, neighborIsGravel) then
-        DumpTruckCore.debugPrint("[DumpTruck] cleanup (", square:getX(), ", ", square:getY(), ", ", square:getZ(), ")")
-        DumpTruckOverlays.removeOverlayFromSquare(square)
-    end
+    removeStaleEdgeBlends(square, neighborIsGravel)
 
     -- Check NEIGHBOR blends on the edge they share with me
     local squareIsGravel = DumpTruckCore.isPouredRoad(square)
@@ -174,10 +259,7 @@ function DumpTruckOverlays.removeOppositeEdgeBlends(square)
         local neighbor = neighbors[direction]
         if neighbor and DumpTruckCore.isPouredRoad(neighbor) then
             local sharedEdgeIsGravel = { [OPPOSITE_DIRECTION[direction]] = squareIsGravel }
-            if hasBlendBorderingGravel(neighbor, sharedEdgeIsGravel) then
-                DumpTruckCore.debugPrint("[DumpTruck] cleanup (", neighbor:getX(), ", ", neighbor:getY(), ", ", neighbor:getZ(), ")")
-                DumpTruckOverlays.removeOverlayFromSquare(neighbor)
-            end
+            removeStaleEdgeBlends(neighbor, sharedEdgeIsGravel)
         end
     end
 end
@@ -258,12 +340,8 @@ function DumpTruckOverlays.placeGapFiller(nonGravelSquare, triangleOffset, mater
         return false
     end
     
-    -- Save original floor sprite for shoveling restoration
-    local originalFloor = nonGravelSquare:getFloor()
-    local shovelledSprites = nil
-    if originalFloor and originalFloor:getSprite() then
-        shovelledSprites = {originalFloor:getSprite():getName()}
-    end
+    -- Save the ground as it was, floor sprite plus its own attachments, for the shovel
+    local shovelledSprites = DumpTruckCore.getRestoreSpriteNames(nonGravelSquare)
     
     -- Place the road floor (now it's a road square for shoveling)
     local newFloor = nonGravelSquare:addFloor(pourable.sprite)
@@ -358,7 +436,13 @@ function DumpTruckOverlays.convertFullRoadToGapFiller(roadSquare, triangleOffset
     local floorModData = newFloor:getModData()
     floorModData.pouredFloor = pourable.floorType
     floorModData.shovelled = nil
-    floorModData.shovelledSprites = { naturalTerrainSprite }
+    -- The whole stamp rides across, so ground that came with its own attachments still
+    -- restores them when this square is dug up
+    local carriedStamp = {}
+    for i = 1, #shovelledSprites do
+        carriedStamp[i] = shovelledSprites[i]
+    end
+    floorModData.shovelledSprites = carriedStamp
     -- Server only: a client floor object has no id the server can resolve, and the unread
     -- payload desyncs the stream. See docs/bugs.md and multiplayer-architecture.
     if isServer() then
@@ -403,6 +487,11 @@ function DumpTruckOverlays.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
 
+    local newDirection = DumpTruckOverlayClassify.getEdgeBlendDirection(blendSprite)
+    if not newDirection then
+        return false
+    end
+
     local overlay = DumpTruckCore.classifySquare(gravelSquare)
 
     -- Never blend over a gap filler triangle
@@ -410,12 +499,18 @@ function DumpTruckOverlays.placeEdgeBlend(gravelSquare, blendSprite)
         return false
     end
 
-    if overlay and overlay.type == DumpTruckConstants.TILE_TYPES.EDGE_BLEND then
-        if overlay.sprite == blendSprite then
+    local attached = DumpTruckCore.getAttachedSpriteNames(floor)
+    for i = 1, #attached do
+        local name = attached[i]
+        if name == blendSprite then
             return false
         end
-        -- Different blend already attached: replace it
-        DumpTruckOverlays.removeOverlay(gravelSquare)
+        local existingDirection = DumpTruckOverlayClassify.getEdgeBlendDirection(name)
+        if existingDirection == newDirection then
+            -- Same face, different sprite (e.g. material change): replace that face only
+            DumpTruckOverlays.removeAttachedSprite(gravelSquare, name)
+            break
+        end
     end
 
     if not DumpTruckOverlays.placeOverlay(gravelSquare, blendSprite) then
@@ -435,8 +530,7 @@ end
     cardinalsAlong: the cardinal directions a vector points in, strongest first.
 
     A vector on an axis gives one direction; a diagonal one gives two, the road's dominant
-    across axis first. A floor carries a single blend, so on a square exposed both ways the
-    dominant direction is the one that reads as the road's side.
+    across axis first. Each exposed face that has terrain beside it takes its own blend.
 ]]
 local function cardinalsAlong(dx, dy)
     local horizontal = (dx > 0 and "EAST") or (dx < 0 and "WEST") or nil
@@ -467,7 +561,7 @@ end
 
     Reports whether that side was terrain to blend against at all, which is a different
     question from whether the sprite changed: a square already wearing the right blend has
-    a finished side, and the caller must not go looking for another one.
+    a finished side, and the caller still counts the face as handled.
 ]]
 local function blendTowards(square, direction)
     local sideSquare = getNeighbour(square, direction)
@@ -489,6 +583,27 @@ local function blendTowards(square, direction)
 end
 
 --[[
+    blendFaceTowards: border one road square against named terrain on one named face.
+
+    `addEdgeBlends` reads its directions from a column's shape, which the shovel heal has
+    none of: it works outward from a single square the player dug. The terrain is named by
+    the caller rather than read from the neighbour, so the heal can blend toward a square it
+    knows is open even on a machine whose copy of that square is still catching up.
+]]
+function DumpTruckOverlays.blendFaceTowards(roadSquare, direction, terrainSprite)
+    if not roadSquare or not direction or not terrainSprite then
+        return false
+    end
+
+    local blend = DumpTruckOverlays.getEdgeBlendSprite(direction, terrainSprite)
+    if not blend then
+        return false
+    end
+
+    return DumpTruckOverlays.placeEdgeBlend(roadSquare, blend)
+end
+
+--[[
     addEdgeBlends: border a column's two outer squares against the terrain beside them.
 
     The vector from the first square to the last is the road's across direction, so the
@@ -497,9 +612,9 @@ end
     coordinates and never learns which way the truck was pointing.
 
     A column that runs diagonally offers each end two outward faces instead of one, and on
-    a staircase an end square really is exposed on both. Offering only one spends it on
-    whichever face the road happens to present first, and when that face abuts a gap filler
-    the square is left with no blend at all.
+    a staircase an end square really is exposed on both — each open face gets its own blend.
+    A face abutting poured road (including a gap filler) is skipped so the other face still
+    receives its blend.
 ]]
 function DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
     if not leftSquare or not rightSquare then
@@ -510,11 +625,11 @@ function DumpTruckOverlays.addEdgeBlends(leftSquare, rightSquare)
     local acrossY = rightSquare:getY() - leftSquare:getY()
 
     for _, direction in ipairs(cardinalsAlong(-acrossX, -acrossY)) do
-        if blendTowards(leftSquare, direction) then break end
+        blendTowards(leftSquare, direction)
     end
 
     for _, direction in ipairs(cardinalsAlong(acrossX, acrossY)) do
-        if blendTowards(rightSquare, direction) then break end
+        blendTowards(rightSquare, direction)
     end
 end
 
@@ -600,7 +715,8 @@ end
 ]]
 function DumpTruckOverlays.fillGaps(currentSquares)
     for i = 1, #currentSquares do
-        local pocketSquare, triangleOffset, material = DumpTruckOverlays.checkForCornerPattern(currentSquares[i])
+        local pocketSquare, triangleOffset, material =
+            DumpTruckOverlays.checkForCornerPattern(currentSquares[i])
         if pocketSquare and triangleOffset then
             DumpTruckOverlays.placeGapFiller(pocketSquare, triangleOffset, material)
         end
@@ -666,6 +782,172 @@ function DumpTruckOverlays.healGapFillerTriangleFaces(currentSquares, bandSet)
 
     for i = 1, #fillers do
         healTriangleFaces(fillers[i].square, fillers[i].triangleOffset, bandSet)
+    end
+end
+
+-- SHOVEL HEAL
+
+--[[
+    fillerKeepsItsArms: does this filler still have the L that earned it?
+
+    A filler's triangle marks the open half of a pocket held by two full-road arms. Dig one
+    arm out and the triangle is left describing a corner that no longer exists.
+]]
+local function fillerKeepsItsArms(fillerSquare, triangleOffset)
+    local arms = DumpTruckConstants.GAP_FILLER_ROAD_ARMS[triangleOffset]
+    if not arms then
+        return false
+    end
+
+    for _, direction in ipairs(arms) do
+        local armSquare = getNeighbour(fillerSquare, direction)
+        if not armSquare or not DumpTruckCore.isFullRoadFloor(armSquare) then
+            return false
+        end
+    end
+
+    return true
+end
+
+--[[
+    restoreGapFillerToTerrain: give a filler's square back the ground it was cut from.
+
+    Follows the shovel: the stamp's first sprite becomes the floor and the rest attach to it,
+    so ground that arrived with its own overlay keeps it. The floor is replaced whole rather
+    than repainted, which is what reaches multiplayer clients intact.
+]]
+function DumpTruckOverlays.restoreGapFillerToTerrain(fillerSquare)
+    if not fillerSquare then
+        return false
+    end
+
+    local floor = fillerSquare:getFloor()
+    if not floor or not floor:hasModData() then
+        return false
+    end
+
+    local stamp = floor:getModData().shovelledSprites
+    local terrainSprite = stamp and stamp[1] or nil
+    if not DumpTruckOverlayClassify.isBaseTerrainSprite(terrainSprite) then
+        return false
+    end
+
+    local restoredAttachments = {}
+    for i = 2, #stamp do
+        table.insert(restoredAttachments, stamp[i])
+    end
+
+    local newFloor = fillerSquare:addFloor(terrainSprite)
+    if not newFloor then
+        return false
+    end
+
+    local floorModData = newFloor:getModData()
+    floorModData.pouredFloor = nil
+    floorModData.shovelledSprites = nil
+    floorModData.shovelled = nil
+    if isServer() then
+        newFloor:transmitModData()
+    end
+
+    for i = 1, #restoredAttachments do
+        DumpTruckOverlays.placeOverlay(fillerSquare, restoredAttachments[i])
+    end
+
+    fillerSquare:RecalcProperties()
+    fillerSquare:DirtySlice()
+
+    DumpTruckCore.debugPrint("[DumpTruck] fillerRestored (", fillerSquare:getX(), ", ", fillerSquare:getY(), ", ", fillerSquare:getZ(), ")")
+
+    return true
+end
+
+--[[
+    settleAfterPlace: settle the road around a square the player just laid by hand.
+
+    Mirror of healAfterShovel with the center treated as new full road instead of a hole:
+    L-pockets beside the tile can take fillers (the new tile is an arm), and each open face
+    of the new tile gets an edge blend. No triangle-face conversion — that pass belongs to
+    the truck's pour band.
+]]
+function DumpTruckOverlays.settleAfterPlace(roadSquare)
+    if not roadSquare then
+        return
+    end
+    -- Hand place just wrote pouredFloor; if classify still misses, keep going from the
+    -- square the cursor gave us rather than bailing silently.
+    if not DumpTruckCore.isFullRoadFloor(roadSquare) then
+        local floor = roadSquare:getFloor()
+        local poured = floor and floor:hasModData() and floor:getModData().pouredFloor
+        if not DumpTruckConstants.POURABLE_BY_FLOOR_TYPE[poured] then
+            return
+        end
+    end
+
+    DumpTruckCore.debugPrint("[DumpTruck] settleAfterPlace (", roadSquare:getX(), ", ", roadSquare:getY(), ", ", roadSquare:getZ(), ")")
+
+    DumpTruckOverlays.fillGaps({ roadSquare })
+
+    for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+        blendTowards(roadSquare, direction)
+    end
+
+    DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(roadSquare)
+    for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+        local neighbour = getNeighbour(roadSquare, direction)
+        if neighbour then
+            DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(neighbour)
+        end
+    end
+end
+
+--[[
+    healAfterShovel: settle the road around a square the player just dug out.
+
+    Runs only after vanilla has restored the dug square (`ISShovelGround:complete`), so the
+    hole already reads as open ground. Scope is the hole and its four cardinals — nothing
+    further out, and no triangle-face conversion of solid road (that pass belongs to pour).
+
+    Dig does not place gap fillers. New triangles on shovel heal refilled open L-pockets —
+    including holes the player had already dug — so progress on a hole never stuck. Fillers
+    stay a pour / hand-place settle job. This pass only clears orphan fillers whose arms are
+    gone, then reties edge blends into the hole.
+]]
+function DumpTruckOverlays.healAfterShovel(openSquare)
+    if not openSquare then
+        return
+    end
+
+    local terrainSprite = DumpTruckOverlays.getBlendNaturalSprite(openSquare)
+    local neighbours = {}
+    for _, direction in ipairs(CARDINAL_DIRECTIONS) do
+        local neighbour = getNeighbour(openSquare, direction)
+        if neighbour then
+            neighbours[direction] = neighbour
+        end
+    end
+
+    -- Fillers that lost an arm to the shovel describe a corner that is gone
+    for _, neighbour in pairs(neighbours) do
+        local overlay = DumpTruckCore.classifySquare(neighbour)
+        if overlay
+                and overlay.type == DumpTruckConstants.TILE_TYPES.GAP_FILLER
+                and overlay.triangleOffset
+                and not fillerKeepsItsArms(neighbour, overlay.triangleOffset) then
+            DumpTruckOverlays.restoreGapFillerToTerrain(neighbour)
+        end
+    end
+
+    for _, neighbour in pairs(neighbours) do
+        DumpTruckOverlays.removeEdgeBlendsBetweenPourableSquares(neighbour)
+    end
+
+    if terrainSprite then
+        for direction, neighbour in pairs(neighbours) do
+            if DumpTruckCore.isFullRoadFloor(neighbour) then
+                DumpTruckOverlays.blendFaceTowards(neighbour, OPPOSITE_DIRECTION[direction], terrainSprite)
+            end
+        end
     end
 end
 

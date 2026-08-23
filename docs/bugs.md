@@ -133,7 +133,7 @@ A second cause hit every width-2 road in SP and MP alike: `smoothRoad` ran clean
 
 **Fix:** Overlay identity now comes from the sprites attached to the floor (`DumpTruckOverlayClassify` + `DumpTruckCore.classifySquare`), which the engine saves and syncs on its own, so the server recognises its own blends and roads poured before the mod tracked overlays classify correctly too. Cleanup runs on every square in the row including the ends — safe because a blend counts as stale only when its own direction faces gravel, which the unit tests lock down.
 
-Shovelling routes the same way. `ISShovelGround:perform()` reaches onto neighbouring squares, so an MP client sends `cleanupBlendsAt` and the server does the work and syncs the result, matching `applySmoothRoad`.
+Shovelling hooks `ISShovelGround:complete` (shared), which the engine runs only on the world owner. The heal runs beside vanilla's restore on the same machine — no client command, matching how `complete` already owns the dig.
 
 **Measured:** client and server scans agree exactly after a relog, with `stale=0` on both.
 
@@ -213,7 +213,7 @@ Smoothing follows the same split. Gap fillers are checked on every square of a c
 - **No bed tilt animation** – The truck bed does not visually tilt when dumping; would require model/animation support (see design-notes “Bed tilt animation”).
 - **Erosion cannot be re-enabled** – Once gravel is placed we call `disableErosion()`. If the player removes gravel (e.g. shovels), the game has no API to re-enable erosion on that square. “Traffic maintains the road” is not feasible without a game change.
 - **Tile-gap when skipping tiles between ticks** – **Resolved:** a pour tick rasterises the area swept since the last one, so tiles between two ticks are covered on any heading at any speed (see Resolved “Diagonal roads come out as a notched staircase”).
-- **One blend per square** – A floor carries a single attached sprite, so a square exposed on two perpendicular faces (an outer corner of a diagonal's staircase) takes a blend on the dominant one and leaves the other bare. Rare in practice: on a full diagonal run a handful of squares hit it, and most of those faces are covered by a neighbouring gap filler on a later tick.
+- **One blend per square** – **Resolved (stage 1 multi-overlay):** a floor carries one edge-blend sprite per exposed face. `placeEdgeBlend` keeps other faces; cleanup removes only stale directions; `classify` reports every blend direction; `addEdgeBlends` places every open outward face on a diagonal end square.
 - **Gravel loop volume not zoom-dependent** – Dump truck sounds are script clips, not FMOD; zoom-based volume (fridge-style) is documented as a Lua follow-up (`getCore():getZoom()`, `setVolume(handle, volume)`), not yet implemented.
 
 ## Open Issues

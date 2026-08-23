@@ -81,6 +81,32 @@ equals(Classify.classify(GRAVEL, { "blends_natural_01_65" }).triangleOffset, 1, 
 equals(Classify.classify(GRASS, { "blends_natural_01_72" }), nil, "non-gravel floor is not ours")
 equals(Classify.classify(nil, nil), nil, "nil floor sprite is not ours")
 
+-- Multiple edge blends on one floor: every face is reported, first face stays on sprite/direction
+local twoBlends = Classify.classify(GRAVEL, { "blends_natural_01_72", "blends_natural_01_74" })
+equals(twoBlends.type, TILE_TYPES.EDGE_BLEND, "two blends still classify as edge blend")
+equals(twoBlends.direction, "NORTH", "first blend remains the primary direction")
+equals(twoBlends.sprite, "blends_natural_01_72", "first blend remains the primary sprite")
+equals(#twoBlends.directions, 2, "both blend directions are reported")
+equals(twoBlends.directions[1], "NORTH", "first reported direction is north")
+equals(twoBlends.directions[2], "EAST", "second reported direction is east")
+equals(#twoBlends.blends, 2, "both blend sprites are listed")
+equals(twoBlends.blends[2].sprite, "blends_natural_01_74", "second blend keeps its sprite")
+equals(twoBlends.blends[2].direction, "EAST", "second blend keeps its direction")
+
+-- A triangle wins over any blends on the same floor
+equals(
+    Classify.classify(GRAVEL, { "blends_natural_01_72", "blends_natural_01_65" }).type,
+    TILE_TYPES.GAP_FILLER,
+    "triangle plus blend still classifies as gap filler"
+)
+equals(
+    Classify.classify(GRAVEL, { "blends_natural_01_65", "blends_natural_01_74" }).type,
+    TILE_TYPES.GAP_FILLER,
+    "triangle after a blend still classifies as gap filler"
+)
+
+equals(Classify.classify(GRAVEL, {}).type, TILE_TYPES.GRAVEL, "zero blends is bare gravel")
+
 -- Existing roads carry no modData at all: a gravel floor with an attached blend still classifies
 local existingRoad = Classify.classify(GRAVEL, { "blends_natural_01_75" })
 equals(existingRoad.type, TILE_TYPES.EDGE_BLEND, "existing road blend classifies from sprites alone")

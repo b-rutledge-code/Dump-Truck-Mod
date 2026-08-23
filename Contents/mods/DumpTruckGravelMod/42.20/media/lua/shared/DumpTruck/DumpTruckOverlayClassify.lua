@@ -119,14 +119,21 @@ end
         floorSpriteName: string - the floor's own sprite
         attachedSpriteNames: table - array of attached sprite names (may be nil or empty)
         pouredFloor: string - the floor's `pouredFloor` modData value (may be nil)
-    Output: table {type, material, sprite, direction, triangleOffset} for our tiles,
-            nil for anything else
+    Output: table for our tiles, nil for anything else.
+        Gap filler: {type, material, sprite, triangleOffset}
+        Edge blend: {type, material, blends = {{sprite, direction}, ...}, directions = {...},
+                     sprite, direction} — sprite/direction are the first blend for callers that
+                     only need one face; blends/directions carry every attached blend face.
+        Bare road: {type, material}
 ]]
 function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames, pouredFloor)
     local material = DumpTruckOverlayClassify.getPouredMaterial(floorSpriteName, pouredFloor)
     if not material then
         return nil
     end
+
+    local blends = {}
+    local directions = {}
 
     if attachedSpriteNames then
         for i = 1, #attachedSpriteNames do
@@ -144,14 +151,21 @@ function DumpTruckOverlayClassify.classify(floorSpriteName, attachedSpriteNames,
 
             local direction = DumpTruckOverlayClassify.getEdgeBlendDirection(spriteName)
             if direction then
-                return {
-                    type = DumpTruckConstants.TILE_TYPES.EDGE_BLEND,
-                    material = material,
-                    sprite = spriteName,
-                    direction = direction
-                }
+                table.insert(blends, { sprite = spriteName, direction = direction })
+                table.insert(directions, direction)
             end
         end
+    end
+
+    if #blends > 0 then
+        return {
+            type = DumpTruckConstants.TILE_TYPES.EDGE_BLEND,
+            material = material,
+            blends = blends,
+            directions = directions,
+            sprite = blends[1].sprite,
+            direction = blends[1].direction
+        }
     end
 
     return { type = DumpTruckConstants.TILE_TYPES.GRAVEL, material = material }

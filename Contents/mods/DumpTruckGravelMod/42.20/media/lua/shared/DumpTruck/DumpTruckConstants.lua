@@ -31,10 +31,17 @@ DumpTruckConstants.POURABLES = {
 
 DumpTruckConstants.POURABLE_BY_BAG = {}
 DumpTruckConstants.POURABLE_BY_FLOOR_TYPE = {}
+DumpTruckConstants.POURABLE_BY_SPRITE = {}
 for _, pourable in ipairs(DumpTruckConstants.POURABLES) do
     DumpTruckConstants.POURABLE_BY_BAG[pourable.bag] = pourable
     DumpTruckConstants.POURABLE_BY_FLOOR_TYPE[pourable.floorType] = pourable
+    DumpTruckConstants.POURABLE_BY_SPRITE[pourable.sprite] = pourable
 end
+
+-- Build-menu entity floors (GravelFloor / SandFloor / DirtFloor) use these sprites.
+-- Sand and dirt differ from the bag-spill sprites in POURABLES; map both.
+DumpTruckConstants.POURABLE_BY_SPRITE["blends_natural_01_5"] = DumpTruckConstants.POURABLE_BY_FLOOR_TYPE.sand
+DumpTruckConstants.POURABLE_BY_SPRITE["blends_natural_01_64"] = DumpTruckConstants.POURABLE_BY_FLOOR_TYPE.dirt
 
 -- What a pourable bag becomes once drained, per the bags' own ReplaceOnDeplete
 DumpTruckConstants.EMPTY_BAG_TYPE = "Base.EmptySandbag"
