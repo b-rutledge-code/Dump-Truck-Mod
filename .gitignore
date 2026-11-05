@@ -43,6 +43,10 @@ GameScripts/
 # Development scripts (machine-specific)
 scripts/
 
+# Game media script folders (sounds, vehicles) are not the deploy scripts/ dir
+!**/media/scripts/
+!**/media/scripts/**
+
 # Reference files (not for git)
 reference/
 

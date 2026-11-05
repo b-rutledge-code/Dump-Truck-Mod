@@ -89,6 +89,21 @@ A run stays armed while the bed holds pours **or** junk, so a bed of loose items
 
 **MP option:** For multiplayer; set by the host so dump trucks don’t spawn in the world and only admins can spawn or place them. **Files:** `media/sandbox-options.txt` (option definition); `media/lua/shared/Translate/EN/Sandbox.json` (EN label/tooltip, 42.15 .json format); `VehicleZoneDistribution_DumpTruck.lua` gates on `getSandboxOptions():getOptionByName("DumpTruckGravelMod.AdminOnly"):getValue()`. See reference/general/pz-modding-knowledge.md § Sandbox options.
 
+AdminOnly gates **truck** world spawns only. Crate bags stay on the room lists below.
+
+---
+
+## Gravel-bag crates
+
+`DumpTruckDistributions.lua` (server) hooks `OnPreDistributionMerge` and appends vanilla `CrateGravelBags` when that name is missing. Per-container chance is `weightChance / sum of that list`. `max` is how many containers in one room can win the recipe.
+
+| Room | Container | weightChance | Chance | max |
+|---|---|---|---|---|
+| `construction` | `other` | 115 | 115 / 575 = 20% | 4 |
+| `loggingfactory` | `crate` | 40 | 40 / 200 = 20% | 4 |
+| `loggingwarehouse` | `crate` | 40 | 40 / 200 = 20% | 4 |
+
+Vanilla garage crates, garden-store misc, shed misc, and warehouse cardboard (`smallbox`) already roll the same recipe.
 
 ---
 
@@ -387,24 +402,23 @@ See "Cardinal Lock — steering the vehicle from Lua" above. Direct steering man
 
 ---
 
-## Sound — gravel loop volume by zoom (approach documented)
+## Sound — dump mix (zoom and engine volume)
 
-**Goal:** Make the gravel dump loop (and optionally start/end) get quieter when the camera is zoomed out, similar to the fridge hum.
+Dump sounds are **file clips** on the vehicle emitter (`sounds_dumptruck.txt`). Loudness is **script `volume` × Lua `setVolume` gain**.
 
-**Current setup:** Dump truck sounds are **script clips** in `media/scripts/sounds_dumptruck.txt` (e.g. `GravelDumpStart`, `GravelDumpLoop`, `GravelDumpEnd`), not FMOD events. The fridge uses FMOD with a global **CameraZoom** parameter; that’s authored in the FMOD project. We have no FMOD project for these clips, so we can’t get fridge-style zoom ducking via FMOD.
+**Script base volumes**
 
-**Lua approach (supported by the engine):** The game exposes both zoom and per-handle volume to Lua:
+| Sound | `volume` |
+|-------|----------|
+| `GravelDumpLoop` | `1.0` |
+| `GravelDumpStart` / `GravelDumpEnd` | `1.0` |
+| `HydraulicLiftRaised` / `HydraulicLiftDown` | `1.0` |
 
-- **Zoom:** `Core` is exposed; `getCore():getZoom(playerNum)` returns the current zoom. `getCore():getMinZoom()` and `getCore():getMaxZoom()` exist for normalizing (e.g. to a 0–1 factor).
-- **Volume:** `BaseSoundEmitter` is exposed; `setVolume(long handle, float volume)` adjusts a playing sound. The vehicle’s emitter is `vehicle:getEmitter()`. `startDumping` stores the handle `emitter:playSound("GravelDumpLoop")` returns in `DumpTruck.dumpLoopHandle`.
+Raise the script base if zoomed-in dump is still quiet; raise far gain if zoomed-out vanishes.
 
-**Implementation sketch:** While the loop is playing (e.g. in the same place we call `emitter:tick()` or in an update that runs when dumping is active):
+**Gain** (`DumpTruckSound.getGain`): zoom lerp × (`getCore():getOptionVehicleEngineVolume() / 10`). Zoom uses the same `t` as vanilla `ParameterCameraZoom`: `(zoom - minZoom) / (maxZoom - minZoom)`, clamped 0–1. `t = 0` is closest (near gain `1.0`); `t = 1` is farthest (far gain `0.35`). No local player → near gain.
 
-1. `local zoom = getCore():getZoom(getPlayer():getPlayerNum())`
-2. Normalize to 0–1 with min/max zoom (e.g. `(zoom - min) / (max - min)` or a curve) so “zoomed in = full volume, zoomed out = quieter”.
-3. `vehicle:getEmitter():setVolume(loopHandle, volume)` with that factor.
-
-No FMOD changes required; the actual Lua change can be done in a follow-up.
+`startDumping` and `stopDumpingSounds` play hydraulics, start, loop, and end through `emitter:playSound` and apply gain on the returned handle. While `DumpTruck.dumpingActive` and `dumpLoopHandle` are set, `onPlayerUpdateFunc` refreshes loop gain each pour tick. Snap Line and reverse-buzzer vanilla clips are unchanged.
 
 ---
 

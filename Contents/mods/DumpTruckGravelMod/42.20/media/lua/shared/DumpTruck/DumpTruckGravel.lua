@@ -3,6 +3,7 @@ local DumpTruckCore = require("DumpTruck/DumpTruckCore")
 local DumpTruckOverlays = require("DumpTruck/DumpTruckOverlays")
 local DumpTruckSnapLine = require("DumpTruck/DumpTruckSnapLine")
 local DumpTruckBandRaster = require("DumpTruck/DumpTruckBandRaster")
+local DumpTruckSound = require("DumpTruck/DumpTruckSound")
 
 local DumpTruck = {}
 
@@ -502,6 +503,9 @@ function DumpTruck.onPlayerUpdateFunc(player)
                 -- Dedicated server: skip (no client module)
             else
                 DumpTruck.tryPourGravelUnderTruck(vehicle)
+                if DumpTruck.dumpingActive and DumpTruck.dumpLoopHandle then
+                    DumpTruckSound.applyGain(vehicle:getEmitter(), DumpTruck.dumpLoopHandle)
+                end
             end
         end
     end
@@ -570,8 +574,8 @@ function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
     DumpTruck.dumpLoopHandle = nil
 
     if playEndSounds and wasPlaying then
-        vehicle:playSound("HydraulicLiftDown")
-        vehicle:playSound("GravelDumpEnd")
+        DumpTruckSound.play(emitter, "HydraulicLiftDown")
+        DumpTruckSound.play(emitter, "GravelDumpEnd")
     end
 end
 
@@ -593,12 +597,10 @@ function DumpTruck.startDumping(vehicle)
     DumpTruck.junkedSquaresByVehicleId[vehicle:getId()] = nil
 
     -- Start dumping sounds
-    vehicle:playSound("HydraulicLiftRaised")
-    vehicle:playSound("GravelDumpStart")
     local emitter = vehicle:getEmitter()
-    if emitter then
-        DumpTruck.dumpLoopHandle = emitter:playSound("GravelDumpLoop")
-    end
+    DumpTruckSound.play(emitter, "HydraulicLiftRaised")
+    DumpTruckSound.play(emitter, "GravelDumpStart")
+    DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
 end
 
 -- Stop dumping

@@ -44,6 +44,9 @@ description=- Parking Stalls (general parking lots) - very low chance
 description=- Medium Areas (medium density zones) - very low chance
 description=[b]Vehicle type:[/b] Base.DumpTruck
 description=
+description=[h2]Gravel bags[/h2]
+description=Look for crates of gravel bags at construction sites and McCoy logging. They also show up in garage storage, garden stores, sheds, and warehouse cardboard boxes. Half of spawned dump trucks already have a loaded bed.
+description=
 description=[h2]Special Thanks[/h2]
 description=Huge Thank You to [url=https://steamcommunity.com/id/fhqwhgadsGT]fhqwhgads[/url] for his dump truck model!
 description=Thanks to Hank_Mardukas for the sound effects!
