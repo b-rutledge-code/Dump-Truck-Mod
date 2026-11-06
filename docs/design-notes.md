@@ -420,6 +420,8 @@ Raise the script base if zoomed-in dump is still quiet; raise far gain if zoomed
 
 `startDumping` and `stopDumpingSounds` play hydraulics, start, loop, and end through `emitter:playSound` and apply gain on the returned handle. While `DumpTruck.dumpingActive` and `dumpLoopHandle` are set, `onPlayerUpdateFunc` refreshes loop gain each pour tick. Snap Line and reverse-buzzer vanilla clips are unchanged.
 
+**MP:** The driver plays locally, then `dumpSoundStart` / `dumpSoundStop` go to the server with the vehicle id. The server relays to every other player. Those clients play the same clips on their copy of that vehicle’s emitter, with their own zoom and engine-volume gain. A truck that loses its driver while the server still has a dump-sound session gets a stop relay so the loop does not stick.
+
 ---
 
 ## Cardinal Lock – UX of starting a straight road

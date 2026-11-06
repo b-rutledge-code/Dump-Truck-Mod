@@ -485,6 +485,14 @@ end
 -- Update function for player actions
 local elapsedTime = 0
 function DumpTruck.onPlayerUpdateFunc(player)
+    if not isServer() and player and player == getPlayer() then
+        for vehicleId, handle in pairs(DumpTruck.remoteLoopByVehicleId) do
+            local remoteVehicle = getVehicleById(vehicleId)
+            if remoteVehicle then
+                DumpTruckSound.applyGain(remoteVehicle:getEmitter(), handle)
+            end
+        end
+    end
     if player then
         local vehicle = player:getVehicle()
         -- Driver only: a passenger's client shares the same vehicle and would pour the same
@@ -519,6 +527,8 @@ Events.OnPlayerUpdate.Add(DumpTruck.onPlayerUpdateFunc)
 ]]
 DumpTruck.dumpingActive = false
 DumpTruck.dumpLoopHandle = nil
+DumpTruck.remoteLoopByVehicleId = {}
+DumpTruck.dumpingSoundByVehicleId = {}
 DumpTruck.dumpLastTileX = nil
 DumpTruck.dumpLastTileY = nil
 DumpTruck.dumpLastCentreX = nil
@@ -554,6 +564,64 @@ function DumpTruck.markJunkedSquare(vehicle, sq)
     junked[junkKey(sq)] = true
 end
 
+local function sendDumpSoundCommand(command, vehicle, playEnd)
+    if not isClient() or not vehicle then
+        return
+    end
+    sendClientCommand(getPlayer(), "DumpTruckGravelMod", command, {
+        vehicle = vehicle:getId(),
+        playEnd = playEnd and true or false,
+    })
+end
+
+local function relayDumpSound(sender, command, args)
+    local players = getOnlinePlayers()
+    if not players then
+        return
+    end
+    for i = 0, players:size() - 1 do
+        local other = players:get(i)
+        if other and other ~= sender then
+            sendServerCommand(other, "DumpTruckGravelMod", command, args)
+        end
+    end
+end
+
+function DumpTruck.playRemoteDumpStop(vehicleId, playEnd)
+    local handle = DumpTruck.remoteLoopByVehicleId[vehicleId]
+    DumpTruck.remoteLoopByVehicleId[vehicleId] = nil
+    local vehicle = getVehicleById(vehicleId)
+    local emitter = vehicle and vehicle:getEmitter() or nil
+    local wasPlaying = handle ~= nil
+    if emitter then
+        if emitter:isPlaying("GravelDumpLoop") then
+            wasPlaying = true
+        end
+        if handle ~= nil then
+            emitter:stopSound(handle)
+        end
+    end
+    if playEnd and wasPlaying then
+        DumpTruckSound.play(emitter, "HydraulicLiftDown")
+        DumpTruckSound.play(emitter, "GravelDumpEnd")
+    end
+end
+
+function DumpTruck.playRemoteDumpStart(vehicleId)
+    if DumpTruck.dumpingActive then
+        return
+    end
+    local vehicle = getVehicleById(vehicleId)
+    if not vehicle then
+        return
+    end
+    DumpTruck.playRemoteDumpStop(vehicleId, false)
+    local emitter = vehicle:getEmitter()
+    DumpTruckSound.play(emitter, "HydraulicLiftRaised")
+    DumpTruckSound.play(emitter, "GravelDumpStart")
+    DumpTruck.remoteLoopByVehicleId[vehicleId] = DumpTruckSound.play(emitter, "GravelDumpLoop")
+end
+
 -- Stop dumping sounds
 function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
     if not vehicle then
@@ -576,6 +644,7 @@ function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
     if playEndSounds and wasPlaying then
         DumpTruckSound.play(emitter, "HydraulicLiftDown")
         DumpTruckSound.play(emitter, "GravelDumpEnd")
+        sendDumpSoundCommand("dumpSoundStop", vehicle, true)
     end
 end
 
@@ -601,6 +670,7 @@ function DumpTruck.startDumping(vehicle)
     DumpTruckSound.play(emitter, "HydraulicLiftRaised")
     DumpTruckSound.play(emitter, "GravelDumpStart")
     DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
+    sendDumpSoundCommand("dumpSoundStart", vehicle, false)
 end
 
 -- Stop dumping
@@ -656,6 +726,10 @@ Events.OnServerCommand.Add(function(module, command, args)
         floor:DirtySlice()
         sq:RecalcProperties()
         sq:DirtySlice()
+    elseif command == "dumpSoundStart" and args.vehicle then
+        DumpTruck.playRemoteDumpStart(args.vehicle)
+    elseif command == "dumpSoundStop" and args.vehicle then
+        DumpTruck.playRemoteDumpStop(args.vehicle, args.playEnd)
     end
 end)
 
@@ -727,6 +801,31 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         DumpTruckCore.debugMode = args.enabled and true or false
         print("[DumpTruck] debugMode " .. (DumpTruckCore.debugMode and "ON" or "OFF")
             .. " (from " .. (player and player:getUsername() or "?") .. ")")
+    elseif command == "dumpSoundStart" and args.vehicle then
+        if not isServer() then
+            return
+        end
+        DumpTruck.dumpingSoundByVehicleId[args.vehicle] = true
+        relayDumpSound(player, command, args)
+    elseif command == "dumpSoundStop" and args.vehicle then
+        if not isServer() then
+            return
+        end
+        DumpTruck.dumpingSoundByVehicleId[args.vehicle] = nil
+        relayDumpSound(player, command, args)
+    end
+end)
+
+Events.OnTick.Add(function()
+    if not isServer() then
+        return
+    end
+    for vehicleId, _ in pairs(DumpTruck.dumpingSoundByVehicleId) do
+        local vehicle = getVehicleById(vehicleId)
+        if not vehicle or not vehicle:getDriver() then
+            DumpTruck.dumpingSoundByVehicleId[vehicleId] = nil
+            relayDumpSound(nil, "dumpSoundStop", { vehicle = vehicleId, playEnd = true })
+        end
     end
 end)
 
