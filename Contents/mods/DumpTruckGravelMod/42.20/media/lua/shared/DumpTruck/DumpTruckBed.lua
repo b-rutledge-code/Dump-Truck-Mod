@@ -7,8 +7,21 @@ DumpTruck_part.Create = {}
 DumpTruck_part.Init = {}
 DumpTruck_part.Update = {}
 
+function DumpTruck_part.SetBedRaised(vehicle, raised)
+    local part = vehicle:getPartById("TruckBed")
+    if not part then return end
+    if not part:getInventoryItem() then
+        part:setModelVisible("Default", false)
+        part:setModelVisible("Raised", false)
+        return
+    end
+    part:setModelVisible("Default", not raised)
+    part:setModelVisible("Raised", raised)
+end
+
 function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
     local invItem = VehicleUtils.createPartInventoryItem(part)
+    DumpTruck_part.SetBedRaised(vehicle, false)
 
     local modData = vehicle:getModData()
     if modData.initialized == nil then
@@ -101,6 +114,7 @@ end
 
 function DumpTruck_part.Init.TruckBedDumpTruck(vehicle, part)
     part = vehicle:getPartById("TruckBed")
+    DumpTruck_part.SetBedRaised(vehicle, false)
 end
 
 function DumpTruck_part.Update.TruckBedDumpTruck(vehicle, part)

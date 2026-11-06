@@ -671,6 +671,7 @@ function DumpTruck.startDumping(vehicle)
     DumpTruckSound.play(emitter, "GravelDumpStart")
     DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
     sendDumpSoundCommand("dumpSoundStart", vehicle, false)
+    DumpTruck_part.SetBedRaised(vehicle, true)
 end
 
 -- Stop dumping
@@ -678,6 +679,7 @@ function DumpTruck.stopDumping(vehicle)
     local data = vehicle:getModData()
 
     DumpTruck.stopDumpingSounds(vehicle, true)
+    DumpTruck_part.SetBedRaised(vehicle, false)
 
     DumpTruck.dumpingActive = false
     DumpTruck.dumpLastTileX = nil

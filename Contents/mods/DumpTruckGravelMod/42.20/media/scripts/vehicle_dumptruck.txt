@@ -278,6 +278,7 @@ module Base
 			mechanicRequireKey = true,
 			repairMechanic = true,
 			durability = 5,
+			setAllModelsVisible = false,
 
 			container
 			{
@@ -291,6 +292,13 @@ module Base
 				file = VolvoFE6Dump_Dump,
 				offset = 0.0000 0.0000 0.0000,
 				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Raised
+			{
+				file = VolvoFE6Dump_Dump,
+				offset = 0.0000 1.0845 0.2358,
+				rotate = 40.0000 0.0000 0.0000,
 			}
 
 			lua
