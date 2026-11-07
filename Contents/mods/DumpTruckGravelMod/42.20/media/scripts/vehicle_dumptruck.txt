@@ -315,6 +315,41 @@ module Base
 				test = Vehicles.ContainerAccess.TruckBed,
 			}
 
+			model BedLive
+			{
+				file = VolvoFE6Dump_Dump,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFullLive
+			{
+				file = VolvoFE6Dump_GravelFull,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4Live
+			{
+				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2Live
+			{
+				file = VolvoFE6Dump_Gravel1_2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4Live
+			{
+				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Bed_0
 			{
 				file = VolvoFE6Dump_Dump,

@@ -9,12 +9,18 @@ DumpTruck_part.Update = {}
 
 local BED_ANGLE_RAISED = -40
 local BED_TRAVEL_SECONDS = 1.2
-local POSE_STEPS = {}
-for step = 0, 40 do
-    POSE_STEPS[step + 1] = step
-end
+local HINGE_Y = 0.424840
+local HINGE_Z = -1.150195
+local LIVE_BED = "BedLive"
+local LIVE_GRAVEL = {
+    GravelFull = "GravelFullLive",
+    Gravel3_4 = "Gravel3_4Live",
+    Gravel1_2 = "Gravel1_2Live",
+    Gravel1_4 = "Gravel1_4Live",
+}
 
 local poseByVehicle = {}
+local BURY_Y = -100
 
 local function getFullBedUses(part)
     local container = part:getItemContainer()
@@ -65,54 +71,118 @@ local function gravelLevelFor(part)
     return "Gravel1_4"
 end
 
-local function stepForAngle(angle)
-    local mag = math.abs(angle)
-    local best = POSE_STEPS[1]
-    local bestDist = math.abs(mag - best)
-    for i = 2, #POSE_STEPS do
-        local step = POSE_STEPS[i]
-        local dist = math.abs(mag - step)
-        if dist < bestDist then
-            best = step
-            bestDist = dist
+local function writeModelAngle(part, modelId, angle, oy, oz)
+    local model = part:getScriptPart():getModelById(modelId)
+    if not model then return end
+    model:getOffset():set(0, oy, oz)
+    model:getRotate():set(angle, 0, 0)
+end
+
+local function hingeOffset(angle)
+    local theta = math.rad(angle)
+    local cosine = math.cos(theta)
+    local sine = math.sin(theta)
+    local rotatedY = HINGE_Y * cosine - HINGE_Z * sine
+    local rotatedZ = HINGE_Y * sine + HINGE_Z * cosine
+    return HINGE_Y - rotatedY, HINGE_Z - rotatedZ
+end
+
+local function writeLiveAngle(part, angle, activeGravelId)
+    local oy, oz = hingeOffset(angle)
+    writeModelAngle(part, LIVE_BED, angle, oy, oz)
+    for _, modelId in pairs(LIVE_GRAVEL) do
+        if modelId == activeGravelId then
+            writeModelAngle(part, modelId, angle, oy, oz)
+        else
+            writeModelAngle(part, modelId, 0, BURY_Y, 0)
         end
     end
-    return best
 end
 
 local function poseFor(vehicle)
     local pose = poseByVehicle[vehicle]
     if not pose then
-        pose = { angle = 0, target = 0, bedId = nil, gravelId = nil }
+        pose = { angle = 0, target = 0, bedId = nil, gravelId = nil, liveGravel = false }
         poseByVehicle[vehicle] = pose
     end
     return pose
 end
 
-local function applyShown(vehicle, pose, force)
-    local part = vehicle:getPartById("TruckBed")
-    if not part then return end
-    local step = stepForAngle(pose.angle)
-    local level = gravelLevelFor(part)
-    local bedId = "Bed_" .. step
-    local gravelId = level and (level .. "_" .. step) or nil
-    if not force and pose.bedId == bedId and pose.gravelId == gravelId then return end
-    if pose.bedId ~= bedId then
-        if pose.bedId then part:setModelVisible(pose.bedId, false) end
-        part:setModelVisible(bedId, true)
-        pose.bedId = bedId
-    end
-    if pose.gravelId ~= gravelId then
-        if pose.gravelId then part:setModelVisible(pose.gravelId, false) end
-        if gravelId then part:setModelVisible(gravelId, true) end
-        pose.gravelId = gravelId
+local function onDedicatedServer()
+    return isServer() and not isClient()
+end
+
+local function hideLiveModels(part)
+    part:setModelVisible(LIVE_BED, false)
+    for _, modelId in pairs(LIVE_GRAVEL) do
+        part:setModelVisible(modelId, false)
     end
 end
 
+local function showLiveModels(part)
+    part:setModelVisible(LIVE_BED, true)
+    for _, modelId in pairs(LIVE_GRAVEL) do
+        part:setModelVisible(modelId, true)
+    end
+end
+
+local function applyShown(vehicle, pose, force)
+    if onDedicatedServer() then return end
+    local part = vehicle:getPartById("TruckBed")
+    if not part then return end
+    local moving = pose.angle ~= 0 or pose.target ~= 0
+    local level = gravelLevelFor(part)
+    if moving then
+        local gravelId = level and LIVE_GRAVEL[level] or nil
+        writeLiveAngle(part, pose.angle, gravelId)
+        if not force and pose.liveGravel then
+            pose.gravelId = gravelId
+            pose.bedId = LIVE_BED
+            return
+        end
+        if pose.bedId and pose.bedId ~= LIVE_BED then
+            part:setModelVisible(pose.bedId, false)
+        end
+        if pose.gravelId and not pose.liveGravel then
+            part:setModelVisible(pose.gravelId, false)
+        end
+        showLiveModels(part)
+        pose.liveGravel = true
+        pose.bedId = LIVE_BED
+        pose.gravelId = gravelId
+        return
+    end
+
+    local bedId = "Bed_0"
+    local gravelId = level and (level .. "_0") or nil
+    if not force and not pose.liveGravel and pose.bedId == bedId and pose.gravelId == gravelId then return end
+    if pose.liveGravel then
+        hideLiveModels(part)
+        pose.liveGravel = false
+        pose.bedId = nil
+        pose.gravelId = nil
+    end
+    if pose.bedId and pose.bedId ~= bedId then
+        part:setModelVisible(pose.bedId, false)
+    end
+    part:setModelVisible(bedId, true)
+    pose.bedId = bedId
+    if pose.gravelId and pose.gravelId ~= gravelId then
+        part:setModelVisible(pose.gravelId, false)
+    end
+    if gravelId then
+        part:setModelVisible(gravelId, true)
+    end
+    pose.gravelId = gravelId
+end
+
 local function showGravel(part, force)
+    if onDedicatedServer() then return end
     local vehicle = part:getVehicle()
     if not vehicle then return end
-    applyShown(vehicle, poseFor(vehicle), force)
+    local pose = poseByVehicle[vehicle]
+    if not pose then return end
+    applyShown(vehicle, pose, force)
 end
 
 function DumpTruck_part.UpdateGravelLoads()
@@ -138,8 +208,8 @@ function DumpTruck_part.SetBedRaised(vehicle, raised, instant)
     pose.target = target
     if instant then
         pose.angle = target
-        applyShown(vehicle, pose, true)
     end
+    applyShown(vehicle, pose, instant)
 end
 
 function DumpTruck_part.UpdateBedPose(dt)
@@ -251,9 +321,9 @@ end
 
 function DumpTruck_part.Init.TruckBedDumpTruck(vehicle, part)
     part = vehicle:getPartById("TruckBed")
-    DumpTruck_part.SetBedRaised(vehicle, false, true)
+    local dumping = DumpTruck and DumpTruck.dumpingActive and getPlayer() and getPlayer():getVehicle() == vehicle
+    DumpTruck_part.SetBedRaised(vehicle, dumping and true or false, true)
 end
 
 function DumpTruck_part.Update.TruckBedDumpTruck(vehicle, part)
-    showGravel(part, false)
 end
