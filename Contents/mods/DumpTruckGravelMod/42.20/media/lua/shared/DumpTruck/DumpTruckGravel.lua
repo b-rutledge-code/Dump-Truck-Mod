@@ -485,6 +485,9 @@ end
 -- Update function for player actions
 local elapsedTime = 0
 function DumpTruck.onPlayerUpdateFunc(player)
+    if player and player == getPlayer() and not (isServer() and not isClient()) then
+        DumpTruck_part.UpdateBedPose(GameTime:getInstance():getRealworldSecondsSinceLastUpdate())
+    end
     if not isServer() and player and player == getPlayer() then
         for vehicleId, handle in pairs(DumpTruck.remoteLoopByVehicleId) do
             local remoteVehicle = getVehicleById(vehicleId)
@@ -671,7 +674,7 @@ function DumpTruck.startDumping(vehicle)
     DumpTruckSound.play(emitter, "GravelDumpStart")
     DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
     sendDumpSoundCommand("dumpSoundStart", vehicle, false)
-    DumpTruck_part.SetBedRaised(vehicle, true)
+    DumpTruck_part.SetBedRaised(vehicle, true, false)
 end
 
 -- Stop dumping
@@ -679,7 +682,7 @@ function DumpTruck.stopDumping(vehicle)
     local data = vehicle:getModData()
 
     DumpTruck.stopDumpingSounds(vehicle, true)
-    DumpTruck_part.SetBedRaised(vehicle, false)
+    DumpTruck_part.SetBedRaised(vehicle, false, false)
 
     DumpTruck.dumpingActive = false
     DumpTruck.dumpLastTileX = nil

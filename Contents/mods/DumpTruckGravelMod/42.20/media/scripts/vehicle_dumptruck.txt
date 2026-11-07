@@ -294,11 +294,11 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
-			model Raised
+			model Bed
 			{
 				file = VolvoFE6Dump_Dump,
-				offset = 0.0000 1.0845 0.2358,
-				rotate = 40.0000 0.0000 0.0000,
+				offset = 0.0000 0.0000 0.0000,
+				rotate = 0.0000 0.0000 0.0000,
 			}
 
 			lua
