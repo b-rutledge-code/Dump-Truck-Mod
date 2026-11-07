@@ -7,83 +7,154 @@ DumpTruck_part.Create = {}
 DumpTruck_part.Init = {}
 DumpTruck_part.Update = {}
 
-local HINGE_Y = 0.424840
-local HINGE_Z = -1.150195
 local BED_ANGLE_RAISED = -40
 local BED_TRAVEL_SECONDS = 1.2
-
-local bedAnim = {
-    vehicle = nil,
-    angle = 0,
-    target = 0,
-}
-
-local shownMode = {}
-
-local function writeBedAngle(part, angle)
-    local model = part:getScriptPart():getModelById("Bed")
-    if not model then return end
-    local theta = math.rad(angle)
-    local cosine = math.cos(theta)
-    local sine = math.sin(theta)
-    local rotatedY = HINGE_Y * cosine - HINGE_Z * sine
-    local rotatedZ = HINGE_Y * sine + HINGE_Z * cosine
-    model:getOffset():set(0, HINGE_Y - rotatedY, HINGE_Z - rotatedZ)
-    model:getRotate():set(angle, 0, 0)
+local POSE_STEPS = {}
+for step = 0, 40 do
+    POSE_STEPS[step + 1] = step
 end
 
-local function showBedModel(part, useBed, force)
-    local vehicle = part:getVehicle()
-    local hasItem = part:getInventoryItem() ~= nil
-    local mode = "hidden"
-    if hasItem then
-        mode = useBed and "Bed" or "Default"
+local poseByVehicle = {}
+
+local function getFullBedUses(part)
+    local container = part:getItemContainer()
+    if not container then return 0 end
+    -- Pour count for one full bag. The bag can report a smaller max than the pours it still holds.
+    local usesPerBag = 1
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i)
+        if item and DumpTruckConstants.POURABLE_BY_BAG[item:getFullType()] then
+            local n = item:getMaxUses()
+            local current = item:getCurrentUses()
+            if current > n then n = current end
+            if n > usesPerBag then usesPerBag = n end
+        end
     end
-    if not force and shownMode[vehicle] == mode then return end
-    if mode == "Bed" then
-        part:setModelVisible("Bed", true)
-        part:setModelVisible("Default", false)
-    elseif mode == "Default" then
-        part:setModelVisible("Default", true)
-        part:setModelVisible("Bed", false)
-    else
-        part:setModelVisible("Default", false)
-        part:setModelVisible("Bed", false)
-    end
-    shownMode[vehicle] = mode
+    return math.floor(container:getCapacity() / BAG_WEIGHT) * usesPerBag
 end
 
-local function applyBedAngle(vehicle, angle, useBed, force)
+local function getPourableUsesFromPart(part)
+    local container = part:getItemContainer()
+    if not container then return 0 end
+    local total = 0
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i)
+        if item and DumpTruckConstants.POURABLE_BY_BAG[item:getFullType()] then
+            total = total + item:getCurrentUses()
+        end
+    end
+    return total
+end
+
+local function gravelLevelFor(part)
+    if part:getInventoryItem() == nil then return nil end
+    local remaining = getPourableUsesFromPart(part)
+    if remaining <= 0 then return nil end
+    local full = getFullBedUses(part)
+    if full <= 0 then return "Gravel1_4" end
+    local frac = remaining / full
+    if frac > 0.75 then
+        return "GravelFull"
+    elseif frac > 0.5 then
+        return "Gravel3_4"
+    elseif frac > 0.25 then
+        return "Gravel1_2"
+    end
+    return "Gravel1_4"
+end
+
+local function stepForAngle(angle)
+    local mag = math.abs(angle)
+    local best = POSE_STEPS[1]
+    local bestDist = math.abs(mag - best)
+    for i = 2, #POSE_STEPS do
+        local step = POSE_STEPS[i]
+        local dist = math.abs(mag - step)
+        if dist < bestDist then
+            best = step
+            bestDist = dist
+        end
+    end
+    return best
+end
+
+local function poseFor(vehicle)
+    local pose = poseByVehicle[vehicle]
+    if not pose then
+        pose = { angle = 0, target = 0, bedId = nil, gravelId = nil }
+        poseByVehicle[vehicle] = pose
+    end
+    return pose
+end
+
+local function applyShown(vehicle, pose, force)
     local part = vehicle:getPartById("TruckBed")
     if not part then return end
-    writeBedAngle(part, angle)
-    showBedModel(part, useBed, force)
-    bedAnim.angle = angle
+    local step = stepForAngle(pose.angle)
+    local level = gravelLevelFor(part)
+    local bedId = "Bed_" .. step
+    local gravelId = level and (level .. "_" .. step) or nil
+    if not force and pose.bedId == bedId and pose.gravelId == gravelId then return end
+    if pose.bedId ~= bedId then
+        if pose.bedId then part:setModelVisible(pose.bedId, false) end
+        part:setModelVisible(bedId, true)
+        pose.bedId = bedId
+    end
+    if pose.gravelId ~= gravelId then
+        if pose.gravelId then part:setModelVisible(pose.gravelId, false) end
+        if gravelId then part:setModelVisible(gravelId, true) end
+        pose.gravelId = gravelId
+    end
+end
+
+local function showGravel(part, force)
+    local vehicle = part:getVehicle()
+    if not vehicle then return end
+    applyShown(vehicle, poseFor(vehicle), force)
+end
+
+function DumpTruck_part.UpdateGravelLoads()
+    local cell = getCell()
+    if not cell then return end
+    local vehicles = cell:getVehicles()
+    local iterator = vehicles:iterator()
+    while iterator:hasNext() do
+        local vehicle = iterator:next()
+        if vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME then
+            local part = vehicle:getPartById(DumpTruckConstants.PART_NAME)
+            if part then
+                showGravel(part, false)
+            end
+        end
+    end
 end
 
 function DumpTruck_part.SetBedRaised(vehicle, raised, instant)
     if not vehicle then return end
+    local pose = poseFor(vehicle)
     local target = raised and BED_ANGLE_RAISED or 0
-    if instant or bedAnim.vehicle ~= vehicle then
-        bedAnim.vehicle = vehicle
-        bedAnim.target = target
-        applyBedAngle(vehicle, target, target ~= 0, true)
-        return
+    pose.target = target
+    if instant then
+        pose.angle = target
+        applyShown(vehicle, pose, true)
     end
-    bedAnim.vehicle = vehicle
-    bedAnim.target = target
 end
 
 function DumpTruck_part.UpdateBedPose(dt)
-    if not bedAnim.vehicle or bedAnim.angle == bedAnim.target then return end
     if not dt or dt <= 0 then return end
     local rate = math.abs(BED_ANGLE_RAISED) / BED_TRAVEL_SECONDS
-    if bedAnim.target < bedAnim.angle then
-        bedAnim.angle = math.max(bedAnim.target, bedAnim.angle - rate * dt)
-    else
-        bedAnim.angle = math.min(bedAnim.target, bedAnim.angle + rate * dt)
+    for vehicle, pose in pairs(poseByVehicle) do
+        if pose.angle ~= pose.target then
+            if pose.target < pose.angle then
+                pose.angle = math.max(pose.target, pose.angle - rate * dt)
+            else
+                pose.angle = math.min(pose.target, pose.angle + rate * dt)
+            end
+        end
+        applyShown(vehicle, pose, false)
     end
-    applyBedAngle(bedAnim.vehicle, bedAnim.angle, bedAnim.angle ~= 0 or bedAnim.target ~= 0, false)
 end
 
 function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
@@ -122,11 +193,8 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
 
             for i = 1, numBags do
                 local gravelBag = truckbedcontainer:AddItem("Base.Gravelbag")
-                if gravelBag then
-                    gravelBag:setUseDelta(1.0)
-                    if isServer() then
-                        sendAddItemToContainer(truckbedcontainer, gravelBag)
-                    end
+                if gravelBag and isServer() then
+                    sendAddItemToContainer(truckbedcontainer, gravelBag)
                 end
             end
         else
@@ -177,6 +245,8 @@ function DumpTruck_part.Create.TruckBedDumpTruck(vehicle, part)
             "Base.Magazine", 15, "Base.CandyPackage", 10, "Base.WaterBottleFull", 8,
         })
     end
+
+    showGravel(part, true)
 end
 
 function DumpTruck_part.Init.TruckBedDumpTruck(vehicle, part)
@@ -185,4 +255,5 @@ function DumpTruck_part.Init.TruckBedDumpTruck(vehicle, part)
 end
 
 function DumpTruck_part.Update.TruckBedDumpTruck(vehicle, part)
+    showGravel(part, false)
 end

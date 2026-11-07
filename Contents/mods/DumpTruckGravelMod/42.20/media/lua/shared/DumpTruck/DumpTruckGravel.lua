@@ -399,6 +399,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         fx, fy = DumpTruckCore.getVectorFromPlayer(vehicle)
     end
     if not fx or not fy then
+        DumpTruck.syncPourSound(vehicle)
         return
     end
 
@@ -424,13 +425,13 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
         roadWidth = vehicleWidth + 1
     end
 
-    if not DumpTruck.hasDumpableLoad(vehicle) then
-        DumpTruck.stopDumping(vehicle)
+    -- An empty bed stays raised. The cursor still advances, so loading more bags
+    -- continues from here instead of paving the stretch driven with nothing in the bed.
+    local firstPour = DumpTruck.dumpLastCentreX == nil
+    if not firstPour and tileX == DumpTruck.dumpLastTileX and tileY == DumpTruck.dumpLastTileY then
+        DumpTruck.syncPourSound(vehicle)
         return
     end
-
-    local firstPour = DumpTruck.dumpLastCentreX == nil
-    if not firstPour and tileX == DumpTruck.dumpLastTileX and tileY == DumpTruck.dumpLastTileY then return end
 
     local snapCx, snapCy = DumpTruckSnapLine.getSnappedPosition(vehicle, cx, cy)
     local centreX, centreY = DumpTruck.getPourCentre(snapCx, snapCy, fx, fy, length)
@@ -443,15 +444,18 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local DumpTruckPourEffect = require("DumpTruck/DumpTruckPourEffect")
     local columns = DumpTruck.getBandColumns(lastCentreX, lastCentreY, centreX, centreY, fx, fy, roadWidth, cz)
     local pouredColumns = {}
+    local loadSpent = false
 
     for _, column in ipairs(columns) do
+        if loadSpent then break end
         table.insert(pouredColumns, column)
         for _, sq in ipairs(column) do
             if DumpTruckCore.isSquareOpenGround(sq) then
                 --[[
                     A tile takes a floor and an item independently. A load of bags with a
                     toolbox on top leaves both behind as it goes, and once the bags are gone
-                    the run carries on tipping out what is left.
+                    the run carries on tipping out what is left. Running out does not lower
+                    the bed.
                 ]]
                 local pourable = DumpTruck.peekNextPourable(vehicle)
                 if pourable
@@ -466,9 +470,8 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
                 end
 
                 if not DumpTruck.hasDumpableLoad(vehicle) then
-                    applySmoothRoad(pouredColumns)
-                    DumpTruck.stopDumping(vehicle)
-                    return
+                    loadSpent = true
+                    break
                 end
             end
         end
@@ -480,6 +483,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     DumpTruck.dumpLastTileY = tileY
     DumpTruck.dumpLastCentreX = centreX
     DumpTruck.dumpLastCentreY = centreY
+    DumpTruck.syncPourSound(vehicle)
 end
 
 -- Update function for player actions
@@ -487,6 +491,7 @@ local elapsedTime = 0
 function DumpTruck.onPlayerUpdateFunc(player)
     if player and player == getPlayer() and not (isServer() and not isClient()) then
         DumpTruck_part.UpdateBedPose(GameTime:getInstance():getRealworldSecondsSinceLastUpdate())
+        DumpTruck_part.UpdateGravelLoads()
     end
     if not isServer() and player and player == getPlayer() then
         for vehicleId, handle in pairs(DumpTruck.remoteLoopByVehicleId) do
@@ -532,6 +537,7 @@ DumpTruck.dumpingActive = false
 DumpTruck.dumpLoopHandle = nil
 DumpTruck.remoteLoopByVehicleId = {}
 DumpTruck.dumpingSoundByVehicleId = {}
+DumpTruck.pouringSoundByVehicleId = {}
 DumpTruck.dumpLastTileX = nil
 DumpTruck.dumpLastTileY = nil
 DumpTruck.dumpLastCentreX = nil
@@ -590,11 +596,7 @@ local function relayDumpSound(sender, command, args)
     end
 end
 
-function DumpTruck.playRemoteDumpStop(vehicleId, playEnd)
-    local handle = DumpTruck.remoteLoopByVehicleId[vehicleId]
-    DumpTruck.remoteLoopByVehicleId[vehicleId] = nil
-    local vehicle = getVehicleById(vehicleId)
-    local emitter = vehicle and vehicle:getEmitter() or nil
+local function silencePourLoop(emitter, handle)
     local wasPlaying = handle ~= nil
     if emitter then
         if emitter:isPlaying("GravelDumpLoop") then
@@ -604,13 +606,34 @@ function DumpTruck.playRemoteDumpStop(vehicleId, playEnd)
             emitter:stopSound(handle)
         end
     end
-    if playEnd and wasPlaying then
-        DumpTruckSound.play(emitter, "HydraulicLiftDown")
+    return wasPlaying
+end
+
+function DumpTruck.playRemotePourStop(vehicleId, playEnd)
+    local handle = DumpTruck.remoteLoopByVehicleId[vehicleId]
+    DumpTruck.remoteLoopByVehicleId[vehicleId] = nil
+    local vehicle = getVehicleById(vehicleId)
+    local emitter = vehicle and vehicle:getEmitter() or nil
+    local wasPlaying = silencePourLoop(emitter, handle)
+    if playEnd or wasPlaying then
         DumpTruckSound.play(emitter, "GravelDumpEnd")
     end
 end
 
-function DumpTruck.playRemoteDumpStart(vehicleId)
+function DumpTruck.playRemotePourStart(vehicleId)
+    if DumpTruck.dumpingActive then
+        return
+    end
+    local vehicle = getVehicleById(vehicleId)
+    if not vehicle or DumpTruck.remoteLoopByVehicleId[vehicleId] then
+        return
+    end
+    local emitter = vehicle:getEmitter()
+    DumpTruckSound.play(emitter, "GravelDumpStart")
+    DumpTruck.remoteLoopByVehicleId[vehicleId] = DumpTruckSound.play(emitter, "GravelDumpLoop")
+end
+
+function DumpTruck.playRemoteBedUp(vehicleId)
     if DumpTruck.dumpingActive then
         return
     end
@@ -618,42 +641,65 @@ function DumpTruck.playRemoteDumpStart(vehicleId)
     if not vehicle then
         return
     end
-    DumpTruck.playRemoteDumpStop(vehicleId, false)
-    local emitter = vehicle:getEmitter()
-    DumpTruckSound.play(emitter, "HydraulicLiftRaised")
-    DumpTruckSound.play(emitter, "GravelDumpStart")
-    DumpTruck.remoteLoopByVehicleId[vehicleId] = DumpTruckSound.play(emitter, "GravelDumpLoop")
+    local handle = DumpTruck.remoteLoopByVehicleId[vehicleId]
+    DumpTruck.remoteLoopByVehicleId[vehicleId] = nil
+    silencePourLoop(vehicle:getEmitter(), handle)
+    DumpTruckSound.play(vehicle:getEmitter(), "HydraulicLiftRaised")
 end
 
--- Stop dumping sounds
-function DumpTruck.stopDumpingSounds(vehicle, playEndSounds)
-    if not vehicle then
-        return
-    end
+function DumpTruck.playRemoteBedDown(vehicleId, playPourEnd)
+    DumpTruck.playRemotePourStop(vehicleId, playPourEnd)
+    local vehicle = getVehicleById(vehicleId)
+    DumpTruckSound.play(vehicle and vehicle:getEmitter() or nil, "HydraulicLiftDown")
+end
 
+--[[
+    Pour clips follow bags in the bed. Hydraulic clips follow the bed.
+    A tick with uses left starts the pour once. A tick with none left ends it.
+    playEnd plays GravelDumpEnd when a loop was going. relay tells other players.
+    Returns whether a loop was playing.
+]]
+function DumpTruck.stopPourSound(vehicle, playEnd, relay)
+    if not vehicle then
+        return false
+    end
     local handle = DumpTruck.dumpLoopHandle
     local emitter = vehicle:getEmitter()
-    local wasPlaying = handle ~= nil
-    if emitter then
-        if emitter:isPlaying("GravelDumpLoop") then
-            wasPlaying = true
-        end
-        if handle ~= nil then
-            emitter:stopSound(handle)
-        end
-    end
+    local wasPlaying = silencePourLoop(emitter, handle)
     DumpTruck.dumpLoopHandle = nil
-
-    if playEndSounds and wasPlaying then
-        DumpTruckSound.play(emitter, "HydraulicLiftDown")
+    if playEnd and wasPlaying then
         DumpTruckSound.play(emitter, "GravelDumpEnd")
-        sendDumpSoundCommand("dumpSoundStop", vehicle, true)
+    end
+    if relay and wasPlaying then
+        sendDumpSoundCommand("pourSoundStop", vehicle, playEnd and true or false)
+    end
+    return wasPlaying
+end
+
+function DumpTruck.startPourSound(vehicle)
+    if not vehicle or DumpTruck.dumpLoopHandle then
+        return
+    end
+    local emitter = vehicle:getEmitter()
+    DumpTruckSound.play(emitter, "GravelDumpStart")
+    DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
+    sendDumpSoundCommand("pourSoundStart", vehicle, false)
+end
+
+function DumpTruck.syncPourSound(vehicle)
+    if not vehicle or not DumpTruck.dumpingActive then
+        return
+    end
+    if DumpTruck.getPourableUses(vehicle) > 0 then
+        DumpTruck.startPourSound(vehicle)
+    else
+        DumpTruck.stopPourSound(vehicle, true, true)
     end
 end
 
 -- Start dumping
 function DumpTruck.startDumping(vehicle)
-    DumpTruck.stopDumpingSounds(vehicle, false)
+    DumpTruck.stopPourSound(vehicle, false, false)
 
     local data = vehicle:getModData()
     data.dumpingGravelActive = nil
@@ -668,20 +714,106 @@ function DumpTruck.startDumping(vehicle)
     DumpTruck.dumpLastCentreY = nil
     DumpTruck.junkedSquaresByVehicleId[vehicle:getId()] = nil
 
-    -- Start dumping sounds
     local emitter = vehicle:getEmitter()
     DumpTruckSound.play(emitter, "HydraulicLiftRaised")
-    DumpTruckSound.play(emitter, "GravelDumpStart")
-    DumpTruck.dumpLoopHandle = DumpTruckSound.play(emitter, "GravelDumpLoop")
     sendDumpSoundCommand("dumpSoundStart", vehicle, false)
     DumpTruck_part.SetBedRaised(vehicle, true, false)
 end
 
+-- VehicleEngine.setFeatures stores loudness as input * this scale. Passing the stored
+-- value back in would scale it a second time, so the input is recovered first.
+local LOUDNESS_SCALE = 0.37037036
+
+local function loudnessInputFor(stored)
+    local guess = math.floor(stored / LOUDNESS_SCALE + 0.5)
+    for n = guess - 3, guess + 3 do
+        if n >= 0 and math.floor(n * LOUDNESS_SCALE) == stored then
+            return n
+        end
+    end
+    return math.max(0, guess)
+end
+
+--[[
+    Raised-bed governor.
+
+    Bullet.setVehicleVelocityMultiplier is what the game uses for a hard speed ceiling,
+    and that class is not exposed to Lua. setMaxSpeed is exposed and is the wrong tool:
+    it fades drive force across 20 km/h and rewrites gear spacing and steering.
+
+    While the bed is up the engine power is cut at the limit and speed above the limit
+    is shed with applyImpulseFromHitPlant, which pushes back along the current velocity.
+    Power is remembered and put back when the bed lowers, or once the truck has dropped
+    a kilometre per hour under the limit. Gears and steering stay on the script maxSpeed.
+]]
+local governed = {}
+
+local function writeGovernedPower(vehicle, power)
+    vehicle:setEngineFeature(governed.quality, loudnessInputFor(governed.loudness), power)
+end
+
+function DumpTruck.releaseBedGovernor()
+    local vehicle = governed.vehicle
+    if not vehicle or governed.power == nil then
+        governed.vehicle = nil
+        governed.power = nil
+        return
+    end
+    writeGovernedPower(vehicle, governed.power)
+    governed.vehicle = nil
+    governed.power = nil
+end
+
+function DumpTruck.applyBedGovernor(vehicle)
+    local limit = DumpTruckConstants.BED_UP_LIMIT_KMH
+    local speed = math.abs(vehicle:getCurrentSpeedKmHour())
+    if speed > limit then
+        if governed.power == nil and vehicle:getEnginePower() > 0 then
+            governed.quality = vehicle:getEngineQuality()
+            governed.loudness = vehicle:getEngineLoudness()
+            governed.power = vehicle:getEnginePower()
+            governed.vehicle = vehicle
+            writeGovernedPower(vehicle, 0)
+        end
+        local speedMps = speed / 3.6
+        local excess = speedMps - (limit / 3.6)
+        if speedMps > 0 and excess > 0 then
+            local fraction = math.min(0.2, excess / speedMps)
+            vehicle:applyImpulseFromHitPlant(vehicle, fraction)
+        end
+    elseif governed.power ~= nil and speed < limit - 1 then
+        DumpTruck.releaseBedGovernor()
+    end
+end
+
+local function onBedGovernorTick()
+    if isServer() then return end
+    local player = getPlayer()
+    local vehicle = player and player:getVehicle() or nil
+    local driving = vehicle
+        and vehicle:getScriptName() == DumpTruckConstants.VEHICLE_SCRIPT_NAME
+        and vehicle:getDriver() == player
+        and DumpTruck.dumpingActive
+    if driving then
+        DumpTruck.applyBedGovernor(vehicle)
+    else
+        DumpTruck.releaseBedGovernor()
+    end
+end
+Events.OnTick.Add(onBedGovernorTick)
+Events.OnSave.Add(DumpTruck.releaseBedGovernor)
+
 -- Stop dumping
 function DumpTruck.stopDumping(vehicle)
+    if not vehicle or not DumpTruck.dumpingActive then
+        return
+    end
     local data = vehicle:getModData()
 
-    DumpTruck.stopDumpingSounds(vehicle, true)
+    DumpTruck.releaseBedGovernor()
+    local pourEnded = DumpTruck.stopPourSound(vehicle, true, false)
+    DumpTruckSound.play(vehicle:getEmitter(), "HydraulicLiftDown")
+    sendDumpSoundCommand("dumpSoundStop", vehicle, pourEnded)
     DumpTruck_part.SetBedRaised(vehicle, false, false)
 
     DumpTruck.dumpingActive = false
@@ -732,9 +864,13 @@ Events.OnServerCommand.Add(function(module, command, args)
         sq:RecalcProperties()
         sq:DirtySlice()
     elseif command == "dumpSoundStart" and args.vehicle then
-        DumpTruck.playRemoteDumpStart(args.vehicle)
+        DumpTruck.playRemoteBedUp(args.vehicle)
     elseif command == "dumpSoundStop" and args.vehicle then
-        DumpTruck.playRemoteDumpStop(args.vehicle, args.playEnd)
+        DumpTruck.playRemoteBedDown(args.vehicle, args.playEnd)
+    elseif command == "pourSoundStart" and args.vehicle then
+        DumpTruck.playRemotePourStart(args.vehicle)
+    elseif command == "pourSoundStop" and args.vehicle then
+        DumpTruck.playRemotePourStop(args.vehicle, args.playEnd)
     end
 end)
 
@@ -811,12 +947,26 @@ Events.OnClientCommand.Add(function(module, command, player, args)
             return
         end
         DumpTruck.dumpingSoundByVehicleId[args.vehicle] = true
+        DumpTruck.pouringSoundByVehicleId[args.vehicle] = nil
         relayDumpSound(player, command, args)
     elseif command == "dumpSoundStop" and args.vehicle then
         if not isServer() then
             return
         end
         DumpTruck.dumpingSoundByVehicleId[args.vehicle] = nil
+        DumpTruck.pouringSoundByVehicleId[args.vehicle] = nil
+        relayDumpSound(player, command, args)
+    elseif command == "pourSoundStart" and args.vehicle then
+        if not isServer() then
+            return
+        end
+        DumpTruck.pouringSoundByVehicleId[args.vehicle] = true
+        relayDumpSound(player, command, args)
+    elseif command == "pourSoundStop" and args.vehicle then
+        if not isServer() then
+            return
+        end
+        DumpTruck.pouringSoundByVehicleId[args.vehicle] = nil
         relayDumpSound(player, command, args)
     end
 end)
@@ -825,11 +975,20 @@ Events.OnTick.Add(function()
     if not isServer() then
         return
     end
+    local pending = {}
     for vehicleId, _ in pairs(DumpTruck.dumpingSoundByVehicleId) do
+        pending[vehicleId] = true
+    end
+    for vehicleId, _ in pairs(DumpTruck.pouringSoundByVehicleId) do
+        pending[vehicleId] = true
+    end
+    for vehicleId, _ in pairs(pending) do
         local vehicle = getVehicleById(vehicleId)
         if not vehicle or not vehicle:getDriver() then
+            local pourEnd = DumpTruck.pouringSoundByVehicleId[vehicleId] and true or false
             DumpTruck.dumpingSoundByVehicleId[vehicleId] = nil
-            relayDumpSound(nil, "dumpSoundStop", { vehicle = vehicleId, playEnd = true })
+            DumpTruck.pouringSoundByVehicleId[vehicleId] = nil
+            relayDumpSound(nil, "dumpSoundStop", { vehicle = vehicleId, playEnd = pourEnd })
         end
     end
 end)

@@ -128,5 +128,8 @@ DumpTruckConstants.POUR_STAGE_MS = 120
 DumpTruckConstants.SNAP_LINE_DRIFT_MAX = 3
 DumpTruckConstants.SNAP_LINE_ENGAGE_THRESHOLD = 25
 
+-- Raised-bed speed limit, in km/h. A Volvo body-up module holds the truck at 5.
+DumpTruckConstants.BED_UP_LIMIT_KMH = 5
+
 return DumpTruckConstants
 

@@ -76,6 +76,8 @@ A run stays armed while the bed holds pours **or** junk, so a bed of loose items
 
 **Squares already tipped onto are remembered for the run** (`DumpTruck.junkedSquaresByVehicleId`, client-local beside the dump session and cleared with it). A pour does not need this because a finished road square is skipped on sight, but a bare square carries no such mark, and consecutive sweeps overlap by design — without it a truck inching forward would pile item after item onto one tile.
 
+**Tip-out sound (todo).** Each item the bed drops plays one short clip from the truck as it leaves.
+
 ---
 
 ## Sandbox option: admin-only dump trucks (no world spawn)
