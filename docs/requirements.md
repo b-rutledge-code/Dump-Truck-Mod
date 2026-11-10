@@ -12,7 +12,7 @@ Enable players to build gravel roads in Project Zomboid using a dump truck: plac
 4. **Edge blending** – Gravel roads blend smoothly with grass/terrain (`smoothRoad`). Gravel must be placed synchronously so edge blends see the real floor; pour effect uses overlays for animation only.
 5. **Pour effect** – Short visual animation when gravel lands (synchronous floor + stacked overlays, ~360ms, three sprite stages). Gap fillers delayed by same duration so they don’t appear before pour finishes.
 6. **Erosion prevention** – After placing gravel, call `disableErosion()` on the square so grass and trees don’t grow. Re-enabling erosion is not possible from Lua (game limitation).
-7. **Bed tilt** – Raising the bed from the radial menu tilts the dump mesh around its rear hinge; the remaining load stays visible and steps down as material is unloaded. The truck is limited to 5 km/h while the bed is raised.
+7. **Bed tilt** – Raising the bed from the radial menu tilts the dump mesh around its rear hinge; the remaining load stays visible and steps down as material is unloaded. Every dumping truck has its own bed angle on every client. The bed picture stays continuous through the rise, the hold, and the return to flat. Up to 75 trucks can dump at once (3 model lists × 25 bed-and-gravel sets). The truck is limited to 5 km/h while the bed is raised.
 8. **Snap Line (v1.3.0)** – Radial option to snap gravel placement to a cardinal grid line (N/S/E/W). Engage when truck is within 25° of cardinal; brake or drift &gt;3 tiles off-line auto-disengages and stops dumping. Position and forward vector overridden in `tryPourGravelUnderTruck()` when active.
 9. **Radial menu icons** – Dump, road width, and Snap Line slices use 8-bit PNGs; UI icons have white stroke to match vanilla radial style. PZ does not support 16-bit PNGs.
 10. **Multi-material pouring** – Gravel, sand and dirt bags all pour, using vanilla's own bag/sprite/`pouredFloor` triples (`DumpTruckConstants.POURABLES`). A mixed bed is spent in bed order, giving a striped road. Poured floors are recognized by the `pouredFloor` stamp: natural sand/dirt still take a pour, the same material is not re-poured (covers band overlap), and a different material can overpour (e.g. dirt over gravel).
@@ -27,7 +27,7 @@ Enable players to build gravel roads in Project Zomboid using a dump truck: plac
 
 ## Technical
 
-- **Target:** Project Zomboid Build 42 (42.13 active).
-- **Layout:** `Contents/mods/DumpTruckGravelMod/42.13/` — media (lua, scripts, texturepacks, ui), vehicle script reference in mod.info.
-- **Lua:** Client + shared (no dedicated server-only logic). Events: radial menu hook, `OnTick` for pour effect and gravel tick.
+- **Target:** Project Zomboid Build 42 (42.20 folder; `versionMin=42.20`).
+- **Layout:** `Contents/mods/DumpTruckGravelMod/42.20/` — media (lua, scripts, texturepacks, ui), vehicle script reference in mod.info.
+- **Lua:** Client + shared. Dedicated server leaves the bed pose stepper idle. Events: radial menu hook, player update for bed pose and gravel, `OnTick` for pour effect and bed-up governor.
 - **Source of truth:** `docs/design-notes.md` for design rationale, dead ends, and future ideas.

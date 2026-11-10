@@ -588,7 +588,7 @@ local function sendDumpSoundCommand(command, vehicle, playEnd)
     })
 end
 
-local function relayDumpSound(sender, command, args)
+local function relayDumpCommand(sender, command, args)
     local players = getOnlinePlayers()
     if not players then
         return
@@ -599,6 +599,47 @@ local function relayDumpSound(sender, command, args)
             sendServerCommand(other, "DumpTruckGravelMod", command, args)
         end
     end
+end
+
+local function relayDumpSound(sender, command, args)
+    relayDumpCommand(sender, command, args)
+end
+
+function DumpTruck.isLocalBedPoseOwner(vehicle)
+    if not vehicle then
+        return false
+    end
+    local player = getPlayer()
+    return player ~= nil and vehicle:getDriver() == player
+end
+
+function DumpTruck.publishBedPose(vehicle, setId, angle, target)
+    if not isClient() or not vehicle then
+        return
+    end
+    if not DumpTruck.isLocalBedPoseOwner(vehicle) then
+        return
+    end
+    sendClientCommand(getPlayer(), "DumpTruckGravelMod", "bedPose", {
+        vehicle = vehicle:getId(),
+        setId = setId,
+        angle = angle,
+        target = target,
+    })
+end
+
+function DumpTruck.applyRemoteBedPoseArgs(args)
+    if not args or not args.vehicle then
+        return
+    end
+    local vehicle = getVehicleById(args.vehicle)
+    if not vehicle then
+        return
+    end
+    if DumpTruck.isLocalBedPoseOwner(vehicle) then
+        return
+    end
+    DumpTruck_part.ApplyRemoteBedPose(vehicle, args.setId, args.angle, args.target)
 end
 
 local function silencePourLoop(emitter, handle)
@@ -868,6 +909,8 @@ Events.OnServerCommand.Add(function(module, command, args)
         floor:DirtySlice()
         sq:RecalcProperties()
         sq:DirtySlice()
+    elseif command == "bedPose" then
+        DumpTruck.applyRemoteBedPoseArgs(args)
     elseif command == "dumpSoundStart" and args.vehicle then
         DumpTruck.playRemoteBedUp(args.vehicle)
     elseif command == "dumpSoundStop" and args.vehicle then
@@ -947,6 +990,11 @@ Events.OnClientCommand.Add(function(module, command, player, args)
         DumpTruckCore.debugMode = args.enabled and true or false
         print("[DumpTruck] debugMode " .. (DumpTruckCore.debugMode and "ON" or "OFF")
             .. " (from " .. (player and player:getUsername() or "?") .. ")")
+    elseif command == "bedPose" and args.vehicle then
+        if not isServer() then
+            return
+        end
+        relayDumpCommand(player, command, args)
     elseif command == "dumpSoundStart" and args.vehicle then
         if not isServer() then
             return

@@ -18,9 +18,39 @@ local LIVE_GRAVEL = {
     Gravel1_2 = "Gravel1_2Live",
     Gravel1_4 = "Gravel1_4Live",
 }
+local REST_BED = "Bed_0"
+local REST_GRAVEL = {
+    GravelFull = "GravelFull_0",
+    Gravel3_4 = "Gravel3_4_0",
+    Gravel1_2 = "Gravel1_2_0",
+    Gravel1_4 = "Gravel1_4_0",
+}
+local POOL_LISTS = 3
+local SETS_PER_LIST = 25
+local POOL_SIZE = POOL_LISTS * SETS_PER_LIST
+local BURY_Y = -100
+
+local SETS = {}
+for listIndex = 1, POOL_LISTS do
+    local partId = string.format("BedAngle%02d", listIndex)
+    for slot = 1, SETS_PER_LIST do
+        local setId = (listIndex - 1) * SETS_PER_LIST + slot
+        local suffix = string.format("%02d", slot)
+        SETS[setId] = {
+            partId = partId,
+            bedId = "Bed" .. suffix,
+            gravel = {
+                GravelFull = "GravelFull" .. suffix,
+                Gravel3_4 = "Gravel3_4_" .. suffix,
+                Gravel1_2 = "Gravel1_2_" .. suffix,
+                Gravel1_4 = "Gravel1_4_" .. suffix,
+            },
+        }
+    end
+end
 
 local poseByVehicle = {}
-local BURY_Y = -100
+local setOwner = {}
 
 local function getFullBedUses(part)
     local container = part:getItemContainer()
@@ -55,7 +85,6 @@ local function getPourableUsesFromPart(part)
 end
 
 local function gravelLevelFor(part)
-    if part:getInventoryItem() == nil then return nil end
     local remaining = getPourableUsesFromPart(part)
     if remaining <= 0 then return nil end
     local full = getFullBedUses(part)
@@ -71,8 +100,8 @@ local function gravelLevelFor(part)
     return "Gravel1_4"
 end
 
-local function writeModelAngle(part, modelId, angle, oy, oz)
-    local model = part:getScriptPart():getModelById(modelId)
+local function writeModelAngle(scriptPart, modelId, angle, oy, oz)
+    local model = scriptPart:getModelById(modelId)
     if not model then return end
     model:getOffset():set(0, oy, oz)
     model:getRotate():set(angle, 0, 0)
@@ -87,129 +116,194 @@ local function hingeOffset(angle)
     return HINGE_Y - rotatedY, HINGE_Z - rotatedZ
 end
 
-local function writeLiveAngle(part, angle, activeGravelId)
-    local oy, oz = hingeOffset(angle)
-    writeModelAngle(part, LIVE_BED, angle, oy, oz)
-    for _, modelId in pairs(LIVE_GRAVEL) do
-        if modelId == activeGravelId then
-            writeModelAngle(part, modelId, angle, oy, oz)
-        else
-            writeModelAngle(part, modelId, 0, BURY_Y, 0)
-        end
-    end
+local function onDedicatedServer()
+    return isServer() and not isClient()
 end
 
 local function poseFor(vehicle)
     local pose = poseByVehicle[vehicle]
     if not pose then
-        pose = { angle = 0, target = 0, bedId = nil, gravelId = nil, liveGravel = false }
+        pose = {
+            angle = 0,
+            target = 0,
+            setId = nil,
+            bedShown = false,
+            restShown = false,
+            gravelKey = nil,
+        }
         poseByVehicle[vehicle] = pose
     end
     return pose
 end
 
-local function onDedicatedServer()
-    return isServer() and not isClient()
+local function truckBedPart(vehicle)
+    return vehicle:getPartById("TruckBed")
 end
 
-local function hideLiveModels(part)
-    part:setModelVisible(LIVE_BED, false)
+local function anglePart(vehicle, setId)
+    local set = SETS[setId]
+    if not set then return nil end
+    return vehicle:getPartById(set.partId)
+end
+
+local function hideLiveModels(truckBed)
+    truckBed:setModelVisible(LIVE_BED, false)
     for _, modelId in pairs(LIVE_GRAVEL) do
+        truckBed:setModelVisible(modelId, false)
+    end
+end
+
+local function hideRestModels(truckBed)
+    truckBed:setModelVisible(REST_BED, false)
+    for _, modelId in pairs(REST_GRAVEL) do
+        truckBed:setModelVisible(modelId, false)
+    end
+end
+
+-- Shared closed bed at angle 0. Uses the baked Bed_0 / Gravel*_0 pictures so the
+-- load does not depend on runtime bury offsets shared across every truck.
+local function showRestFlat(truckBed, pose, level, force)
+    hideLiveModels(truckBed)
+    local gravelId = level and REST_GRAVEL[level] or nil
+    if not force and pose.restShown and pose.gravelKey == level then
+        return
+    end
+    truckBed:setModelVisible(REST_BED, true)
+    for key, modelId in pairs(REST_GRAVEL) do
+        truckBed:setModelVisible(modelId, modelId == gravelId)
+    end
+    pose.restShown = true
+    pose.gravelKey = level
+end
+
+local function hideSetModels(vehicle, setId)
+    local set = SETS[setId]
+    if not set then return end
+    local part = vehicle:getPartById(set.partId)
+    if not part then return end
+    part:setModelVisible(set.bedId, false)
+    for _, modelId in pairs(set.gravel) do
         part:setModelVisible(modelId, false)
     end
 end
 
-local function showLiveModels(part)
-    part:setModelVisible(LIVE_BED, true)
-    for _, modelId in pairs(LIVE_GRAVEL) do
+local function writeSetAngle(vehicle, setId, angle, activeGravelKey)
+    local set = SETS[setId]
+    if not set then return end
+    local part = vehicle:getPartById(set.partId)
+    if not part then return end
+    local scriptPart = part:getScriptPart()
+    local oy, oz = hingeOffset(angle)
+    writeModelAngle(scriptPart, set.bedId, angle, oy, oz)
+    for key, modelId in pairs(set.gravel) do
+        if key == activeGravelKey then
+            writeModelAngle(scriptPart, modelId, angle, oy, oz)
+        else
+            writeModelAngle(scriptPart, modelId, 0, BURY_Y, 0)
+        end
+    end
+end
+
+local function showSetModels(vehicle, setId)
+    local set = SETS[setId]
+    if not set then return end
+    local part = vehicle:getPartById(set.partId)
+    if not part then return end
+    part:setModelVisible(set.bedId, true)
+    for _, modelId in pairs(set.gravel) do
         part:setModelVisible(modelId, true)
     end
 end
 
-local function showRestModels(part, pose, level, force)
-    local bedId = "Bed_0"
-    local gravelId = level and (level .. "_0") or nil
-    if not force and pose.bedId == bedId and pose.gravelId == gravelId then return end
-    if pose.bedId and pose.bedId ~= bedId then
-        part:setModelVisible(pose.bedId, false)
+local function clearSetOwner(setId, vehicle)
+    if setId and setOwner[setId] == vehicle then
+        setOwner[setId] = nil
     end
-    part:setModelVisible(bedId, true)
-    pose.bedId = bedId
-    if pose.gravelId and pose.gravelId ~= gravelId then
-        part:setModelVisible(pose.gravelId, false)
-    end
-    if gravelId then
-        part:setModelVisible(gravelId, true)
-    end
-    pose.gravelId = gravelId
 end
 
-local function releaseLive(vehicle, pose)
-    local part = vehicle:getPartById("TruckBed")
-    if not part then return end
-    hideLiveModels(part)
-    pose.liveGravel = false
-    pose.bedId = nil
-    pose.gravelId = nil
-    showRestModels(part, pose, gravelLevelFor(part), true)
+local function releaseSet(vehicle, pose)
+    if not pose.setId then return end
+    hideSetModels(vehicle, pose.setId)
+    clearSetOwner(pose.setId, vehicle)
+    pose.setId = nil
+    pose.bedShown = false
+    pose.restShown = false
+    pose.gravelKey = nil
 end
 
-local function releaseOtherLiveTrucks(keep)
+local function reclaimIdleSet(exceptVehicle)
     for vehicle, pose in pairs(poseByVehicle) do
-        if vehicle ~= keep and pose.liveGravel and pose.angle == 0 and pose.target == 0 then
-            releaseLive(vehicle, pose)
+        if vehicle ~= exceptVehicle and pose.setId and pose.angle == 0 and pose.target == 0 then
+            local setId = pose.setId
+            local truckBed = truckBedPart(vehicle)
+            releaseSet(vehicle, pose)
+            if truckBed then
+                showRestFlat(truckBed, pose, gravelLevelFor(truckBed), true)
+            end
+            return setId
         end
     end
+    return nil
 end
 
-local function otherTruckMoving(keep)
-    for vehicle, pose in pairs(poseByVehicle) do
-        if vehicle ~= keep and (pose.angle ~= 0 or pose.target ~= 0) then
-            return true
+local function acquireSet(vehicle)
+    for setId = 1, POOL_SIZE do
+        if not setOwner[setId] then
+            setOwner[setId] = vehicle
+            return setId
         end
     end
-    return false
+    local reclaimed = reclaimIdleSet(vehicle)
+    if reclaimed then
+        setOwner[reclaimed] = vehicle
+        return reclaimed
+    end
+    print("[DumpTruck] bed angle pool exhausted (" .. POOL_SIZE .. " dumping trucks)")
+    return nil
+end
+
+local function publishBedPose(vehicle, pose)
+    if not DumpTruck or not DumpTruck.publishBedPose then return end
+    DumpTruck.publishBedPose(vehicle, pose.setId, pose.angle, pose.target)
 end
 
 local function applyShown(vehicle, pose, force)
     if onDedicatedServer() then return end
-    local part = vehicle:getPartById("TruckBed")
-    if not part then return end
+    local truckBed = truckBedPart(vehicle)
+    if not truckBed then return end
+    local level = gravelLevelFor(truckBed)
     local moving = pose.angle ~= 0 or pose.target ~= 0
-    local level = gravelLevelFor(part)
-    if moving then
-        releaseOtherLiveTrucks(vehicle)
-        local gravelId = level and LIVE_GRAVEL[level] or nil
-        writeLiveAngle(part, pose.angle, gravelId)
-        if not force and pose.liveGravel then
-            pose.gravelId = gravelId
-            pose.bedId = LIVE_BED
+
+    if moving and not pose.setId then
+        pose.setId = acquireSet(vehicle)
+        if pose.setId then
+            force = true
+            publishBedPose(vehicle, pose)
+        end
+    end
+
+    if pose.setId then
+        local set = SETS[pose.setId]
+        if not set then
+            releaseSet(vehicle, pose)
+            showRestFlat(truckBed, pose, level, true)
             return
         end
-        if pose.bedId and pose.bedId ~= LIVE_BED then
-            part:setModelVisible(pose.bedId, false)
+        setOwner[pose.setId] = vehicle
+        hideLiveModels(truckBed)
+        hideRestModels(truckBed)
+        pose.restShown = false
+        if force or not pose.bedShown or pose.gravelKey ~= level then
+            showSetModels(vehicle, pose.setId)
+            pose.bedShown = true
         end
-        if pose.gravelId and not pose.liveGravel then
-            part:setModelVisible(pose.gravelId, false)
-        end
-        showLiveModels(part)
-        pose.liveGravel = true
-        pose.bedId = LIVE_BED
-        pose.gravelId = gravelId
+        writeSetAngle(vehicle, pose.setId, pose.angle, level)
+        pose.gravelKey = level
         return
     end
 
-    if pose.liveGravel then
-        if not otherTruckMoving(vehicle) then
-            local gravelId = level and LIVE_GRAVEL[level] or nil
-            writeLiveAngle(part, 0, gravelId)
-            pose.bedId = LIVE_BED
-            pose.gravelId = gravelId
-        end
-        return
-    end
-
-    showRestModels(part, pose, level, force)
+    showRestFlat(truckBed, pose, level, force)
+    pose.bedShown = false
 end
 
 local function showGravel(part, force)
@@ -245,7 +339,48 @@ function DumpTruck_part.SetBedRaised(vehicle, raised, instant)
     if instant then
         pose.angle = target
     end
-    applyShown(vehicle, pose, instant)
+    if raised and not pose.setId then
+        pose.setId = acquireSet(vehicle)
+    end
+    applyShown(vehicle, pose, instant and true or false)
+    publishBedPose(vehicle, pose)
+end
+
+function DumpTruck_part.ApplyRemoteBedPose(vehicle, setId, angle, target)
+    if onDedicatedServer() or not vehicle then return end
+    local pose = poseFor(vehicle)
+    if setId and SETS[setId] then
+        local previousOwner = setOwner[setId]
+        if previousOwner and previousOwner ~= vehicle then
+            local previousPose = poseByVehicle[previousOwner]
+            if previousPose and previousPose.setId == setId then
+                hideSetModels(previousOwner, setId)
+                previousPose.setId = nil
+                previousPose.bedShown = false
+                previousPose.restShown = false
+                previousPose.gravelKey = nil
+                local previousBed = truckBedPart(previousOwner)
+                if previousBed then
+                    showRestFlat(previousBed, previousPose, gravelLevelFor(previousBed), true)
+                end
+            end
+        end
+        if pose.setId and pose.setId ~= setId then
+            hideSetModels(vehicle, pose.setId)
+            clearSetOwner(pose.setId, vehicle)
+            pose.bedShown = false
+            pose.restShown = false
+        end
+        pose.setId = setId
+        setOwner[setId] = vehicle
+    end
+    if angle ~= nil then
+        pose.angle = angle
+    end
+    if target ~= nil then
+        pose.target = target
+    end
+    applyShown(vehicle, pose, true)
 end
 
 function DumpTruck_part.UpdateBedPose(dt)
