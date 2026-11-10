@@ -126,6 +126,51 @@ local function showLiveModels(part)
     end
 end
 
+local function showRestModels(part, pose, level, force)
+    local bedId = "Bed_0"
+    local gravelId = level and (level .. "_0") or nil
+    if not force and pose.bedId == bedId and pose.gravelId == gravelId then return end
+    if pose.bedId and pose.bedId ~= bedId then
+        part:setModelVisible(pose.bedId, false)
+    end
+    part:setModelVisible(bedId, true)
+    pose.bedId = bedId
+    if pose.gravelId and pose.gravelId ~= gravelId then
+        part:setModelVisible(pose.gravelId, false)
+    end
+    if gravelId then
+        part:setModelVisible(gravelId, true)
+    end
+    pose.gravelId = gravelId
+end
+
+local function releaseLive(vehicle, pose)
+    local part = vehicle:getPartById("TruckBed")
+    if not part then return end
+    hideLiveModels(part)
+    pose.liveGravel = false
+    pose.bedId = nil
+    pose.gravelId = nil
+    showRestModels(part, pose, gravelLevelFor(part), true)
+end
+
+local function releaseOtherLiveTrucks(keep)
+    for vehicle, pose in pairs(poseByVehicle) do
+        if vehicle ~= keep and pose.liveGravel and pose.angle == 0 and pose.target == 0 then
+            releaseLive(vehicle, pose)
+        end
+    end
+end
+
+local function otherTruckMoving(keep)
+    for vehicle, pose in pairs(poseByVehicle) do
+        if vehicle ~= keep and (pose.angle ~= 0 or pose.target ~= 0) then
+            return true
+        end
+    end
+    return false
+end
+
 local function applyShown(vehicle, pose, force)
     if onDedicatedServer() then return end
     local part = vehicle:getPartById("TruckBed")
@@ -133,6 +178,7 @@ local function applyShown(vehicle, pose, force)
     local moving = pose.angle ~= 0 or pose.target ~= 0
     local level = gravelLevelFor(part)
     if moving then
+        releaseOtherLiveTrucks(vehicle)
         local gravelId = level and LIVE_GRAVEL[level] or nil
         writeLiveAngle(part, pose.angle, gravelId)
         if not force and pose.liveGravel then
@@ -153,27 +199,17 @@ local function applyShown(vehicle, pose, force)
         return
     end
 
-    local bedId = "Bed_0"
-    local gravelId = level and (level .. "_0") or nil
-    if not force and not pose.liveGravel and pose.bedId == bedId and pose.gravelId == gravelId then return end
     if pose.liveGravel then
-        hideLiveModels(part)
-        pose.liveGravel = false
-        pose.bedId = nil
-        pose.gravelId = nil
+        if not otherTruckMoving(vehicle) then
+            local gravelId = level and LIVE_GRAVEL[level] or nil
+            writeLiveAngle(part, 0, gravelId)
+            pose.bedId = LIVE_BED
+            pose.gravelId = gravelId
+        end
+        return
     end
-    if pose.bedId and pose.bedId ~= bedId then
-        part:setModelVisible(pose.bedId, false)
-    end
-    part:setModelVisible(bedId, true)
-    pose.bedId = bedId
-    if pose.gravelId and pose.gravelId ~= gravelId then
-        part:setModelVisible(pose.gravelId, false)
-    end
-    if gravelId then
-        part:setModelVisible(gravelId, true)
-    end
-    pose.gravelId = gravelId
+
+    showRestModels(part, pose, level, force)
 end
 
 local function showGravel(part, force)
