@@ -7,6 +7,11 @@ local DumpTruckSound = require("DumpTruck/DumpTruckSound")
 
 local DumpTruck = {}
 
+-- A truck with no saved choice pours 3 tiles. false is the 2-tile choice.
+function DumpTruck.isWideRoad(data)
+    return data.wideRoadMode ~= false
+end
+
 -- POURING
 
 function DumpTruck.placeRoadFloorOnSquare(pourable, sq)
@@ -421,7 +426,7 @@ function DumpTruck.tryPourGravelUnderTruck(vehicle)
     local vehicleWidth = math.floor(extents:x() + 0.5)
     local length = math.floor(extents:z() + 0.5)
     local roadWidth = vehicleWidth
-    if (data.wideRoadMode or false) and vehicleWidth < 3 then
+    if DumpTruck.isWideRoad(data) and vehicleWidth < 3 then
         roadWidth = vehicleWidth + 1
     end
 

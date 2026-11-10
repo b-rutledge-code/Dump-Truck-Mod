@@ -45,7 +45,7 @@ function ISVehicleMenu.showRadialMenu(playerObj)
         local vehicleWidth = math.floor(extents:x() + 0.5)
         
         if vehicleWidth < 3 then
-            local wideMode = data.wideRoadMode or false
+            local wideMode = DumpTruck.isWideRoad(data)
             local nextWidth = wideMode and vehicleWidth or (vehicleWidth + 1)
             local roadIcon = "media/ui/vehicles/road_" .. nextWidth .. ".png"
             
@@ -58,7 +58,7 @@ function ISVehicleMenu.showRadialMenu(playerObj)
                         return
                     end
                     local liveData = live:getModData()
-                    liveData.wideRoadMode = not (liveData.wideRoadMode or false)
+                    liveData.wideRoadMode = not DumpTruck.isWideRoad(liveData)
                 end
             )
         end
