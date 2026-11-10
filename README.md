@@ -5,10 +5,12 @@ A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads.
 ## Features
 
 - Custom Volvo FE6 Dump Truck model (courtesy of fhqwhgads from Motorius Zone!)
-- Configurable road width: 2 or 3 tiles wide via radial menu
+- Animated dump bed with a visible load that decreases as material is unloaded
+- Road width: 3 tiles by default; radial menu switches to 2 tiles for narrow roads
 - Automatic edge blending: gravel roads blend smoothly with grass and terrain
 - Smart corner filling: gaps between angled roads automatically fill in
-- Press (G) or use the vehicle radial menu to start/stop dumping gravel
+- Erosion prevention: gravel roads won't grow grass or trees over time
+- Use the vehicle radial menu to raise and lower the bed
 - Snap Line: snap gravel placement to a dead-straight cardinal line (N/S/E/W) via radial menu
 - Realistic spawn variation: 50% chance trucks spawn with 80-100% gravel load
 - Spawns in appropriate zones (construction sites, farms, industrial areas, etc.)
@@ -25,12 +27,12 @@ A Project Zomboid mod that adds a Dump Truck capable of laying gravel roads.
 ## Usage
 
 1. Find a Dump Truck (spawns in construction, farm, and industrial zones)
-2. Load gravel sacks into the truck bed (if empty or low)
-3. Press (G) or use the vehicle radial menu to start dumping gravel
-4. (Optional) Toggle road width between 2 and 3 tiles via radial menu
-5. (Optional) Enable Snap Line from the radial menu to lay perfectly straight N/S/E/W roads — automatically disengages on braking or drifting too far off-line
-6. Drive slowly (5 km/h max while dumping) to create a gravel road
-7. Press (G) or use the radial menu again to stop dumping
+2. Load gravel sacks into the truck bed if the supply is low
+3. Choose a road width from the radial menu (V): 3 tiles by default or 2 tiles for narrow roads
+4. Raise the bed from the radial menu to begin dumping
+5. Drive to lay the road. The truck is limited to 5 km/h while the bed is raised
+6. (Optional) Enable Snap Line from the radial menu to lay perfectly straight N/S/E/W roads — automatically disengages on braking or drifting too far off-line
+7. Lower the bed from the radial menu, or leave the driver's seat
 
 **MP / sandbox:** In multiplayer, the host sets this in Sandbox Options (when creating or editing a save): open the "Dump Truck Gravel Mod" page and enable "Admin only (no world spawn)" to prevent dump trucks from spawning in the world; only admins can spawn them or place them on the map.
 

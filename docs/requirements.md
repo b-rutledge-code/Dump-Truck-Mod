@@ -8,20 +8,21 @@ Enable players to build gravel roads in Project Zomboid using a dump truck: plac
 
 1. **Dump truck vehicle** – Volvo FE6 dump truck (script name per `DumpTruckConstants.VEHICLE_SCRIPT_NAME`). Player can drive, load gravel sacks into bed, raise/lower bed via radial menu.
 2. **Gravel dumping** – Start/stop dumping via (G) or radial menu. Gravel is consumed from bed inventory and placed on the ground under the truck as it moves. Direction uses vehicle `getAngleZ()` (via `DumpTruckCore.getVectorFromPlayer()`), not driver forward (stale).
-3. **Road width** – Toggle 2 or 3 tiles wide via radial menu (for vehicles &lt; 3 tiles wide). Stored in vehicle modData `wideRoadMode`.
+3. **Road width** – 3 tiles by default; radial menu switches to 2 tiles (for vehicles &lt; 3 tiles wide). Stored in vehicle modData `wideRoadMode` (`nil`/`true` = 3 tiles, `false` = 2 tiles).
 4. **Edge blending** – Gravel roads blend smoothly with grass/terrain (`smoothRoad`). Gravel must be placed synchronously so edge blends see the real floor; pour effect uses overlays for animation only.
 5. **Pour effect** – Short visual animation when gravel lands (synchronous floor + stacked overlays, ~360ms, three sprite stages). Gap fillers delayed by same duration so they don’t appear before pour finishes.
-6. **Erosion prevention** – After placing gravel, call `disableErosion()` on the square so grass/trees don’t grow. Re-enabling erosion is not possible from Lua (game limitation).
-7. **Snap Line (v1.3.0)** – Radial option to snap gravel placement to a cardinal grid line (N/S/E/W). Engage when truck is within 25° of cardinal; brake or drift &gt;3 tiles off-line auto-disengages and stops dumping. Position and forward vector overridden in `tryPourGravelUnderTruck()` when active.
-8. **Radial menu icons** – Dump, road width, and Snap Line slices use 8-bit PNGs; UI icons have white stroke to match vanilla radial style. PZ does not support 16-bit PNGs.
-9. **Multi-material pouring** – Gravel, sand and dirt bags all pour, using vanilla's own bag/sprite/`pouredFloor` triples (`DumpTruckConstants.POURABLES`). A mixed bed is spent in bed order, giving a striped road. Poured floors are recognized by the `pouredFloor` stamp: natural sand/dirt still take a pour, the same material is not re-poured (covers band overlap), and a different material can overpour (e.g. dirt over gravel).
-10. **Tipping out the bed** – Each poured tile also drops one non-pourable bed item when the bed holds any (stash only: not pourable bags, not empty sacks, not the included shovel). A run stays armed while either pours or junk remain, so a bed of loose items empties along the sweep with no floor laid.
+6. **Erosion prevention** – After placing gravel, call `disableErosion()` on the square so grass and trees don’t grow. Re-enabling erosion is not possible from Lua (game limitation).
+7. **Bed tilt** – Raising the bed from the radial menu tilts the dump mesh around its rear hinge; the remaining load stays visible and steps down as material is unloaded. The truck is limited to 5 km/h while the bed is raised.
+8. **Snap Line (v1.3.0)** – Radial option to snap gravel placement to a cardinal grid line (N/S/E/W). Engage when truck is within 25° of cardinal; brake or drift &gt;3 tiles off-line auto-disengages and stops dumping. Position and forward vector overridden in `tryPourGravelUnderTruck()` when active.
+9. **Radial menu icons** – Dump, road width, and Snap Line slices use 8-bit PNGs; UI icons have white stroke to match vanilla radial style. PZ does not support 16-bit PNGs.
+10. **Multi-material pouring** – Gravel, sand and dirt bags all pour, using vanilla's own bag/sprite/`pouredFloor` triples (`DumpTruckConstants.POURABLES`). A mixed bed is spent in bed order, giving a striped road. Poured floors are recognized by the `pouredFloor` stamp: natural sand/dirt still take a pour, the same material is not re-poured (covers band overlap), and a different material can overpour (e.g. dirt over gravel).
+11. **Tipping out the bed** – Each poured tile also drops one non-pourable bed item when the bed holds any (stash only: not pourable bags, not empty sacks, not the included shovel). A run stays armed while either pours or junk remain, so a bed of loose items empties along the sweep with no floor laid.
 
 ## Constraints (By Design)
 
 - **No steering control from Lua** – CarController is not exposed; `setCurrentSteering` is overwritten; `setAngles` flips the vehicle. Straight roads are achieved by snapping gravel placement (Snap Line), not by locking steering.
 - **Erosion** – We only disable erosion; we never re-enable it (no game API). Custom non-erodable sprites are not used (engine sets `doNothing` on first encounter and never resets).
-- **Dump speed** – No artificial speed cap from Lua (`setMaxSpeed` was removed); player drives slowly by choice.
+- **Dump speed** – While the bed is raised, engine power is cut above 5 km/h and excess speed is shed with `applyImpulseFromHitPlant`.
 - **Assets** – Tile/floor sprites from texture pack (`.pack`); UI icons loose PNGs under `media/ui/vehicles/`. All PNGs 8-bit for PZ compatibility.
 
 ## Technical
