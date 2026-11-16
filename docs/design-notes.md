@@ -416,9 +416,9 @@ Dump sounds are **file clips** on the vehicle emitter (`sounds_dumptruck.txt`). 
 | `GravelDumpStart` / `GravelDumpEnd` | `1.0` |
 | `HydraulicLiftRaised` / `HydraulicLiftDown` | `1.0` |
 
-Raise the script base if zoomed-in dump is still quiet; raise far gain if zoomed-out vanishes.
+Script `volume` sets the zoomed-in level.
 
-**Gain** (`DumpTruckSound.getGain`): zoom lerp × (`getCore():getOptionVehicleEngineVolume() / 10`). Zoom uses the same `t` as vanilla `ParameterCameraZoom`: `(zoom - minZoom) / (maxZoom - minZoom)`, clamped 0–1. `t = 0` is closest (near gain `1.0`); `t = 1` is farthest (far gain `0.35`). No local player → near gain.
+**Gain** (`DumpTruckSound.getGain`): zoom factor × (`getCore():getOptionVehicleEngineVolume() / 10`). Zoom uses the same `t` as vanilla `ParameterCameraZoom`: `(zoom - minZoom) / (maxZoom - minZoom)`, clamped 0–1. `t = 0` is closest. The zoom factor follows the step-van engine `CameraZoom` level: `1 - 0.421*t + 0.111*t*t` (1.0 zoomed in, 0.69 zoomed out). With no local player the zoom factor stays 1.
 
 `startDumping` and `stopDumpingSounds` play hydraulics, start, loop, and end through `emitter:playSound` and apply gain on the returned handle. While `DumpTruck.dumpingActive` and `dumpLoopHandle` are set, `onPlayerUpdateFunc` refreshes loop gain each pour tick. Snap Line and reverse-buzzer vanilla clips are unchanged.
 

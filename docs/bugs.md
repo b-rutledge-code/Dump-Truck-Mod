@@ -171,7 +171,7 @@ objects=[blends_street_01_55 blends_street_01_55 blends_natural_01_22 ?]
 
 **Problem:** Dump clips stayed at one loudness when the camera zoomed out, and ignored the Vehicle Engine Volume option. File clips are not FMOD events, so they never see `CameraZoom` or the `VehicleEngine` VCA.
 
-**Fix:** Clip `volume` on all five dump sounds in `sounds_dumptruck.txt` (`1.0`). `DumpTruckSound.getGain` multiplies a zoom lerp (near `1.0`, far `0.35`, same `t` as vanilla `ParameterCameraZoom`) by `getOptionVehicleEngineVolume() / 10`. One-shots get `setVolume` at play; the loop is refreshed each pour tick while dumping is active.
+**Fix:** Clip `volume` on all five dump sounds in `sounds_dumptruck.txt` (`1.0`). `DumpTruckSound.getGain` multiplies a zoom factor (same `t` as vanilla `ParameterCameraZoom`, `1 - 0.421*t + 0.111*t*t`, 1.0 zoomed in and 0.69 zoomed out) by `getOptionVehicleEngineVolume() / 10`. One-shots get `setVolume` at play; the loop is refreshed each pour tick while dumping is active.
 
 ### Gravel loop keeps playing after dumping stops
 
