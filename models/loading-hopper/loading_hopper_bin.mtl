@@ -1,0 +1,9 @@
+newmtl deck
+Kd 0.5 0.5 0.5
+
+newmtl galvanized
+Kd 0.5 0.5 0.5
+
+newmtl hopper
+Kd 0.5 0.5 0.5
+

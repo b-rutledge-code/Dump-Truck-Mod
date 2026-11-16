@@ -7,3 +7,4 @@ poster=poster.png
 icon=poster.png
 versionMin=42.20
 pack=DumpTruckGravelMod
+tiledef=loading_hopper 4731

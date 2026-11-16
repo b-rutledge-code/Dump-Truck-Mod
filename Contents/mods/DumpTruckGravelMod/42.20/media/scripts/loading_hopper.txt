@@ -1,0 +1,2043 @@
+module Base
+{
+    model LoadingHopper_0
+    {
+        mesh = IsoObject/loading_hopper_0,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_0
+    {
+        modelScript = Base.LoadingHopper_0,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_1
+    {
+        mesh = IsoObject/loading_hopper_1,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_1
+    {
+        modelScript = Base.LoadingHopper_1,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_2
+    {
+        mesh = IsoObject/loading_hopper_2,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_2
+    {
+        modelScript = Base.LoadingHopper_2,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_3
+    {
+        mesh = IsoObject/loading_hopper_3,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_3
+    {
+        modelScript = Base.LoadingHopper_3,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_4
+    {
+        mesh = IsoObject/loading_hopper_4,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_4
+    {
+        modelScript = Base.LoadingHopper_4,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_5
+    {
+        mesh = IsoObject/loading_hopper_5,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_5
+    {
+        modelScript = Base.LoadingHopper_5,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_6
+    {
+        mesh = IsoObject/loading_hopper_6,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_6
+    {
+        modelScript = Base.LoadingHopper_6,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_7
+    {
+        mesh = IsoObject/loading_hopper_7,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_7
+    {
+        modelScript = Base.LoadingHopper_7,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_8
+    {
+        mesh = IsoObject/loading_hopper_8,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_8
+    {
+        modelScript = Base.LoadingHopper_8,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_9
+    {
+        mesh = IsoObject/loading_hopper_9,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_9
+    {
+        modelScript = Base.LoadingHopper_9,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_10
+    {
+        mesh = IsoObject/loading_hopper_10,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_10
+    {
+        modelScript = Base.LoadingHopper_10,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_11
+    {
+        mesh = IsoObject/loading_hopper_11,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_11
+    {
+        modelScript = Base.LoadingHopper_11,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_12
+    {
+        mesh = IsoObject/loading_hopper_12,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_12
+    {
+        modelScript = Base.LoadingHopper_12,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_13
+    {
+        mesh = IsoObject/loading_hopper_13,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_13
+    {
+        modelScript = Base.LoadingHopper_13,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_14
+    {
+        mesh = IsoObject/loading_hopper_14,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_14
+    {
+        modelScript = Base.LoadingHopper_14,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_15
+    {
+        mesh = IsoObject/loading_hopper_15,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_15
+    {
+        modelScript = Base.LoadingHopper_15,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_16
+    {
+        mesh = IsoObject/loading_hopper_16,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_16
+    {
+        modelScript = Base.LoadingHopper_16,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_17
+    {
+        mesh = IsoObject/loading_hopper_17,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_17
+    {
+        modelScript = Base.LoadingHopper_17,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_18
+    {
+        mesh = IsoObject/loading_hopper_18,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_18
+    {
+        modelScript = Base.LoadingHopper_18,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_19
+    {
+        mesh = IsoObject/loading_hopper_19,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_19
+    {
+        modelScript = Base.LoadingHopper_19,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_20
+    {
+        mesh = IsoObject/loading_hopper_20,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_20
+    {
+        modelScript = Base.LoadingHopper_20,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_21
+    {
+        mesh = IsoObject/loading_hopper_21,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_21
+    {
+        modelScript = Base.LoadingHopper_21,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_22
+    {
+        mesh = IsoObject/loading_hopper_22,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_22
+    {
+        modelScript = Base.LoadingHopper_22,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_23
+    {
+        mesh = IsoObject/loading_hopper_23,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_23
+    {
+        modelScript = Base.LoadingHopper_23,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_24
+    {
+        mesh = IsoObject/loading_hopper_24,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_24
+    {
+        modelScript = Base.LoadingHopper_24,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_25
+    {
+        mesh = IsoObject/loading_hopper_25,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_25
+    {
+        modelScript = Base.LoadingHopper_25,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_26
+    {
+        mesh = IsoObject/loading_hopper_26,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_26
+    {
+        modelScript = Base.LoadingHopper_26,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_27
+    {
+        mesh = IsoObject/loading_hopper_27,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_27
+    {
+        modelScript = Base.LoadingHopper_27,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_28
+    {
+        mesh = IsoObject/loading_hopper_28,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_28
+    {
+        modelScript = Base.LoadingHopper_28,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_29
+    {
+        mesh = IsoObject/loading_hopper_29,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_29
+    {
+        modelScript = Base.LoadingHopper_29,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_30
+    {
+        mesh = IsoObject/loading_hopper_30,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_30
+    {
+        modelScript = Base.LoadingHopper_30,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_31
+    {
+        mesh = IsoObject/loading_hopper_31,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_31
+    {
+        modelScript = Base.LoadingHopper_31,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_32
+    {
+        mesh = IsoObject/loading_hopper_32,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_32
+    {
+        modelScript = Base.LoadingHopper_32,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_33
+    {
+        mesh = IsoObject/loading_hopper_33,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_33
+    {
+        modelScript = Base.LoadingHopper_33,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_34
+    {
+        mesh = IsoObject/loading_hopper_34,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_34
+    {
+        modelScript = Base.LoadingHopper_34,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_35
+    {
+        mesh = IsoObject/loading_hopper_35,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_35
+    {
+        modelScript = Base.LoadingHopper_35,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_36
+    {
+        mesh = IsoObject/loading_hopper_36,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_36
+    {
+        modelScript = Base.LoadingHopper_36,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_37
+    {
+        mesh = IsoObject/loading_hopper_37,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_37
+    {
+        modelScript = Base.LoadingHopper_37,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_38
+    {
+        mesh = IsoObject/loading_hopper_38,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_38
+    {
+        modelScript = Base.LoadingHopper_38,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_39
+    {
+        mesh = IsoObject/loading_hopper_39,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_39
+    {
+        modelScript = Base.LoadingHopper_39,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_40
+    {
+        mesh = IsoObject/loading_hopper_40,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_40
+    {
+        modelScript = Base.LoadingHopper_40,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_41
+    {
+        mesh = IsoObject/loading_hopper_41,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_41
+    {
+        modelScript = Base.LoadingHopper_41,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_42
+    {
+        mesh = IsoObject/loading_hopper_42,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_42
+    {
+        modelScript = Base.LoadingHopper_42,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_43
+    {
+        mesh = IsoObject/loading_hopper_43,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_43
+    {
+        modelScript = Base.LoadingHopper_43,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_44
+    {
+        mesh = IsoObject/loading_hopper_44,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_44
+    {
+        modelScript = Base.LoadingHopper_44,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_45
+    {
+        mesh = IsoObject/loading_hopper_45,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_45
+    {
+        modelScript = Base.LoadingHopper_45,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_46
+    {
+        mesh = IsoObject/loading_hopper_46,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_46
+    {
+        modelScript = Base.LoadingHopper_46,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_47
+    {
+        mesh = IsoObject/loading_hopper_47,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_47
+    {
+        modelScript = Base.LoadingHopper_47,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_48
+    {
+        mesh = IsoObject/loading_hopper_48,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_48
+    {
+        modelScript = Base.LoadingHopper_48,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_49
+    {
+        mesh = IsoObject/loading_hopper_49,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_49
+    {
+        modelScript = Base.LoadingHopper_49,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_50
+    {
+        mesh = IsoObject/loading_hopper_50,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_50
+    {
+        modelScript = Base.LoadingHopper_50,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_51
+    {
+        mesh = IsoObject/loading_hopper_51,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_51
+    {
+        modelScript = Base.LoadingHopper_51,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_52
+    {
+        mesh = IsoObject/loading_hopper_52,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_52
+    {
+        modelScript = Base.LoadingHopper_52,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_53
+    {
+        mesh = IsoObject/loading_hopper_53,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_53
+    {
+        modelScript = Base.LoadingHopper_53,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_54
+    {
+        mesh = IsoObject/loading_hopper_54,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_54
+    {
+        modelScript = Base.LoadingHopper_54,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_55
+    {
+        mesh = IsoObject/loading_hopper_55,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_55
+    {
+        modelScript = Base.LoadingHopper_55,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_56
+    {
+        mesh = IsoObject/loading_hopper_56,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_56
+    {
+        modelScript = Base.LoadingHopper_56,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_57
+    {
+        mesh = IsoObject/loading_hopper_57,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_57
+    {
+        modelScript = Base.LoadingHopper_57,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_58
+    {
+        mesh = IsoObject/loading_hopper_58,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_58
+    {
+        modelScript = Base.LoadingHopper_58,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_59
+    {
+        mesh = IsoObject/loading_hopper_59,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_59
+    {
+        modelScript = Base.LoadingHopper_59,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_60
+    {
+        mesh = IsoObject/loading_hopper_60,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_60
+    {
+        modelScript = Base.LoadingHopper_60,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_61
+    {
+        mesh = IsoObject/loading_hopper_61,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_61
+    {
+        modelScript = Base.LoadingHopper_61,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_62
+    {
+        mesh = IsoObject/loading_hopper_62,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_62
+    {
+        modelScript = Base.LoadingHopper_62,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_63
+    {
+        mesh = IsoObject/loading_hopper_63,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_63
+    {
+        modelScript = Base.LoadingHopper_63,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_64
+    {
+        mesh = IsoObject/loading_hopper_64,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_64
+    {
+        modelScript = Base.LoadingHopper_64,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_65
+    {
+        mesh = IsoObject/loading_hopper_65,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_65
+    {
+        modelScript = Base.LoadingHopper_65,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_66
+    {
+        mesh = IsoObject/loading_hopper_66,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_66
+    {
+        modelScript = Base.LoadingHopper_66,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_67
+    {
+        mesh = IsoObject/loading_hopper_67,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_67
+    {
+        modelScript = Base.LoadingHopper_67,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_68
+    {
+        mesh = IsoObject/loading_hopper_68,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_68
+    {
+        modelScript = Base.LoadingHopper_68,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_69
+    {
+        mesh = IsoObject/loading_hopper_69,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_69
+    {
+        modelScript = Base.LoadingHopper_69,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_70
+    {
+        mesh = IsoObject/loading_hopper_70,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_70
+    {
+        modelScript = Base.LoadingHopper_70,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_71
+    {
+        mesh = IsoObject/loading_hopper_71,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_71
+    {
+        modelScript = Base.LoadingHopper_71,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_72
+    {
+        mesh = IsoObject/loading_hopper_72,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_72
+    {
+        modelScript = Base.LoadingHopper_72,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_73
+    {
+        mesh = IsoObject/loading_hopper_73,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_73
+    {
+        modelScript = Base.LoadingHopper_73,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_74
+    {
+        mesh = IsoObject/loading_hopper_74,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_74
+    {
+        modelScript = Base.LoadingHopper_74,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_75
+    {
+        mesh = IsoObject/loading_hopper_75,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_75
+    {
+        modelScript = Base.LoadingHopper_75,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_76
+    {
+        mesh = IsoObject/loading_hopper_76,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_76
+    {
+        modelScript = Base.LoadingHopper_76,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_77
+    {
+        mesh = IsoObject/loading_hopper_77,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_77
+    {
+        modelScript = Base.LoadingHopper_77,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_78
+    {
+        mesh = IsoObject/loading_hopper_78,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_78
+    {
+        modelScript = Base.LoadingHopper_78,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_79
+    {
+        mesh = IsoObject/loading_hopper_79,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_79
+    {
+        modelScript = Base.LoadingHopper_79,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_80
+    {
+        mesh = IsoObject/loading_hopper_80,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_80
+    {
+        modelScript = Base.LoadingHopper_80,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_81
+    {
+        mesh = IsoObject/loading_hopper_81,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_81
+    {
+        modelScript = Base.LoadingHopper_81,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_82
+    {
+        mesh = IsoObject/loading_hopper_82,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_82
+    {
+        modelScript = Base.LoadingHopper_82,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_83
+    {
+        mesh = IsoObject/loading_hopper_83,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_83
+    {
+        modelScript = Base.LoadingHopper_83,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_84
+    {
+        mesh = IsoObject/loading_hopper_84,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_84
+    {
+        modelScript = Base.LoadingHopper_84,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_85
+    {
+        mesh = IsoObject/loading_hopper_85,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_85
+    {
+        modelScript = Base.LoadingHopper_85,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_86
+    {
+        mesh = IsoObject/loading_hopper_86,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_86
+    {
+        modelScript = Base.LoadingHopper_86,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_87
+    {
+        mesh = IsoObject/loading_hopper_87,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_87
+    {
+        modelScript = Base.LoadingHopper_87,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_88
+    {
+        mesh = IsoObject/loading_hopper_88,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_88
+    {
+        modelScript = Base.LoadingHopper_88,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_89
+    {
+        mesh = IsoObject/loading_hopper_89,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_89
+    {
+        modelScript = Base.LoadingHopper_89,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_90
+    {
+        mesh = IsoObject/loading_hopper_90,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_90
+    {
+        modelScript = Base.LoadingHopper_90,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_91
+    {
+        mesh = IsoObject/loading_hopper_91,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_91
+    {
+        modelScript = Base.LoadingHopper_91,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_92
+    {
+        mesh = IsoObject/loading_hopper_92,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_92
+    {
+        modelScript = Base.LoadingHopper_92,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_93
+    {
+        mesh = IsoObject/loading_hopper_93,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_93
+    {
+        modelScript = Base.LoadingHopper_93,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_94
+    {
+        mesh = IsoObject/loading_hopper_94,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_94
+    {
+        modelScript = Base.LoadingHopper_94,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_95
+    {
+        mesh = IsoObject/loading_hopper_95,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_95
+    {
+        modelScript = Base.LoadingHopper_95,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_96
+    {
+        mesh = IsoObject/loading_hopper_96,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_96
+    {
+        modelScript = Base.LoadingHopper_96,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_97
+    {
+        mesh = IsoObject/loading_hopper_97,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_97
+    {
+        modelScript = Base.LoadingHopper_97,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_98
+    {
+        mesh = IsoObject/loading_hopper_98,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_98
+    {
+        modelScript = Base.LoadingHopper_98,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_99
+    {
+        mesh = IsoObject/loading_hopper_99,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_99
+    {
+        modelScript = Base.LoadingHopper_99,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_100
+    {
+        mesh = IsoObject/loading_hopper_100,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_100
+    {
+        modelScript = Base.LoadingHopper_100,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_101
+    {
+        mesh = IsoObject/loading_hopper_101,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_101
+    {
+        modelScript = Base.LoadingHopper_101,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_102
+    {
+        mesh = IsoObject/loading_hopper_102,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_102
+    {
+        modelScript = Base.LoadingHopper_102,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_103
+    {
+        mesh = IsoObject/loading_hopper_103,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_103
+    {
+        modelScript = Base.LoadingHopper_103,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_104
+    {
+        mesh = IsoObject/loading_hopper_104,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_104
+    {
+        modelScript = Base.LoadingHopper_104,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_105
+    {
+        mesh = IsoObject/loading_hopper_105,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_105
+    {
+        modelScript = Base.LoadingHopper_105,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_106
+    {
+        mesh = IsoObject/loading_hopper_106,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_106
+    {
+        modelScript = Base.LoadingHopper_106,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_107
+    {
+        mesh = IsoObject/loading_hopper_107,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_107
+    {
+        modelScript = Base.LoadingHopper_107,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_108
+    {
+        mesh = IsoObject/loading_hopper_108,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_108
+    {
+        modelScript = Base.LoadingHopper_108,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_109
+    {
+        mesh = IsoObject/loading_hopper_109,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_109
+    {
+        modelScript = Base.LoadingHopper_109,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_110
+    {
+        mesh = IsoObject/loading_hopper_110,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_110
+    {
+        modelScript = Base.LoadingHopper_110,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_111
+    {
+        mesh = IsoObject/loading_hopper_111,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_111
+    {
+        modelScript = Base.LoadingHopper_111,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_112
+    {
+        mesh = IsoObject/loading_hopper_112,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_112
+    {
+        modelScript = Base.LoadingHopper_112,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_113
+    {
+        mesh = IsoObject/loading_hopper_113,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_113
+    {
+        modelScript = Base.LoadingHopper_113,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_114
+    {
+        mesh = IsoObject/loading_hopper_114,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_114
+    {
+        modelScript = Base.LoadingHopper_114,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_115
+    {
+        mesh = IsoObject/loading_hopper_115,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_115
+    {
+        modelScript = Base.LoadingHopper_115,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_116
+    {
+        mesh = IsoObject/loading_hopper_116,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_116
+    {
+        modelScript = Base.LoadingHopper_116,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_117
+    {
+        mesh = IsoObject/loading_hopper_117,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_117
+    {
+        modelScript = Base.LoadingHopper_117,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_118
+    {
+        mesh = IsoObject/loading_hopper_118,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_118
+    {
+        modelScript = Base.LoadingHopper_118,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+    model LoadingHopper_119
+    {
+        mesh = IsoObject/loading_hopper_119,
+        texture = IsoObject/loading_hopper,
+        scale = 1.0,
+        static = true,
+        undoCoreScale = true,
+    }
+
+    spriteModel loading_hopper_119
+    {
+        modelScript = Base.LoadingHopper_119,
+        translate = 0.0 0.0 0.0,
+        rotate = 0.0 0.0 0.0,
+        scale = 1.0,
+    }
+
+}

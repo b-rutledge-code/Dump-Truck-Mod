@@ -27,3 +27,4 @@ Adds a dump truck (Volvo FE6) that places gravel, sand or dirt on the ground to 
 ## References
 
 - **Design notes (source of truth):** `docs/design-notes.md` – vehicle direction, erosion, pour effect, Snap Line, Sound/zoom, Tile-gap TODO, dead ends (steering).
+- **Loading hopper:** `docs/loading-hopper.md` – per-tile FBX slice, draw transform, collision, stamp, rebuild/install.

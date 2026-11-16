@@ -1,0 +1,1090 @@
+spriteModel
+{
+    VERSION = 1,
+
+    tileset
+    {
+        name = loading_hopper,
+
+        tile
+        {
+            xy = 0 0,
+            modelScript = Base.LoadingHopper_0,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 0,
+            modelScript = Base.LoadingHopper_1,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 0,
+            modelScript = Base.LoadingHopper_2,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 0,
+            modelScript = Base.LoadingHopper_3,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 0,
+            modelScript = Base.LoadingHopper_4,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 0,
+            modelScript = Base.LoadingHopper_5,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 0,
+            modelScript = Base.LoadingHopper_6,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 0,
+            modelScript = Base.LoadingHopper_7,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 1,
+            modelScript = Base.LoadingHopper_8,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 1,
+            modelScript = Base.LoadingHopper_9,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 1,
+            modelScript = Base.LoadingHopper_10,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 1,
+            modelScript = Base.LoadingHopper_11,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 1,
+            modelScript = Base.LoadingHopper_12,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 1,
+            modelScript = Base.LoadingHopper_13,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 1,
+            modelScript = Base.LoadingHopper_14,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 1,
+            modelScript = Base.LoadingHopper_15,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 2,
+            modelScript = Base.LoadingHopper_16,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 2,
+            modelScript = Base.LoadingHopper_17,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 2,
+            modelScript = Base.LoadingHopper_18,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 2,
+            modelScript = Base.LoadingHopper_19,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 2,
+            modelScript = Base.LoadingHopper_20,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 2,
+            modelScript = Base.LoadingHopper_21,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 2,
+            modelScript = Base.LoadingHopper_22,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 2,
+            modelScript = Base.LoadingHopper_23,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 3,
+            modelScript = Base.LoadingHopper_24,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 3,
+            modelScript = Base.LoadingHopper_25,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 3,
+            modelScript = Base.LoadingHopper_26,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 3,
+            modelScript = Base.LoadingHopper_27,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 3,
+            modelScript = Base.LoadingHopper_28,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 3,
+            modelScript = Base.LoadingHopper_29,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 3,
+            modelScript = Base.LoadingHopper_30,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 3,
+            modelScript = Base.LoadingHopper_31,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 4,
+            modelScript = Base.LoadingHopper_32,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 4,
+            modelScript = Base.LoadingHopper_33,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 4,
+            modelScript = Base.LoadingHopper_34,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 4,
+            modelScript = Base.LoadingHopper_35,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 4,
+            modelScript = Base.LoadingHopper_36,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 4,
+            modelScript = Base.LoadingHopper_37,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 4,
+            modelScript = Base.LoadingHopper_38,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 4,
+            modelScript = Base.LoadingHopper_39,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 5,
+            modelScript = Base.LoadingHopper_40,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 5,
+            modelScript = Base.LoadingHopper_41,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 5,
+            modelScript = Base.LoadingHopper_42,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 5,
+            modelScript = Base.LoadingHopper_43,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 5,
+            modelScript = Base.LoadingHopper_44,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 5,
+            modelScript = Base.LoadingHopper_45,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 5,
+            modelScript = Base.LoadingHopper_46,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 5,
+            modelScript = Base.LoadingHopper_47,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 6,
+            modelScript = Base.LoadingHopper_48,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 6,
+            modelScript = Base.LoadingHopper_49,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 6,
+            modelScript = Base.LoadingHopper_50,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 6,
+            modelScript = Base.LoadingHopper_51,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 6,
+            modelScript = Base.LoadingHopper_52,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 6,
+            modelScript = Base.LoadingHopper_53,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 6,
+            modelScript = Base.LoadingHopper_54,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 6,
+            modelScript = Base.LoadingHopper_55,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 7,
+            modelScript = Base.LoadingHopper_56,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 7,
+            modelScript = Base.LoadingHopper_57,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 7,
+            modelScript = Base.LoadingHopper_58,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 7,
+            modelScript = Base.LoadingHopper_59,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 7,
+            modelScript = Base.LoadingHopper_60,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 7,
+            modelScript = Base.LoadingHopper_61,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 7,
+            modelScript = Base.LoadingHopper_62,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 7,
+            modelScript = Base.LoadingHopper_63,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 8,
+            modelScript = Base.LoadingHopper_64,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 8,
+            modelScript = Base.LoadingHopper_65,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 8,
+            modelScript = Base.LoadingHopper_66,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 8,
+            modelScript = Base.LoadingHopper_67,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 8,
+            modelScript = Base.LoadingHopper_68,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 8,
+            modelScript = Base.LoadingHopper_69,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 8,
+            modelScript = Base.LoadingHopper_70,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 8,
+            modelScript = Base.LoadingHopper_71,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 9,
+            modelScript = Base.LoadingHopper_72,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 9,
+            modelScript = Base.LoadingHopper_73,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 9,
+            modelScript = Base.LoadingHopper_74,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 9,
+            modelScript = Base.LoadingHopper_75,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 9,
+            modelScript = Base.LoadingHopper_76,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 9,
+            modelScript = Base.LoadingHopper_77,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 9,
+            modelScript = Base.LoadingHopper_78,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 9,
+            modelScript = Base.LoadingHopper_79,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 10,
+            modelScript = Base.LoadingHopper_80,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 10,
+            modelScript = Base.LoadingHopper_81,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 10,
+            modelScript = Base.LoadingHopper_82,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 10,
+            modelScript = Base.LoadingHopper_83,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 10,
+            modelScript = Base.LoadingHopper_84,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 10,
+            modelScript = Base.LoadingHopper_85,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 10,
+            modelScript = Base.LoadingHopper_86,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 10,
+            modelScript = Base.LoadingHopper_87,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 11,
+            modelScript = Base.LoadingHopper_88,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 11,
+            modelScript = Base.LoadingHopper_89,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 11,
+            modelScript = Base.LoadingHopper_90,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 11,
+            modelScript = Base.LoadingHopper_91,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 11,
+            modelScript = Base.LoadingHopper_92,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 11,
+            modelScript = Base.LoadingHopper_93,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 11,
+            modelScript = Base.LoadingHopper_94,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 11,
+            modelScript = Base.LoadingHopper_95,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 12,
+            modelScript = Base.LoadingHopper_96,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 12,
+            modelScript = Base.LoadingHopper_97,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 12,
+            modelScript = Base.LoadingHopper_98,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 12,
+            modelScript = Base.LoadingHopper_99,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 12,
+            modelScript = Base.LoadingHopper_100,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 12,
+            modelScript = Base.LoadingHopper_101,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 12,
+            modelScript = Base.LoadingHopper_102,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 12,
+            modelScript = Base.LoadingHopper_103,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 13,
+            modelScript = Base.LoadingHopper_104,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 13,
+            modelScript = Base.LoadingHopper_105,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 13,
+            modelScript = Base.LoadingHopper_106,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 13,
+            modelScript = Base.LoadingHopper_107,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 13,
+            modelScript = Base.LoadingHopper_108,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 13,
+            modelScript = Base.LoadingHopper_109,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 13,
+            modelScript = Base.LoadingHopper_110,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 13,
+            modelScript = Base.LoadingHopper_111,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 0 14,
+            modelScript = Base.LoadingHopper_112,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 1 14,
+            modelScript = Base.LoadingHopper_113,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 2 14,
+            modelScript = Base.LoadingHopper_114,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 3 14,
+            modelScript = Base.LoadingHopper_115,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 4 14,
+            modelScript = Base.LoadingHopper_116,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 5 14,
+            modelScript = Base.LoadingHopper_117,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 6 14,
+            modelScript = Base.LoadingHopper_118,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+        tile
+        {
+            xy = 7 14,
+            modelScript = Base.LoadingHopper_119,
+            translate = 0.0000 0.0000 0.0000,
+            rotate = 0.0000 0.0000 0.0000,
+            scale = 1.0000,
+        }
+
+    }
+}

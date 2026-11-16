@@ -1,0 +1,15 @@
+module Base
+{
+    model LoadingHopperBin_0
+    {
+        mesh = IsoObject/loading_hopper_bin_0,
+        static = TRUE,
+        scale = 1.0,
+    }
+    model LoadingHopperBin_1
+    {
+        mesh = IsoObject/loading_hopper_bin_1,
+        static = TRUE,
+        scale = 1.0,
+    }
+}
