@@ -21,6 +21,30 @@ local function stopFillSound(action)
     action.sound = nil
 end
 
+-- Control box is on the west face of the panel column (left side of the pole in iso).
+-- Facing the tile center from the south aims north at the pole's back/side, not the box.
+local function facePanelBox(character, anchorX, anchorY)
+    character:faceLocationF(
+        anchorX + DumpTruckHopper.PANEL_DX + 0.05,
+        anchorY + DumpTruckHopper.PANEL_DY + 0.5
+    )
+end
+
+-- Same reach as DumpTruckHopper nearPanel. Panel square is solid, so walkAdj's
+-- canReachTo(panel) fails even when you're already next to the box and it
+-- pathfinds you around to the outside.
+local PANEL_REACH = 2.2
+
+local function withinPanelReach(playerObj, anchorX, anchorY, anchorZ)
+    if playerObj == nil or math.floor(playerObj:getZ()) ~= anchorZ then
+        return false
+    end
+    local px = anchorX + DumpTruckHopper.PANEL_DX + 0.5
+    local py = anchorY + DumpTruckHopper.PANEL_DY + 0.5
+    return math.abs(playerObj:getX() - px) <= PANEL_REACH
+        and math.abs(playerObj:getY() - py) <= PANEL_REACH
+end
+
 function ISFillHopper:isValid()
     if self.character:getVehicle() ~= nil then
         return false
@@ -36,21 +60,16 @@ function ISFillHopper:isValid()
     if DumpTruckHopper.getStock(anchor) < 1 then
         return false
     end
-    local square = self.character:getCurrentSquare()
-    if square == nil or square:getZ() ~= self.anchorZ then
-        return false
-    end
-    local dx = math.abs(square:getX() - (self.anchorX + DumpTruckHopper.PANEL_DX))
-    local dy = math.abs(square:getY() - (self.anchorY + DumpTruckHopper.PANEL_DY))
-    return dx <= 1 and dy <= 1
+    return withinPanelReach(self.character, self.anchorX, self.anchorY, self.anchorZ)
 end
 
 function ISFillHopper:waitToStart()
-    self.character:faceLocation(self.anchorX + DumpTruckHopper.PANEL_DX, self.anchorY + DumpTruckHopper.PANEL_DY)
+    facePanelBox(self.character, self.anchorX, self.anchorY)
     return self.character:shouldBeTurning()
 end
 
 function ISFillHopper:update()
+    facePanelBox(self.character, self.anchorX, self.anchorY)
     self.character:setMetabolicTarget(Metabolics.HeavyDomestic)
     local want = math.floor((self.totalBags or 0) * self:getJobDelta() + 0.0001)
     if want > self.sent then
@@ -133,20 +152,20 @@ local function onFill(playerObj, vehicle, anchor, totalBags)
     if panel == nil then
         return
     end
-    -- Stand on the south side of the panel (bay end) so the truck stays in view.
-    local cell = getCell()
-    local stand = cell:getGridSquare(panel:getX(), panel:getY() + 1, panel:getZ())
-    if stand == nil or not luautils.walkAdj(playerObj, stand) then
-        if not luautils.walkAdj(playerObj, panel) then
-            return
-        end
+    local ax, ay, az = anchor:getX(), anchor:getY(), anchor:getZ()
+    -- Stay put when already in reach. walkAdj targets the solid panel tile, fails
+    -- canReachTo, and drags you to the outside free tile every time.
+    if withinPanelReach(playerObj, ax, ay, az) then
+        ISTimedActionQueue.clear(playerObj)
+    elseif not luautils.walkAdj(playerObj, panel) then
+        return
     end
     ISTimedActionQueue.add(ISFillHopper:new(
         playerObj,
         vehicle,
-        anchor:getX(),
-        anchor:getY(),
-        anchor:getZ(),
+        ax,
+        ay,
+        az,
         totalBags,
         DumpTruckHopper.nextActionId()
     ))
