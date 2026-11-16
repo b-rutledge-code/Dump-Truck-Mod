@@ -1,10 +1,10 @@
 """Cut the hopper into game tiles.
 
-Visuals are one mesh per occupied (gx, gy, stamp-floor) cell. Mid-band steel
-merges into the same column's ground stamp so it inherits outdoor light.
-Collision is solid on the legs. The upper deck is an invisible solidfloor on
-the deck level; deck, rail, and bin-rim meshes stamp one level below with no
-floor flag, so cutaway does not hide them when the truck is underneath.
+Visuals are one mesh per occupied (gx, gy, stamp-floor) cell. Band 1 merges
+into the ground stamp for outdoor light. Band 2 and rim stamp one floor below
+the deck solidfloor so the walkway and bin lip stay one mesh. Deck walk uses
+invisible solidfloor (+ ForceAmbient) on the real deck level. Verts keep
+absolute Z and no floor flag. Legs are solid.
 
 The anchor is the lowest mesh at the bay-center column. One blender meter is
 one tile; a floor is FLOOR_M meters. The game draws a model from the center of
@@ -109,9 +109,8 @@ def deck_cover(tris):
 def mesh_cells(tris):
     """One XY cell per stamp floor.
 
-    Mid-band (fz=1) geometry merges into the same column's z=0 stamp so the
-    mesh inherits outdoor ground light. Rim still stamps one floor below the
-    deck. Absolute vertex Z is unchanged.
+    Band 1 → z=0 (outdoor light). Band 2 and rim → rim visual so the deck and
+    bin lip stay one mesh. Absolute vertex Z is unchanged.
     """
     minx = min(pt[0].x for tri in tris for pt in tri)
     maxx = max(pt[0].x for tri in tris for pt in tri)
@@ -123,7 +122,6 @@ def mesh_cells(tris):
     gy0 = int(math.floor(miny))
     gy1 = int(math.floor(maxy - 1e-6))
     fz1 = int(math.floor((maxz - 1e-6) / FLOOR_M))
-    # (gx, gy, stamp_fz) -> (band_for_deck_check, tris)
     merged = {}
     for fz in range(0, fz1 + 1):
         z0 = fz * FLOOR_M
@@ -140,10 +138,9 @@ def mesh_cells(tris):
                 cell = clip_span(column, 1, float(gy), float(gy + 1))
                 if not cell:
                     continue
-                # Mid steel stamps on ground light; rim stamps one floor under deck.
-                if fz == RIM_LEVEL:
+                if fz == RIM_LEVEL or fz == RIM_VISUAL_LEVEL:
                     stamp_fz = RIM_VISUAL_LEVEL
-                elif fz == 1:
+                elif fz >= 1:
                     stamp_fz = 0
                 else:
                     stamp_fz = fz
@@ -151,7 +148,6 @@ def mesh_cells(tris):
                 if key in merged:
                     band, tris_acc = merged[key]
                     tris_acc.extend(cell)
-                    # Keep the higher band id when mid merges into ground.
                     merged[key] = (max(band, fz), tris_acc)
                 else:
                     merged[key] = (fz, list(cell))
@@ -263,15 +259,12 @@ def write_tiles(pieces):
     body += struct.pack("<iiii", cols, rows, 1, n)
     for piece in pieces:
         props = []
-        if piece["mesh"]:
-            # 3D only: hide the 2D tile so open-air z>0 carriers do not draw
-            # black floor slabs; ForceAmbient so empty-air lighting is not black.
+        if piece["mesh"] or piece.get("invisible"):
+            # Hide 2D tile; ForceAmbient so open-air z>0 floors are not black voids.
             props.append(("invisible", ""))
             props.append(("alwaysDraw", ""))
             props.append(("NeverCutaway", ""))
             props.append(("ForceAmbient", ""))
-        elif piece.get("invisible"):
-            props.append(("invisible", ""))
         if piece["ix"] == 0:
             props.append(("CustomName", "Loading Hopper"))
         if piece["solid"]:
@@ -414,11 +407,12 @@ local function bindModel(obj, name)
     end
 end
 
--- Drop every loading_hopper_* in the bay so a rebuild is not stuck on old meshes.
-local function clearFootprint(ax, ay, az)
+-- Drop loading_hopper_* nearby so rebuilds are not stuck on old / overlapping meshes.
+-- keep_anchor: when true, leave the ANCHOR on (ax,ay,az) alone.
+local function clearFootprint(ax, ay, az, keep_anchor)
     local cell = getCell()
-    for dx = -6, 6 do
-        for dy = -6, 6 do
+    for dx = -20, 20 do
+        for dy = -20, 20 do
             for dz = 0, 3 do
                 local square = cell:getGridSquare(ax + dx, ay + dy, az + dz)
                 if square ~= nil then
@@ -426,8 +420,16 @@ local function clearFootprint(ax, ay, az)
                     for i = objs:size() - 1, 0, -1 do
                         local obj = objs:get(i)
                         local name = spriteName(obj)
-                        if isHopperName(name) and name ~= ANCHOR then
-                            square:RemoveTileObject(obj)
+                        if isHopperName(name) then
+                            local same =
+                                keep_anchor
+                                and name == ANCHOR
+                                and square:getX() == ax
+                                and square:getY() == ay
+                                and square:getZ() == az
+                            if not same then
+                                square:RemoveTileObject(obj)
+                            end
                         end
                     end
                     if square.RecalcProperties ~= nil then
@@ -453,7 +455,7 @@ local function stamp(anchor)
     end
     busy = true
     local ax, ay, az = square:getX(), square:getY(), square:getZ()
-    clearFootprint(ax, ay, az)
+    clearFootprint(ax, ay, az, true)
     local function place(entry, bind)
         local dest = squareAt(ax + entry[1], ay + entry[2], az + entry[3])
         if dest == nil or hasSprite(dest, entry[4]) then
@@ -540,22 +542,14 @@ local function registerDevHook()
         if square == nil then
             return { ok = false, error = "no square" }
         end
-        if hasSprite(square, ANCHOR) then
-            local objs = square:getObjects()
-            for i = 0, objs:size() - 1 do
-                local obj = objs:get(i)
-                if spriteName(obj) == ANCHOR then
-                    obj:getModData().hopperGrid = nil
-                    stamp(obj)
-                    return { ok = true, restamped = true }
-                end
-            end
-        end
+        local ax, ay, az = square:getX(), square:getY(), square:getZ()
+        -- Scrub every hopper in range (including other anchors), then one fresh stamp.
+        clearFootprint(ax, ay, az, false)
         local obj = IsoObject.new(getCell(), square, ANCHOR)
         square:AddTileObject(obj)
         bindModel(obj, ANCHOR)
         stamp(obj)
-        return { ok = true, x = square:getX(), y = square:getY(), z = square:getZ() }
+        return { ok = true, x = ax, y = ay, z = az }
     end)
 end
 

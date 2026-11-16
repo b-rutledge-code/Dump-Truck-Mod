@@ -8,7 +8,7 @@ One brush tile stamps a bin on legs with an upper deck around the opening. A dum
 |------|----------------|
 | Frame, bin, chute, upper deck, rails | Custom `loading_hopper_*` spriteModels from `generate_hopper.py` → `bake_and_slice.py` |
 | Legs | `solid` on the ground posts |
-| Upper deck | Invisible `solidfloor` on the deck level. Deck, rail, and bin-rim meshes stamp one level below, with no floor flag, so they stay drawn when the truck is underneath |
+| Upper deck | Invisible `solidfloor` (+ ForceAmbient) on the deck level. Band 1 merges into the ground stamp; band 2 and rim stamp one level below so the walkway/bin lip stay intact |
 
 ## Footprint (anchor = bay center, ground)
 
@@ -41,6 +41,10 @@ blender --background --python bake_and_slice.py
 ```
 
 `mod.info`: `tiledef=loading_hopper 4731`
+
+## Notes
+
+- Empty-air / black-bay stamp investigation: [`hopper-black-blob.md`](hopper-black-blob.md)
 
 ## Out of scope
 

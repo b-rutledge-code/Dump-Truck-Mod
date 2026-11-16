@@ -31,13 +31,15 @@ TEX_DST = (
 SLICE = os.path.join(HERE, "slice_hopper.py")
 
 # Band order and colors (name → painted strip).
-# Blue is pushed bright so mid-height steel under the deck still reads blue in shadow.
+# Frame (blue / blue_dark) is painted like construction_01_48/52 I-beams:
+# solid enamel + strong facet shade across the strip (lit flange / dark web).
+# Galvanized stays light for rails / panel trim — not frame steel.
 BANDS = [
     ("concrete", (0.50, 0.47, 0.42)),
-    ("blue", (0.42, 0.55, 0.68)),
-    ("blue_dark", (0.22, 0.28, 0.34)),
+    ("blue", (0.28, 0.48, 0.72)),
+    ("blue_dark", (0.12, 0.24, 0.40)),
     ("deck", (0.26, 0.25, 0.23)),
-    ("galvanized", (0.58, 0.57, 0.53)),
+    ("galvanized", (0.62, 0.64, 0.66)),
     ("belt", (0.10, 0.10, 0.09)),
     ("equipment", (0.20, 0.19, 0.18)),
 ]
@@ -141,9 +143,9 @@ def remap_uvs(obj):
     print("uv remapped", len(BANDS), "bands")
 
 
-def _load_raw(path):
+def _load_raw(path, tile):
     data = open(path, "rb").read()
-    need = CONCRETE_TILE * CONCRETE_TILE * 3
+    need = tile * tile * 3
     if len(data) != need:
         raise RuntimeError("%s is %s bytes, expected %s" % (path, len(data), need))
     return data
@@ -151,7 +153,7 @@ def _load_raw(path):
 
 def _paint_concrete_band(buf, w, h):
     """Stamp sampled game concrete into band 0. Eight tiles across, one tile tall."""
-    sources = (_load_raw(CONCRETE_A), _load_raw(CONCRETE_B))
+    sources = (_load_raw(CONCRETE_A, CONCRETE_TILE), _load_raw(CONCRETE_B, CONCRETE_TILE))
     band_h = h // len(BANDS)
     y0 = int(band_h * 0.12)
     y1 = int(band_h * 0.88)
@@ -197,22 +199,29 @@ def paint_png():
             + at(x1, y1) * fx * fy
         )
 
-    n1 = grid(64)
+    n_fine = grid(64)
     buf = array.array("f", [0.0]) * (w * h * 4)
     band_h = h // len(BANDS)
-    beam_names = {"blue", "blue_dark", "galvanized"}
+    # Only the braced frame — rails stay flat light galvanized.
+    frame_names = {"blue", "blue_dark"}
     for y in range(h):
         b = min(len(BANDS) - 1, y // band_h)
         name, (cr, cg, cb) = BANDS[b]
         ny = (y - b * band_h) / band_h
         for x in range(w):
-            f = sample(n1, 64, x / 4.0, y / 4.0)
-            shade = 0.98 + 0.04 * f
-            if name in beam_names:
-                lit = max(0.0, 1.0 - ny / 0.42)
-                shadow = max(0.0, (ny - 0.58) / 0.42)
-                shade *= 1.0 + 0.22 * lit - 0.18 * shadow
-            shade = min(max(shade, 0.0), 2.0)
+            fine = sample(n_fine, 64, x / 6.0, y / 6.0)
+            if name in frame_names:
+                # I-beam style: hard facet across the member (UV short axis).
+                lit = max(0.0, 1.0 - ny / 0.38)
+                shadow = max(0.0, (ny - 0.55) / 0.40)
+                shade = (0.97 + 0.03 * fine) * (1.0 + 0.28 * lit - 0.34 * shadow)
+            elif name == "galvanized":
+                lit = max(0.0, 1.0 - ny / 0.45)
+                shadow = max(0.0, (ny - 0.55) / 0.45)
+                shade = (0.97 + 0.03 * fine) * (1.0 + 0.12 * lit - 0.14 * shadow)
+            else:
+                shade = 0.94 + 0.08 * fine
+            shade = min(max(shade, 0.0), 1.4)
             i = (y * w + x) * 4
             buf[i] = min(cr * shade, 1.0)
             buf[i + 1] = min(cg * shade, 1.0)

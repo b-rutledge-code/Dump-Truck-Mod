@@ -22,8 +22,21 @@ from PIL import Image
 # to sit under the chute while the cab stays clear of the outlet.
 HX = 2.40
 HY = 3.30
-COL = 0.22
-POST = 0.16
+# Vertical I-columns: depth = flange-to-flange, width = flange width.
+# Chunkier than true scale so the I reads at PZ iso distance.
+COL_DEPTH = 0.38
+COL_WIDTH = 0.30
+COL_TW = 0.040
+COL_TF = 0.055
+POST_DEPTH = 0.28
+POST_WIDTH = 0.22
+POST_TW = 0.036
+POST_TF = 0.048
+# Horizontal ring / header I-beams (depth vertical).
+BEAM_DEPTH = 0.28
+BEAM_WIDTH = 0.20
+BEAM_TW = 0.034
+BEAM_TF = 0.048
 
 DECK_Z = 7.40
 WALK = 0.82
@@ -43,8 +56,8 @@ HEADER_Z = 4.40  # underside of the beam the truck drives under
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 MAT = {
-    "blue": (0.11, 0.30, 0.58),
-    "blue_dark": (0.07, 0.16, 0.34),
+    "blue": (0.28, 0.48, 0.72),
+    "blue_dark": (0.12, 0.24, 0.40),
     "concrete": (0.55, 0.53, 0.49),
     "deck": (0.22, 0.24, 0.26),
     "galvanized": (0.62, 0.64, 0.66),
@@ -97,6 +110,7 @@ class Mesh:
             self.quad_dir(pts, direction, mat, group)
 
     def beam(self, a, b, width, depth, mat, group):
+        """Solid rectangular tube — rails / thin members only."""
         a = np.asarray(a, float)
         b = np.asarray(b, float)
         d = b - a
@@ -112,13 +126,7 @@ class Mesh:
         z = np.cross(x, y)
         hw = width * 0.5
         hd = depth * 0.5
-        corners = []
-        for s in (0.0, length):
-            for sy in (-hw, hw):
-                for sz in (-hd, hd):
-                    corners.append(a + x * s + y * sy + z * sz)
-        # Local order is not the aabb index order. Build faces from an
-        # axis-aligned parameter box and map them through the same basis.
+
         def corner(s, sy, sz):
             return a + x * s + y * sy + z * sz
 
@@ -129,6 +137,49 @@ class Mesh:
             ([corner(0, -hw, hd), corner(length, -hw, hd), corner(length, -hw, -hd), corner(0, -hw, -hd)], -y),
             ([corner(0, -hw, hd), corner(length, -hw, hd), corner(length, hw, hd), corner(0, hw, hd)], z),
             ([corner(0, hw, -hd), corner(length, hw, -hd), corner(length, -hw, -hd), corner(0, -hw, -hd)], -z),
+        ]
+        for pts, direction in quads:
+            self.quad_dir(pts, direction, mat, group)
+
+    def ibeam(self, a, b, depth, width, tw, tf, mat, group):
+        """I-section from a→b. depth = flange-to-flange, width = flange width."""
+        a = np.asarray(a, float)
+        b = np.asarray(b, float)
+        d = b - a
+        length = np.linalg.norm(d)
+        if length < 1e-4:
+            return
+        x = d / length
+        # Depth (flange-to-flange) prefers world up on horizontals; world X on verticals.
+        up = np.array([0.0, 0.0, 1.0])
+        y = up if abs(np.dot(x, up)) < 0.92 else np.array([1.0, 0.0, 0.0])
+        y = y - x * np.dot(y, x)
+        y /= np.linalg.norm(y)
+        z = np.cross(x, y)
+        z /= np.linalg.norm(z)
+        hd = depth * 0.5
+        hw = width * 0.5
+        htw = tw * 0.5
+        # Two flanges + web as boxes in the beam frame.
+        for s0, s1 in ((0.0, length),):
+            # bottom flange (local -y)
+            self._ibeam_box(a, x, y, z, s0, s1, -hd, -hd + tf, -hw, hw, mat, group)
+            # top flange (local +y)
+            self._ibeam_box(a, x, y, z, s0, s1, hd - tf, hd, -hw, hw, mat, group)
+            # web
+            self._ibeam_box(a, x, y, z, s0, s1, -hd + tf, hd - tf, -htw, htw, mat, group)
+
+    def _ibeam_box(self, origin, x, y, z, s0, s1, y0, y1, z0, z1, mat, group):
+        def corner(s, sy, sz):
+            return origin + x * s + y * sy + z * sz
+
+        quads = [
+            ([corner(s1, y0, z0), corner(s1, y1, z0), corner(s1, y1, z1), corner(s1, y0, z1)], x),
+            ([corner(s0, y1, z0), corner(s0, y0, z0), corner(s0, y0, z1), corner(s0, y1, z1)], -x),
+            ([corner(s0, y1, z0), corner(s1, y1, z0), corner(s1, y1, z1), corner(s0, y1, z1)], y),
+            ([corner(s0, y0, z1), corner(s1, y0, z1), corner(s1, y0, z0), corner(s0, y0, z0)], -y),
+            ([corner(s0, y0, z1), corner(s1, y0, z1), corner(s1, y1, z1), corner(s0, y1, z1)], z),
+            ([corner(s0, y1, z0), corner(s1, y1, z0), corner(s1, y0, z0), corner(s0, y0, z0)], -z),
         ]
         for pts, direction in quads:
             self.quad_dir(pts, direction, mat, group)
@@ -279,23 +330,59 @@ def build_hopper():
             m.box(x - 0.62, y - 0.62, 0.0, x + 0.62, y + 0.62, 0.22, "concrete", "concrete")
             m.box(x - 0.48, y - 0.48, 0.22, x + 0.48, y + 0.48, 0.62, "concrete", "concrete")
             m.box(x - 0.28, y - 0.28, 0.60, x + 0.28, y + 0.28, 0.66, "blue", g)
-            m.box(x - COL / 2, y - COL / 2, 0.62, x + COL / 2, y + COL / 2, DECK_Z, "blue", g)
+            m.ibeam(
+                (x, y, 0.62),
+                (x, y, DECK_Z),
+                COL_DEPTH,
+                COL_WIDTH,
+                COL_TW,
+                COL_TF,
+                "blue",
+                g,
+            )
         # Grade beam along each side, clear of the drive ends.
         x = sx * HX
         m.box(x - 0.18, -HY + 0.55, 0.0, x + 0.18, HY - 0.55, 0.38, "concrete", "concrete")
         # Center post on the long sides only.
-        m.box(x - POST / 2, -POST / 2, 0.62, x + POST / 2, POST / 2, DECK_Z, "blue", g)
+        m.ibeam(
+            (x, 0.0, 0.62),
+            (x, 0.0, DECK_Z),
+            POST_DEPTH,
+            POST_WIDTH,
+            POST_TW,
+            POST_TF,
+            "blue",
+            g,
+        )
         m.box(x - 0.34, -0.34, 0.0, x + 0.34, 0.34, 0.22, "concrete", "concrete")
         m.box(x - 0.26, -0.26, 0.22, x + 0.26, 0.26, 0.55, "concrete", "concrete")
 
     # Ring beams: ground girts on the sides, header the truck drives under, top chord.
     for x in (-HX, HX):
-        m.beam((x, -HY, 1.05), (x, HY, 1.05), 0.12, 0.16, "blue", g)
-        m.beam((x, -HY, HEADER_Z), (x, HY, HEADER_Z), 0.14, 0.20, "blue", g)
-        m.beam((x, -HY, DECK_Z - 0.10), (x, HY, DECK_Z - 0.10), 0.16, 0.24, "blue", g)
+        m.ibeam((x, -HY, 1.05), (x, HY, 1.05), BEAM_DEPTH, BEAM_WIDTH, BEAM_TW, BEAM_TF, "blue", g)
+        m.ibeam((x, -HY, HEADER_Z), (x, HY, HEADER_Z), BEAM_DEPTH, BEAM_WIDTH, BEAM_TW, BEAM_TF, "blue", g)
+        m.ibeam(
+            (x, -HY, DECK_Z - 0.10),
+            (x, HY, DECK_Z - 0.10),
+            BEAM_DEPTH,
+            BEAM_WIDTH,
+            BEAM_TW,
+            BEAM_TF,
+            "blue",
+            g,
+        )
     for y in (-HY, HY):
-        m.beam((-HX, y, HEADER_Z), (HX, y, HEADER_Z), 0.16, 0.28, "blue", g)
-        m.beam((-HX, y, DECK_Z - 0.10), (HX, y, DECK_Z - 0.10), 0.16, 0.24, "blue", g)
+        m.ibeam((-HX, y, HEADER_Z), (HX, y, HEADER_Z), BEAM_DEPTH, BEAM_WIDTH, BEAM_TW, BEAM_TF, "blue", g)
+        m.ibeam(
+            (-HX, y, DECK_Z - 0.10),
+            (HX, y, DECK_Z - 0.10),
+            BEAM_DEPTH,
+            BEAM_WIDTH,
+            BEAM_TW,
+            BEAM_TF,
+            "blue",
+            g,
+        )
 
     # Side bays split by the center post. Ends are open below the header.
     section = 0.09
@@ -375,7 +462,7 @@ def build_hopper():
 
     # Control on the outer +Y (world south) face of the +X, +Y column.
     # Same model tile (2, 3) → world offset (-3, +3). DumpTruckHopper.lua.
-    face = HY + COL / 2
+    face = HY + COL_DEPTH / 2
     m.box(HX - 0.20, face - 0.04, 1.02, HX + 0.20, face + 0.16, 1.52, "equipment", "panel")
     m.box(HX - 0.12, face + 0.16, 1.18, HX + 0.12, face + 0.19, 1.40, "galvanized", "panel")
 
@@ -646,7 +733,7 @@ def report(mesh):
     print(f"triangles {len(used)}  vertices {len(mesh.verts)}")
     print(f"bounds x {lo[0]:.2f}..{hi[0]:.2f}  y {lo[1]:.2f}..{hi[1]:.2f}  z {lo[2]:.2f}..{hi[2]:.2f}")
     print(f"chute underside {OUTLET_Z:.2f} m    header clearance {HEADER_Z - 0.14:.2f} m")
-    print(f"bay clear width {2 * HX - COL:.2f} m    bay clear length {2 * HY - COL:.2f} m")
+    print(f"bay clear width {2 * HX - COL_DEPTH:.2f} m    bay clear length {2 * HY - COL_DEPTH:.2f} m")
 
 
 def main():

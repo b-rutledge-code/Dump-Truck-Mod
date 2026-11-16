@@ -209,11 +209,12 @@ local function bindModel(obj, name)
     end
 end
 
--- Drop every loading_hopper_* in the bay so a rebuild is not stuck on old meshes.
-local function clearFootprint(ax, ay, az)
+-- Drop loading_hopper_* nearby so rebuilds are not stuck on old / overlapping meshes.
+-- keep_anchor: when true, leave the ANCHOR on (ax,ay,az) alone.
+local function clearFootprint(ax, ay, az, keep_anchor)
     local cell = getCell()
-    for dx = -6, 6 do
-        for dy = -6, 6 do
+    for dx = -20, 20 do
+        for dy = -20, 20 do
             for dz = 0, 3 do
                 local square = cell:getGridSquare(ax + dx, ay + dy, az + dz)
                 if square ~= nil then
@@ -221,8 +222,16 @@ local function clearFootprint(ax, ay, az)
                     for i = objs:size() - 1, 0, -1 do
                         local obj = objs:get(i)
                         local name = spriteName(obj)
-                        if isHopperName(name) and name ~= ANCHOR then
-                            square:RemoveTileObject(obj)
+                        if isHopperName(name) then
+                            local same =
+                                keep_anchor
+                                and name == ANCHOR
+                                and square:getX() == ax
+                                and square:getY() == ay
+                                and square:getZ() == az
+                            if not same then
+                                square:RemoveTileObject(obj)
+                            end
                         end
                     end
                     if square.RecalcProperties ~= nil then
@@ -248,7 +257,7 @@ local function stamp(anchor)
     end
     busy = true
     local ax, ay, az = square:getX(), square:getY(), square:getZ()
-    clearFootprint(ax, ay, az)
+    clearFootprint(ax, ay, az, true)
     local function place(entry, bind)
         local dest = squareAt(ax + entry[1], ay + entry[2], az + entry[3])
         if dest == nil or hasSprite(dest, entry[4]) then
@@ -335,22 +344,14 @@ local function registerDevHook()
         if square == nil then
             return { ok = false, error = "no square" }
         end
-        if hasSprite(square, ANCHOR) then
-            local objs = square:getObjects()
-            for i = 0, objs:size() - 1 do
-                local obj = objs:get(i)
-                if spriteName(obj) == ANCHOR then
-                    obj:getModData().hopperGrid = nil
-                    stamp(obj)
-                    return { ok = true, restamped = true }
-                end
-            end
-        end
+        local ax, ay, az = square:getX(), square:getY(), square:getZ()
+        -- Scrub every hopper in range (including other anchors), then one fresh stamp.
+        clearFootprint(ax, ay, az, false)
         local obj = IsoObject.new(getCell(), square, ANCHOR)
         square:AddTileObject(obj)
         bindModel(obj, ANCHOR)
         stamp(obj)
-        return { ok = true, x = square:getX(), y = square:getY(), z = square:getZ() }
+        return { ok = true, x = ax, y = ay, z = az }
     end)
 end
 

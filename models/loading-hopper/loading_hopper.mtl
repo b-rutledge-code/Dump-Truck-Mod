@@ -1,12 +1,12 @@
 # Flat game colors. Swap these for textures when the prop is imported.
 newmtl blue
-Kd 0.110 0.300 0.580
+Kd 0.280 0.480 0.720
 Ka 0.05 0.05 0.05
 illum 2
 Ns 20
 
 newmtl blue_dark
-Kd 0.070 0.160 0.340
+Kd 0.120 0.240 0.400
 Ka 0.05 0.05 0.05
 illum 2
 Ns 20
