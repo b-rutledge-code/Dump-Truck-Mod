@@ -1,10 +1,9 @@
 """Cut the hopper into game tiles.
 
-Visuals are one mesh per occupied (gx, gy, stamp-floor) cell. Band 1 merges
-into the ground stamp for outdoor light. Band 2 and rim stamp one floor below
-the deck solidfloor so the walkway and bin lip stay one mesh. Deck walk uses
-invisible solidfloor (+ ForceAmbient) on the real deck level. Verts keep
-absolute Z and no floor flag. Legs are solid.
+Visuals are one mesh per occupied (gx, gy, stamp-floor) cell. Bands 1–2 merge
+into the ground stamp. Rim-band cells (deck top + rails) stamp on the deck
+level with invisible solidfloor (+ ForceAmbient) on the same squares
+(strategy G3 freeze). Verts keep absolute Z. Legs are solid.
 
 The anchor is the lowest mesh at the bay-center column. One blender meter is
 one tile; a floor is FLOOR_M meters. The game draws a model from the center of
@@ -25,8 +24,8 @@ from mathutils import Vector
 FLOOR_M = 2.44949
 DECK_Z = 7.40
 RIM_LEVEL = int(math.floor(DECK_Z / FLOOR_M))
-# Rim meshes stamp one floor below so they stay drawn under the chute.
-RIM_VISUAL_LEVEL = RIM_LEVEL - 1
+# Strategy G3 freeze: rim mesh stamps on the deck floor with solidfloor.
+RIM_VISUAL_LEVEL = RIM_LEVEL
 HX = 2.40
 HY = 3.30
 
@@ -106,11 +105,21 @@ def deck_cover(tris):
     return total
 
 
+def _add_cell(merged, gx, gy, stamp_fz, band, cell):
+    key = (gx, gy, stamp_fz)
+    if key in merged:
+        prev_band, tris_acc = merged[key]
+        tris_acc.extend(cell)
+        merged[key] = (max(prev_band, band), tris_acc)
+    else:
+        merged[key] = (band, list(cell))
+
+
 def mesh_cells(tris):
     """One XY cell per stamp floor.
 
-    Band 1 → z=0 (outdoor light). Band 2 and rim → rim visual so the deck and
-    bin lip stay one mesh. Absolute vertex Z is unchanged.
+    Bands 1–2 → z=0. Rim (fz=3) on every rim-band XY → RIM_LEVEL with
+    solidfloor. Returns (cells, deck_walk). Absolute vertex Z unchanged.
     """
     minx = min(pt[0].x for tri in tris for pt in tri)
     maxx = max(pt[0].x for tri in tris for pt in tri)
@@ -122,6 +131,23 @@ def mesh_cells(tris):
     gy0 = int(math.floor(miny))
     gy1 = int(math.floor(maxy - 1e-6))
     fz1 = int(math.floor((maxz - 1e-6) / FLOOR_M))
+
+    rim_z0 = RIM_LEVEL * FLOOR_M
+    rim_z1 = rim_z0 + FLOOR_M
+    rim_shell = []
+    for tri in tris:
+        rim_shell.extend(clip_z(tri, rim_z0, rim_z1))
+    deck_walk = set()
+    for gx in range(gx0, gx1 + 1):
+        column = clip_span(rim_shell, 0, float(gx), float(gx + 1))
+        if not column:
+            continue
+        for gy in range(gy0, gy1 + 1):
+            cell = clip_span(column, 1, float(gy), float(gy + 1))
+            if cell:
+                deck_walk.add((gx, gy))
+    print("deck_walk cells", len(deck_walk), "(rim @ RIM_LEVEL)")
+
     merged = {}
     for fz in range(0, fz1 + 1):
         z0 = fz * FLOOR_M
@@ -138,19 +164,13 @@ def mesh_cells(tris):
                 cell = clip_span(column, 1, float(gy), float(gy + 1))
                 if not cell:
                     continue
-                if fz == RIM_LEVEL or fz == RIM_VISUAL_LEVEL:
-                    stamp_fz = RIM_VISUAL_LEVEL
+                if (gx, gy) in deck_walk and fz == RIM_LEVEL:
+                    stamp_fz = RIM_LEVEL
                 elif fz >= 1:
                     stamp_fz = 0
                 else:
                     stamp_fz = fz
-                key = (gx, gy, stamp_fz)
-                if key in merged:
-                    band, tris_acc = merged[key]
-                    tris_acc.extend(cell)
-                    merged[key] = (max(band, fz), tris_acc)
-                else:
-                    merged[key] = (fz, list(cell))
+                _add_cell(merged, gx, gy, stamp_fz, fz, cell)
     cells = [
         (gx, gy, stamp_fz, band, cell)
         for (gx, gy, stamp_fz), (band, cell) in merged.items()
@@ -172,7 +192,7 @@ def mesh_cells(tris):
         "rim_visual",
         RIM_VISUAL_LEVEL,
     )
-    return cells
+    return cells, deck_walk
 
 
 def read_tris(obj):
@@ -615,7 +635,7 @@ def main():
             os.remove(os.path.join(MESH_DIR, name))
 
     pieces = []
-    cells = mesh_cells(tris)
+    cells, deck_walk = mesh_cells(tris)
     # Ground anchor at the bay center so stamp dz matches world floors when placed on z=0.
     # The truck bay often has no mesh there; use an invisible tile in that case.
     ground_center = [c for c in cells if c[0] == 0 and c[1] == 0 and c[2] == 0]
@@ -642,7 +662,7 @@ def main():
         emit_mesh(pieces, stub, Vector((0.5, 0.5, 0.0)), -1, 0, 0)
         print("anchor", 0, (-1, 0, 0), "stub bay-center ground")
 
-    # Per-floor meshes. Origin Z matches the stamp floor; verts keep absolute Z.
+    # All visuals on ground stamps; verts keep absolute Z.
     # blender +X → world -X.
     for gx, gy, stamp_fz, band, cell in cells:
         emit_mesh(
@@ -666,10 +686,13 @@ def main():
             piece = emit_collision(pieces, by_square, square[0], square[1], square[2])
         return piece
 
-    # Upper deck walk surface: invisible solidfloor on the real deck level.
+    # Deck level: solidfloor on every rim mesh stamp (same square as mesh).
     for gx, gy, stamp_fz, band, cell in cells:
-        if band == RIM_LEVEL and deck_cover(cell) >= 0.5:
+        if stamp_fz == RIM_LEVEL:
             tile_at((-gx - 1, gy, RIM_LEVEL))["floor"] = True
+    for gx, gy in sorted(deck_walk):
+        # Ensure solidfloor even if rim merge skipped a fringe key somehow.
+        tile_at((-gx - 1, gy, RIM_LEVEL))["floor"] = True
 
     # The six legs. The center posts stand on the line between two rows, so both are solid.
     for x in (-HX, HX):

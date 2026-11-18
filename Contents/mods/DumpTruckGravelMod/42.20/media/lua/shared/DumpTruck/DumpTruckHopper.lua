@@ -43,13 +43,25 @@ local function spriteName(obj)
     return spr:getName()
 end
 
-local function squareHas(square, name)
+-- Anchor sprite: the mesh stamp's loading_hopper_0, or the flood stamp's invisible
+-- tile (DumpTruck.Hopper2dAnchorSprite, set by the client-side generated cell list).
+local function isAnchorName(name)
+    if name == nil then
+        return false
+    end
+    if name == DumpTruckHopper.ANCHOR then
+        return true
+    end
+    return DumpTruck ~= nil and name == DumpTruck.Hopper2dAnchorSprite
+end
+
+local function squareHasAnchor(square)
     if square == nil then
         return false
     end
     local objs = square:getObjects()
     for i = 0, objs:size() - 1 do
-        if spriteName(objs:get(i)) == name then
+        if isAnchorName(spriteName(objs:get(i))) then
             return true
         end
     end
@@ -63,7 +75,7 @@ local function anchorObject(square)
     local objs = square:getObjects()
     for i = 0, objs:size() - 1 do
         local obj = objs:get(i)
-        if spriteName(obj) == DumpTruckHopper.ANCHOR then
+        if isAnchorName(spriteName(obj)) then
             return obj
         end
     end
@@ -125,7 +137,7 @@ local function squareHasHopperPiece(square)
     local objs = square:getObjects()
     for i = 0, objs:size() - 1 do
         local name = spriteName(objs:get(i))
-        if name ~= nil and string.sub(name, 1, 15) == "loading_hopper_" then
+        if name ~= nil and (string.sub(name, 1, 15) == "loading_hopper_" or string.sub(name, 1, 10) == "hopper_2d_") then
             return true
         end
     end
@@ -147,7 +159,7 @@ function DumpTruckHopper.findAnchorNear(square, radius)
     for dx = -r, r do
         for dy = -r, r do
             local sq = cell:getGridSquare(square:getX() + dx, square:getY() + dy, z)
-            if squareHas(sq, DumpTruckHopper.ANCHOR) then
+            if squareHasAnchor(sq) then
                 local dist = dx * dx + dy * dy
                 if best == nil or dist < bestD then
                     best = sq
@@ -173,7 +185,7 @@ function DumpTruckHopper.anchorFrom(square)
         square:getY() - DumpTruckHopper.PANEL_DY,
         square:getZ()
     )
-    if squareHas(panelAnchor, DumpTruckHopper.ANCHOR) then
+    if squareHasAnchor(panelAnchor) then
         return panelAnchor
     end
     -- Clicked a hopper piece, or grass next to one: find the bay-center anchor nearby.
@@ -360,7 +372,7 @@ function DumpTruckHopper.applyFill(player, vehicle, anchorX, anchorY, anchorZ, a
         return
     end
     local anchor = cell:getGridSquare(anchorX, anchorY, anchorZ)
-    if not squareHas(anchor, DumpTruckHopper.ANCHOR) then
+    if not squareHasAnchor(anchor) then
         return
     end
     if not nearPanel(player, anchorX, anchorY, anchorZ) then

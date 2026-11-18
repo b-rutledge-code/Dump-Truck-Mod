@@ -460,11 +460,12 @@ def build_hopper():
     add_rail_run(m, (ox, oy), (-ox, oy), top, "platform")
     add_rail_run(m, (-ox, oy), (-ox, -oy), top, "platform")
 
-    # Control on the outer +Y (world south) face of the +X, +Y column.
-    # Same model tile (2, 3) → world offset (-3, +3). DumpTruckHopper.lua.
+    # Control on the outer +Y (world south) face of the -X, +Y column.
+    # Same model tile (-2, 3) → world offset (-3, +3). DumpTruckHopper.lua.
     face = HY + COL_DEPTH / 2
-    m.box(HX - 0.20, face - 0.04, 1.02, HX + 0.20, face + 0.16, 1.52, "equipment", "panel")
-    m.box(HX - 0.12, face + 0.16, 1.18, HX + 0.12, face + 0.19, 1.40, "galvanized", "panel")
+    px = -HX
+    m.box(px - 0.20, face - 0.04, 1.02, px + 0.20, face + 0.16, 1.52, "equipment", "panel")
+    m.box(px - 0.12, face + 0.16, 1.18, px + 0.12, face + 0.19, 1.40, "galvanized", "panel")
 
     return m
 
