@@ -21,6 +21,8 @@ PNG_PATH = os.path.join(HERE, "loading_hopper.png")
 FBX_PATH = os.path.join(HERE, "loading_hopper.fbx")
 # Unwrapped game tiles: floors_exterior_street_01_4 and
 # floors_exterior_tilesandstone_01_4, iso shade removed. 128x128 RGB.
+# Brightness multiplier on the sampled concrete only. Blue and steel are unchanged.
+CONCRETE_GAIN = 1.6
 CONCRETE_A = os.path.join(HERE, "concrete_footer_a.raw")
 CONCRETE_B = os.path.join(HERE, "concrete_footer_b.raw")
 CONCRETE_TILE = 128
@@ -42,7 +44,17 @@ BANDS = [
     ("galvanized", (0.62, 0.64, 0.66)),
     ("belt", (0.10, 0.10, 0.09)),
     ("equipment", (0.20, 0.19, 0.18)),
+    # Painted by _paint_concrete_band. Faces pick a concrete band by direction.
+    ("concrete_top", (0.50, 0.47, 0.42)),
+    ("concrete_dark", (0.50, 0.47, 0.42)),
 ]
+
+# Concrete band name and brightness multiplier per face tone.
+CONCRETE_TONES = (
+    ("concrete", 1.0),
+    ("concrete_top", 1.15),
+    ("concrete_dark", 0.7),
+)
 
 
 def clear_meshes():
@@ -77,12 +89,36 @@ def _band_v(band, t):
     return (band + 0.12 + 0.76 * min(max(t, 0.0), 1.0)) / len(BANDS)
 
 
+def _face_tone(normal):
+    """Strip position (0..1) for one flat face of a frame member.
+
+    Top faces use the light zone, X-facing sides the mid zone, Y-facing sides
+    the dark zone. Every face is one tone, so a member reads as a box.
+    """
+    ax, ay, az = abs(normal.x), abs(normal.y), abs(normal.z)
+    if az >= ax and az >= ay:
+        return 0.15 if normal.z > 0 else 0.78
+    if ax >= ay:
+        return 0.47
+    return 0.78
+
+
+def _concrete_band_name(normal):
+    """Concrete band for one face: top light, X-facing mid, Y-facing and bottom dark."""
+    ax, ay, az = abs(normal.x), abs(normal.y), abs(normal.z)
+    if az >= ax and az >= ay:
+        return "concrete_top" if normal.z > 0 else "concrete_dark"
+    if ax >= ay:
+        return "concrete"
+    return "concrete_dark"
+
+
 def remap_uvs(obj):
     """Cube-project at one UV unit per meter.
 
-    A thin member maps its short side across the band, so the lit edge and the
-    shadow edge sit on the beam. A plate tiles the same shading once per meter
-    on both axes, so a wall is not one flat color.
+    A thin frame member holds one tone per face, chosen from the face direction.
+    Other thin members map their short side across the band. A plate tiles the
+    same shading once per meter on both axes, so a wall is not one flat color.
     """
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
@@ -97,6 +133,8 @@ def remap_uvs(obj):
     for face in bm.faces:
         name = slot_names[face.material_index]
         band = material_band_index(name)
+        if name.split(".", 1)[0] == "concrete":
+            band = material_band_index(_concrete_band_name(face.normal))
         us = [loop[uvl].uv.x for loop in face.loops]
         vs = [loop[uvl].uv.y for loop in face.loops]
         umin, umax = min(us), max(us)
@@ -135,6 +173,8 @@ def remap_uvs(obj):
             else:
                 u = _frac(cu)
                 t = 0.18 + 0.64 * _frac(cv)
+            if thin and name.split(".", 1)[0] in ("blue", "blue_dark"):
+                t = _face_tone(face.normal)
             loop[uvl].uv.x = u
             loop[uvl].uv.y = _band_v(band, t)
     bm.to_mesh(obj.data)
@@ -153,26 +193,42 @@ def _load_raw(path, tile):
 
 def _paint_concrete_band(buf, w, h):
     """Stamp sampled game concrete into band 0. Eight tiles across, one tile tall."""
-    sources = (_load_raw(CONCRETE_A, CONCRETE_TILE), _load_raw(CONCRETE_B, CONCRETE_TILE))
+    raw_a = _load_raw(CONCRETE_A, CONCRETE_TILE)
+    raw_b = _load_raw(CONCRETE_B, CONCRETE_TILE)
+    # Scale B so its mean brightness matches A. The alternation then shows
+    # texture, not a brightness step at each tile edge.
+    mean_a = sum(raw_a) / len(raw_a)
+    mean_b = sum(raw_b) / len(raw_b)
+    gain_b = mean_a / mean_b
+    base_sources = (
+        bytes(min(255, int(round(v * CONCRETE_GAIN))) for v in raw_a),
+        bytes(min(255, int(round(v * gain_b * CONCRETE_GAIN))) for v in raw_b),
+    )
     band_h = h // len(BANDS)
     y0 = int(band_h * 0.12)
     y1 = int(band_h * 0.88)
     usable = max(1, y1 - y0)
     tile = CONCRETE_TILE
-    for y in range(band_h):
-        yy = min(max(y, y0), y1 - 1)
-        sy = min(tile - 1, int((yy - y0) / usable * tile))
-        for x in range(w):
-            pos = x * 8.0 / w
-            tile_i = min(7, int(pos))
-            sx = min(tile - 1, int((pos - tile_i) * tile))
-            src = sources[tile_i & 1]
-            si = (sy * tile + sx) * 3
-            i = (y * w + x) * 4
-            buf[i] = src[si] / 255.0
-            buf[i + 1] = src[si + 1] / 255.0
-            buf[i + 2] = src[si + 2] / 255.0
-            buf[i + 3] = 1.0
+    # One band per face tone: mid (+X sides), top, dark (+Y sides).
+    for band_name, tone in CONCRETE_TONES:
+        row0 = material_band_index(band_name) * band_h
+        sources = tuple(
+            bytes(min(255, int(round(v * tone))) for v in src) for src in base_sources
+        )
+        for y in range(band_h):
+            yy = min(max(y, y0), y1 - 1)
+            sy = min(tile - 1, int((yy - y0) / usable * tile))
+            for x in range(w):
+                pos = x * 8.0 / w
+                tile_i = min(7, int(pos))
+                sx = min(tile - 1, int((pos - tile_i) * tile))
+                src = sources[tile_i & 1]
+                si = (sy * tile + sx) * 3
+                i = ((row0 + y) * w + x) * 4
+                buf[i] = src[si] / 255.0
+                buf[i + 1] = src[si + 1] / 255.0
+                buf[i + 2] = src[si + 2] / 255.0
+                buf[i + 3] = 1.0
 
 
 def paint_png():
@@ -211,10 +267,17 @@ def paint_png():
         for x in range(w):
             fine = sample(n_fine, 64, x / 6.0, y / 6.0)
             if name in frame_names:
-                # I-beam style: hard facet across the member (UV short axis).
-                lit = max(0.0, 1.0 - ny / 0.38)
-                shadow = max(0.0, (ny - 0.55) / 0.40)
-                shade = (0.97 + 0.03 * fine) * (1.0 + 0.28 * lit - 0.34 * shadow)
+                # I-beam style: flat facets across the member (UV short axis).
+                # Light flange, mid band, dark web. Hard steps, no gradient.
+                if ny < 0.38:
+                    band_shade = 1.28
+                elif ny < 0.55:
+                    band_shade = 1.0
+                else:
+                    band_shade = 0.66
+                # Faint per-texel grain (about +/-2.5%) breaks up the flat paint.
+                grain = 1.0 + (random.random() - 0.5) * 0.05
+                shade = (0.97 + 0.03 * fine) * band_shade * grain
             elif name == "galvanized":
                 lit = max(0.0, 1.0 - ny / 0.45)
                 shadow = max(0.0, (ny - 0.55) / 0.45)

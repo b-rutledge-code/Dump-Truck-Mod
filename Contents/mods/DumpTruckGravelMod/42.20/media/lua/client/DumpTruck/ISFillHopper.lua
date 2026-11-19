@@ -3,6 +3,7 @@
 require "TimedActions/ISBaseTimedAction"
 
 local DumpTruckHopper = require("DumpTruck/DumpTruckHopper")
+local DumpTruckSound = require("DumpTruck/DumpTruckSound")
 
 ISFillHopper = ISBaseTimedAction:derive("ISFillHopper")
 
@@ -17,8 +18,9 @@ local function stopFillSound(action)
     if action.sound == nil then
         return
     end
-    action.character:stopOrTriggerSound(action.sound)
+    action.soundEmitter:stopOrTriggerSound(action.sound)
     action.sound = nil
+    action.soundEmitter = nil
 end
 
 -- Control box is on the west face of the panel column (left side of the pole in iso).
@@ -85,7 +87,8 @@ function ISFillHopper:start()
     self:setOverrideHandModels(nil, nil)
     self.character:setMetabolicTarget(Metabolics.HeavyDomestic)
     if DumpTruckHopper.FILL_SOUND ~= nil then
-        self.sound = self.character:playSound(DumpTruckHopper.FILL_SOUND)
+        self.soundEmitter = vehicleOf(self):getEmitter()
+        self.sound = DumpTruckSound.play(self.soundEmitter, DumpTruckHopper.FILL_SOUND)
     end
 end
 

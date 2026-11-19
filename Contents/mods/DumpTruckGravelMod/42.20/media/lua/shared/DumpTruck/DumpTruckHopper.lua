@@ -15,9 +15,8 @@ DumpTruckHopper.BAG_WEIGHT = 2.0
 DumpTruckHopper.CAPACITY = 600
 -- Action units per bag. A full 200-bag bed is about one gas-tank fill.
 DumpTruckHopper.TIME_PER_BAG = 10
--- Set to a sound name when a fill clip is ready. Nil keeps the pour silent.
-DumpTruckHopper.FILL_SOUND = nil
-
+-- Looped dump clip played while the hopper fills. Stopped on finish or cancel.
+DumpTruckHopper.FILL_SOUND = "GravelDumpLoop"
 -- Vehicle origin is often the cab. Bed under the chute can put that a few tiles off bay center.
 local BAY_X = 5.0
 local BAY_Y = 7.0
