@@ -26,6 +26,9 @@ OUT_SRC = os.path.join(REPO, "media/texturepacks_src/hopper_2d")
 PACK_PATH = os.path.join(REPO, "media/texturepacks/DumpTruckGravelMod.pack")
 TILES_PATH = os.path.join(REPO, "media/hopper_2d.tiles")
 LUA_PATH = os.path.join(REPO, "media/lua/client/DumpTruck/LoadingHopper2dCells.lua")
+GRATE_PATH = os.path.join(HERE, "grate_industry_01_37_blue.png")
+# Diamond top row of the vanilla industry_01_37 floor frame (frame_offset 0,192).
+GRATE_TOP = 192
 PZ_PACK = os.path.normpath(
     os.path.join(HERE, "../../../../reference/pz-pack/target/release/pz-pack-tool")
 )
@@ -186,13 +189,36 @@ def floor_sprite(gx: int, gy: int, render):
     # Trim to the walking surface: the engine draws the trimmed texture, not the 128x256 frame.
     im = Image.fromarray(out[by0:by1, bx0:bx1], "RGBA")
     count = int(np.count_nonzero(keep))
+    diamond_top = min(y for _x, y in pts) - top
     return im, {
         "opaque_before": count,
         "opaque_after": count,
         "outside_frac": 0.0,
         "role": pz_iso.cell_role(gx, gy, 3),
         "trim": (bx0, by0, bx1 - bx0, by1 - by0),
+        "diamond_top": diamond_top,
     }
+
+
+def grate_floor_sprite(walk: Image.Image, metrics) -> Image.Image:
+    """Full-diamond interior walkway: vanilla industry_01_37 grate, tinted blue.
+
+    The grate's diamond top sits at GRATE_TOP in its 128x256 frame. Each cell's
+    deck diamond top is measured from the render, so the grate lines up per cell.
+    Only pixels the walkway covered keep grate alpha; grate holes stay see-through.
+    """
+    grate = np.array(Image.open(GRATE_PATH).convert("RGBA"))
+    bx0, by0, bw, bh = metrics["trim"]
+    shift = int(round(GRATE_TOP - metrics["diamond_top"]))
+    rows = np.arange(by0, by0 + bh) + shift
+    cols = np.arange(bx0, bx0 + bw)
+    src = np.zeros((bh, bw, 4), dtype=np.uint8)
+    valid = (rows >= 0) & (rows < grate.shape[0])
+    src[valid] = grate[rows[valid]][:, cols]
+    walk_alpha = np.array(walk.getchannel("A")) > 0
+    out = src.copy()
+    out[..., 3] = np.where(walk_alpha, src[..., 3], 0)
+    return Image.fromarray(out, "RGBA")
 
 
 def pad_png(im: Image.Image) -> Image.Image:
@@ -365,6 +391,8 @@ def main():
         im = pad_png(im)
         if kind == "floor":
             clipped, metrics = floor_sprite(gx, gy, render)
+            if not is_edge_cell(gx, gy):
+                clipped = grate_floor_sprite(clipped, metrics)
             trims[i] = metrics["trim"]
         else:
             clipped, metrics = apply_ownership_clip(im, gx, gy, fz)
