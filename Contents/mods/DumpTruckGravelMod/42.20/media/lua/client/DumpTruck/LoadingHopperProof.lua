@@ -447,7 +447,7 @@ local function stampFixture(ax, ay, az)
 end
 
 -- Full custom 2D flood from bake (DumpTruck.Hopper2dCells).
-local function stampFlood(ax, ay, az)
+local function placeFlood(ax, ay, az)
     local cells = DumpTruck.Hopper2dCells
     if cells == nil or #cells == 0 then
         return { ok = false, error = "no Hopper2dCells (LoadingHopper2dCells.lua)" }
@@ -552,6 +552,85 @@ local function registerDevHook()
         if payload ~= nil and payload.mode ~= nil then
             mode = payload.mode
         end
+        if mode == "tiles" then
+            -- Place each listed sprite at its exact square: payload.tiles = { {x, y, z, sprite}, ... }.
+            local placed = 0
+            local failed = 0
+            for _, t in ipairs(payload.tiles) do
+                local z = t.z or 0
+                if placeSprite(t.x, t.y, z, 0, 0, 0, t.sprite) then
+                    placed = placed + 1
+                else
+                    failed = failed + 1
+                end
+            end
+            return { ok = failed == 0, mode = "tiles", placed = placed, failed = failed }
+        end
+        if mode == "removevehicles" then
+            -- Permanently remove every vehicle within payload.radius (default 20) of the player, except the one the player is in.
+            local radius = payload.radius or 20
+            local current = player:getVehicle()
+            local vehicles = getCell():getVehicles()
+            local targets = {}
+            local it = vehicles:iterator()
+            while it:hasNext() do
+                local v = it:next()
+                local dx = v:getX() - ax
+                local dy = v:getY() - ay
+                if dx * dx + dy * dy <= radius * radius and v ~= current then
+                    table.insert(targets, v)
+                end
+            end
+            for _, v in ipairs(targets) do
+                v:permanentlyRemove()
+            end
+            return { ok = true, mode = "removevehicles", removed = #targets, skippedPlayerVehicle = current ~= nil }
+        end
+        if mode == "untiles" then
+            -- Remove each listed sprite from its exact square: payload.tiles = { {x, y, z, sprite}, ... }.
+            local removed = 0
+            local missing = 0
+            for _, t in ipairs(payload.tiles) do
+                local sq = squareAt(t.x, t.y, t.z or 0)
+                local hit = false
+                if sq ~= nil then
+                    local objs = sq:getObjects()
+                    for i = objs:size() - 1, 0, -1 do
+                        local obj = objs:get(i)
+                        if spriteName(obj) == t.sprite then
+                            sq:RemoveTileObject(obj)
+                            hit = true
+                        end
+                        -- Attached overlays (brush tool [ATTACHED]) live on the object's attached list.
+                        local attached = obj:getAttachedAnimSprite()
+                        if attached ~= nil then
+                            for a = attached:size() - 1, 0, -1 do
+                                local parent = attached:get(a):getParentSprite()
+                                if parent ~= nil and parent:getName() == t.sprite then
+                                    obj:RemoveAttachedAnim(a)
+                                    hit = true
+                                end
+                            end
+                        end
+                    end
+                end
+                if hit then
+                    removed = removed + 1
+                else
+                    missing = missing + 1
+                end
+            end
+            return { ok = missing == 0, mode = "untiles", removed = removed, missing = missing }
+        end
+        if mode == "clear" then
+            -- Remove hopper and proof sprites within payload.radius (default 20) of the player; place nothing.
+            local radius = 20
+            if payload ~= nil and payload.radius ~= nil then
+                radius = payload.radius
+            end
+            clearArea(ax, ay, 0, radius)
+            return { ok = true, mode = "clear", x = ax, y = ay, z = 0, radius = radius }
+        end
         if mode == "proof1" or mode == "proof2" or mode == "proof3"
             or mode == "flood" or mode == "hybrid"
             or mode == "calib" or mode == "dig1" or mode == "dig2" or mode == "dig3"
@@ -580,7 +659,7 @@ local function registerDevHook()
             elseif mode == "floorpath" then
                 return stampFloorPath(ax, ay, az)
             end
-            return stampFlood(ax, ay, az)
+            return placeFlood(ax, ay, az)
         end
         -- Default: G3 3D stamp (same as LoadingHopperBind).
         clearArea(ax, ay, az, 20)
@@ -594,6 +673,165 @@ local function registerDevHook()
         -- Force stamp by placing anchor; Bind's consider/stamp runs on add.
         return { ok = true, mode = "g3", x = ax, y = ay, z = az, note = "anchor placed; Bind stamps PIECES" }
     end)
+end
+
+-- Shared entry for preset towers: clear the square area, then place the flood tower on ground z=0.
+DumpTruck.floodAt = function(ax, ay)
+    clearArea(ax, ay, 0, 20)
+    return placeFlood(ax, ay, 0)
+end
+
+local function removeSpriteAt(x, y, z, name)
+    local sq = squareAt(x, y, z)
+    if sq == nil then
+        return false
+    end
+    local hit = false
+    local objs = sq:getObjects()
+    for i = objs:size() - 1, 0, -1 do
+        local obj = objs:get(i)
+        if spriteName(obj) == name then
+            sq:RemoveTileObject(obj)
+            hit = true
+        end
+        local attached = obj:getAttachedAnimSprite()
+        if attached ~= nil then
+            for a = attached:size() - 1, 0, -1 do
+                local parent = attached:get(a):getParentSprite()
+                if parent ~= nil and parent:getName() == name then
+                    obj:RemoveAttachedAnim(a)
+                    hit = true
+                end
+            end
+        end
+    end
+    return hit
+end
+
+-- Same flags as ISRemoveGrass (canBeRemoved) and ISRemoveBush (canBeCut).
+local function spriteHasMowFlag(sprite)
+    if sprite == nil then
+        return false
+    end
+    local props = sprite:getProperties()
+    if props == nil then
+        return false
+    end
+    return props:has(IsoFlagType.canBeRemoved) or props:has(IsoFlagType.canBeCut)
+end
+
+local function isDriveFloorToClear(name)
+    if name == nil then
+        return false
+    end
+    -- Dirt/grass floor under the drive; gravel replaces it.
+    return string.sub(name, 1, 16) == "blends_natural_"
+end
+
+-- Strip grass/bush objects (vanilla remove-grass/bush flags), grassy floor, and flagged attached overlays.
+local function mowSquare(x, y, z)
+    local sq = squareAt(x, y, z)
+    if sq == nil then
+        return 0
+    end
+    local removed = 0
+    local objs = sq:getObjects()
+    for i = objs:size() - 1, 0, -1 do
+        local obj = objs:get(i)
+        local attached = obj:getAttachedAnimSprite()
+        if attached ~= nil then
+            for a = attached:size() - 1, 0, -1 do
+                local parent = attached:get(a):getParentSprite()
+                local pname = parent ~= nil and parent:getName() or nil
+                if spriteHasMowFlag(parent) or isDriveFloorToClear(pname) then
+                    obj:RemoveAttachedAnim(a)
+                    removed = removed + 1
+                end
+            end
+        end
+        local spr = obj:getSprite()
+        local name = spriteName(obj)
+        if spriteHasMowFlag(spr) or isDriveFloorToClear(name) then
+            sq:RemoveTileObject(obj)
+            removed = removed + 1
+        end
+    end
+    return removed
+end
+
+-- Full preset site at hopper anchor (ax, ay): flood, mow drive, gravel, junction removals, side blends.
+-- Layout is recorded in docs/design-notes.md (Preset tower site).
+DumpTruck.placePresetSite = function(ax, ay)
+    local flood = DumpTruck.floodAt(ax, ay)
+    if flood == nil or flood.ok ~= true then
+        return { ok = false, step = "flood", flood = flood }
+    end
+
+    local mowed = 0
+    for x = ax - 2, ax + 1 do
+        for y = ay - 8, ay + 3 do
+            mowed = mowed + mowSquare(x, y, 0)
+        end
+    end
+
+    local gravelPlaced = 0
+    local gravelFailed = 0
+    for x = ax - 2, ax + 1 do
+        for y = ay - 8, ay + 3 do
+            if placeSprite(x, y, 0, 0, 0, 0, "blends_street_01_48") then
+                gravelPlaced = gravelPlaced + 1
+            else
+                gravelFailed = gravelFailed + 1
+            end
+        end
+    end
+
+    local junction = {
+        { x = ax - 2, y = ay - 9, sprite = "blends_natural_01_59" },
+        { x = ax - 1, y = ay - 9, sprite = "blends_natural_01_63" },
+        { x = ax, y = ay - 9, sprite = "blends_natural_01_59" },
+        { x = ax + 1, y = ay - 9, sprite = "blends_natural_01_63" },
+    }
+    local junctionRemoved = 0
+    local junctionMissing = 0
+    for _, t in ipairs(junction) do
+        if removeSpriteAt(t.x, t.y, 0, t.sprite) then
+            junctionRemoved = junctionRemoved + 1
+        else
+            junctionMissing = junctionMissing + 1
+        end
+    end
+
+    local sidePlaced = 0
+    local sideFailed = 0
+    for y = ay - 8, ay + 3 do
+        if placeSprite(ax - 2, y, 0, 0, 0, 0, "blends_natural_01_57") then
+            sidePlaced = sidePlaced + 1
+        else
+            sideFailed = sideFailed + 1
+        end
+        if placeSprite(ax + 1, y, 0, 0, 0, 0, "blends_natural_01_58") then
+            sidePlaced = sidePlaced + 1
+        else
+            sideFailed = sideFailed + 1
+        end
+    end
+
+    -- Junction overlays may already be absent (prior place, or not present on this load).
+    -- Missing ones do not fail the site; gravel and side blends still must place.
+    return {
+        ok = gravelFailed == 0 and sideFailed == 0,
+        flood = flood,
+        mowed = mowed,
+        gravelPlaced = gravelPlaced,
+        gravelFailed = gravelFailed,
+        junctionRemoved = junctionRemoved,
+        junctionMissing = junctionMissing,
+        sidePlaced = sidePlaced,
+        sideFailed = sideFailed,
+        x = ax,
+        y = ay,
+    }
 end
 
 Events.OnGameStart.Add(registerDevHook)
