@@ -26,7 +26,7 @@ CELLS_LUA = os.path.join(
     "42.20",
     "media",
     "lua",
-    "client",
+    "shared",
     "DumpTruck",
     "LoadingHopper2dCells.lua",
 )

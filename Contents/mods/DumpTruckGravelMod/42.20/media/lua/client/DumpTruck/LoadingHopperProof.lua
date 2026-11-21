@@ -1,4 +1,5 @@
 -- Early 2D-building proofs. Re-registers DumpTruck.placeHopper with payload.mode.
+-- Placement helpers / flood / placePresetSite live in shared DumpTruckPresetSite.lua.
 -- mode nil/"g3" = existing 3D G3 stamp (LoadingHopperBind).
 -- mode "proof1" | "proof2" | "proof3" = kill-criteria stamps.
 
@@ -9,6 +10,9 @@ local PROOF_POST = "construction_01_48"
 local PROOF_RAIL = "fixtures_railings_01_27"
 
 local function squareAt(x, y, z)
+    if DumpTruck.hopperSquareAt ~= nil then
+        return DumpTruck.hopperSquareAt(x, y, z)
+    end
     local cell = getCell()
     if cell.getOrCreateGridSquare ~= nil then
         return cell:getOrCreateGridSquare(x, y, z)
@@ -17,6 +21,9 @@ local function squareAt(x, y, z)
 end
 
 local function spriteName(obj)
+    if DumpTruck.hopperSpriteName ~= nil then
+        return DumpTruck.hopperSpriteName(obj)
+    end
     if obj == nil then
         return nil
     end
@@ -27,76 +34,67 @@ local function spriteName(obj)
     return spr:getName()
 end
 
-local function isProofSprite(name)
-    return name == PROOF_FLOOR or name == PROOF_POST or name == PROOF_RAIL
-        or (name ~= nil and string.sub(name, 1, 10) == "hopper_2d_")
-end
-
-local function isHopperSprite(name)
-    return name ~= nil and string.sub(name, 1, 15) == "loading_hopper_"
-end
-
-local function isGrimeSprite(name)
-    return name ~= nil and string.sub(name, 1, 19) == "overlay_grime_wall_"
-end
-
 local function clearArea(ax, ay, az, radius)
-    local cell = getCell()
-    for dx = -radius, radius do
-        for dy = -radius, radius do
-            for dz = 0, 3 do
-                local sq = cell:getGridSquare(ax + dx, ay + dy, az + dz)
-                if sq ~= nil then
-                    local objs = sq:getObjects()
-                    for i = objs:size() - 1, 0, -1 do
-                        local obj = objs:get(i)
-                        local name = spriteName(obj)
-                        if isProofSprite(name) or isHopperSprite(name) or isGrimeSprite(name) then
-                            sq:RemoveTileObject(obj)
-                        end
-                    end
-                end
-            end
-        end
+    if DumpTruck.clearHopperArea ~= nil then
+        DumpTruck.clearHopperArea(ax, ay, az, radius)
+        return
     end
 end
 
 local function placeSprite(ax, ay, az, dx, dy, dz, name)
-    local dest = squareAt(ax + dx, ay + dy, az + dz)
-    if dest == nil then
-        return nil
+    if DumpTruck.placeHopperSprite ~= nil then
+        return DumpTruck.placeHopperSprite(ax, ay, az, dx, dy, dz, name)
     end
-    local obj = IsoObject.new(getCell(), dest, name)
-    dest:AddTileObject(obj)
-    if dest.RecalcProperties ~= nil then
-        dest:RecalcProperties()
-    end
-    if dest.RecalcAllWithNeighbours ~= nil then
-        dest:RecalcAllWithNeighbours(true)
-    end
-    return obj
+    return nil
 end
 
 local function placeFloor(ax, ay, az, dx, dy, dz, name)
-    local dest = squareAt(ax + dx, ay + dy, az + dz)
-    if dest == nil then
-        return false
+    if DumpTruck.placeHopperFloor ~= nil then
+        return DumpTruck.placeHopperFloor(ax, ay, az, dx, dy, dz, name)
     end
-    if dest.addFloor ~= nil then
-        dest:addFloor(name)
-    else
-        placeSprite(ax, ay, az, dx, dy, dz, name)
-    end
-    if dest.RecalcProperties ~= nil then
-        dest:RecalcProperties()
-    end
-    if dest.RecalcAllWithNeighbours ~= nil then
-        dest:RecalcAllWithNeighbours(true)
-    end
-    return true
+    return false
 end
 
--- Proof 1: opaque vanilla floor @ z=3 + post @ z=0 (lighting kill criterion).
+local function deckAsFloor()
+    return DumpTruck.Hopper2dDeckAsFloor == true
+end
+
+local function placeByKind(ax, ay, az, dx, dy, dz, name, kind)
+    if kind == "floor" and deckAsFloor() then
+        return placeFloor(ax, ay, az, dx, dy, dz, name)
+    end
+    return placeSprite(ax, ay, az, dx, dy, dz, name)
+end
+
+local function placeDeckCell(ax, ay, az, dx, dy, dz, name)
+    return placeByKind(ax, ay, az, dx, dy, dz, name, "floor")
+end
+
+local function placeCell(ax, ay, az, c)
+    if c.edge then
+        squareAt(ax + c.gx, ay + c.gy, az + c.fz - 1)
+    end
+    local kind = c.kind or "object"
+    local placed = placeByKind(ax, ay, az, c.gx, c.gy, c.fz, c.sprite, kind)
+    return placed and true or false
+end
+
+local function findCell(gx, gy, fz, kind)
+    local cells = DumpTruck.Hopper2dCells
+    if cells == nil then
+        return nil
+    end
+    for i = 1, #cells do
+        local c = cells[i]
+        if c.gx == gx and c.gy == gy and c.fz == fz then
+            if kind == nil or c.kind == kind or (kind == "floor" and c.kind == nil) then
+                return c
+            end
+        end
+    end
+    return nil
+end
+
 local function stampProof1(ax, ay, az)
     local postOk = placeSprite(ax, ay, az, 0, 0, 0, PROOF_POST)
     local floorOk = placeFloor(ax, ay, az, 0, 0, 3, PROOF_FLOOR)
@@ -113,7 +111,6 @@ local function stampProof1(ax, ay, az)
     }
 end
 
--- Proof 2: 3x3 deck ring of floor tiles @ z=3 (iso crop stand-in until FBX bake).
 local function stampProof2(ax, ay, az)
     placeSprite(ax, ay, az, 0, 0, 0, PROOF_POST)
     for dx = -1, 1 do
@@ -124,11 +121,9 @@ local function stampProof2(ax, ay, az)
             end
         end
     end
-    -- opening center: no floor
     return { ok = true, mode = "proof2", cells = 8, x = ax, y = ay, z = az }
 end
 
--- Proof 3: open bay posts + mid + deck (cutaway check).
 local function stampProof3(ax, ay, az)
     local posts = {
         { -2, -2 }, { 2, -2 }, { -2, 2 }, { 2, 2 },
@@ -155,63 +150,6 @@ local function stampProof3(ax, ay, az)
     return { ok = true, mode = "proof3", x = ax, y = ay, z = az }
 end
 
-local function deckAsFloor()
-    return DumpTruck.Hopper2dDeckAsFloor == true
-end
-
-local function placeByKind(ax, ay, az, dx, dy, dz, name, kind)
-    if kind == "floor" and deckAsFloor() then
-        return placeFloor(ax, ay, az, dx, dy, dz, name)
-    end
-    return placeSprite(ax, ay, az, dx, dy, dz, name)
-end
-
-local function placeDeckCell(ax, ay, az, dx, dy, dz, name)
-    return placeByKind(ax, ay, az, dx, dy, dz, name, "floor")
-end
-
-local function placeCell(ax, ay, az, c)
-    if c.edge then
-        -- transparentFloor needs a square below it, or the engine culls the square as covering.
-        squareAt(ax + c.gx, ay + c.gy, az + c.fz - 1)
-    end
-    local kind = c.kind or "object"
-    local placed = placeByKind(ax, ay, az, c.gx, c.gy, c.fz, c.sprite, kind)
-    return placed and true or false
-end
-
-local function findCell(gx, gy, fz, kind)
-    local cells = DumpTruck.Hopper2dCells
-    if cells == nil then
-        return nil
-    end
-    for i = 1, #cells do
-        local c = cells[i]
-        if c.gx == gx and c.gy == gy and c.fz == fz then
-            if kind == nil or c.kind == kind or (kind == "floor" and c.kind == nil) then
-                return c
-            end
-        end
-    end
-    return nil
-end
-
-local function findFloorCellsAt(gx, gy, fz)
-    local out = {}
-    local cells = DumpTruck.Hopper2dCells
-    if cells == nil then
-        return out
-    end
-    for i = 1, #cells do
-        local c = cells[i]
-        if c.gx == gx and c.gy == gy and c.fz == fz and (c.kind == "floor" or c.kind == nil) then
-            table.insert(out, c)
-        end
-    end
-    return out
-end
-
--- Dig #2: two adjacent fully-decked floor cells @ z=3.
 local function stampDig2(ax, ay, az)
     local a = findCell(0, 2, 3, "floor")
     local b = findCell(1, 2, 3, "floor")
@@ -245,7 +183,6 @@ local function stampDig2(ax, ay, az)
     end
     local okA = placeFloor(ax, ay, az, 0, 0, 3, a.sprite)
     local okB = placeFloor(ax, ay, az, 1, 0, 3, b.sprite)
-    -- Place matching upper sprites at the same world offsets when present.
     local ua = findCell(a.gx, a.gy, 3, "object")
     local ub = findCell(b.gx, b.gy, 3, "object")
     if ua ~= nil then
@@ -272,7 +209,6 @@ local function stampDig2(ax, ay, az)
     }
 end
 
--- Dig #3: one column stack (fz 0..2) + deck floor + rail-edge neighbour.
 local function stampDig3(ax, ay, az)
     local wanted = {
         { 2, -4, 0 },
@@ -294,7 +230,6 @@ local function stampDig3(ax, ay, az)
             local c = DumpTruck.Hopper2dCells[i]
             if c.gx == gx and c.gy == gy and c.fz == fz then
                 any = true
-                -- Stamp relative to first wanted cell as origin offset.
                 local dx = gx - 2
                 local dy = gy - (-4)
                 if placeCell(ax, ay, az, {
@@ -327,7 +262,6 @@ local function stampDig3(ax, ay, az)
     }
 end
 
--- Dig #1: vanilla sandstone floor @ (0,0,0) beside one custom foot object @ (1,0,0).
 local function stampDig1(ax, ay, az)
     local foot = findCell(-3, -4, 0)
     if foot == nil and DumpTruck.Hopper2dCells ~= nil then
@@ -359,7 +293,6 @@ local function stampDig1(ax, ay, az)
     }
 end
 
--- Calibration: vanilla sandstone @ (0,0,3) beside custom deck floor @ (1,0,3).
 local function stampCalib(ax, ay, az)
     local custom = findCell(0, 2, 3, "floor")
     if custom == nil then
@@ -395,7 +328,6 @@ local function stampCalib(ax, ay, az)
     }
 end
 
--- Floor-path proof: same deck sprite as addFloor @ (0,0,3) and IsoObject @ (2,0,3).
 local function stampFloorPath(ax, ay, az)
     local custom = findCell(-2, -1, 3)
     if custom == nil and DumpTruck.Hopper2dCells ~= nil then
@@ -411,7 +343,7 @@ local function stampFloorPath(ax, ay, az)
     end
     local asFloor = placeFloor(ax, ay, az, 0, 0, 3, custom.sprite)
     local asObj = placeSprite(ax, ay, az, 2, 0, 3, custom.sprite)
-    placeFloor(ax, ay, az, 1, 0, 3, PROOF_FLOOR) -- spacer reference
+    placeFloor(ax, ay, az, 1, 0, 3, PROOF_FLOOR)
     return {
         ok = asFloor and asObj,
         mode = "floorpath",
@@ -424,7 +356,6 @@ local function stampFloorPath(ax, ay, az)
     }
 end
 
--- Fixture / ring: stamp all loaded Hopper2dCells (fixture bake is a small set).
 local function stampFixture(ax, ay, az)
     local cells = DumpTruck.Hopper2dCells
     if cells == nil or #cells == 0 then
@@ -452,43 +383,6 @@ local function stampFixture(ax, ay, az)
     }
 end
 
--- Full custom 2D flood from bake (DumpTruck.Hopper2dCells).
-local function placeFlood(ax, ay, az)
-    local cells = DumpTruck.Hopper2dCells
-    if cells == nil or #cells == 0 then
-        return { ok = false, error = "no Hopper2dCells (LoadingHopper2dCells.lua)" }
-    end
-    local placed = 0
-    local failed = 0
-    for i = 1, #cells do
-        if placeCell(ax, ay, az, cells[i]) then
-            placed = placed + 1
-        else
-            failed = failed + 1
-        end
-    end
-    -- Hopper controls find the stock on this invisible object at the bay centre.
-    local anchorOk = placeSprite(ax, ay, az, 0, 0, 0, DumpTruck.Hopper2dAnchorSprite)
-    if not anchorOk then
-        failed = failed + 1
-    end
-    return {
-        ok = failed == 0,
-        anchor = anchorOk,
-        mode = "flood",
-        placed = placed,
-        failed = failed,
-        cells = #cells,
-        deckAsFloor = deckAsFloor(),
-        x = ax,
-        y = ay,
-        z = az,
-    }
-end
-
--- Hybrid: vanilla construction posts + sandstone deck only (mesh footprint).
--- Legs match generate_hopper / slice: X ±2.40 → ±2; Y ±3.30 → 3 and -4; mid -1,0.
--- Deck ring thicker on N/S; chute opening empty. No ducts / clutter props.
 local function stampHybrid(ax, ay, az)
     local legs = {
         { -2, -4 }, { 2, -4 },
@@ -499,15 +393,13 @@ local function stampHybrid(ax, ay, az)
     local posts = 0
     for i = 1, #legs do
         local p = legs[i]
-        placeFloor(ax, ay, az, p[1], p[2], 0, PROOF_FLOOR) -- footer pad
+        placeFloor(ax, ay, az, p[1], p[2], 0, PROOF_FLOOR)
         for fz = 0, 2 do
             if placeSprite(ax, ay, az, p[1], p[2], fz, PROOF_POST) then
                 posts = posts + 1
             end
         end
     end
-
-    -- Deck: outer x -3..3, y -5..4 (extra walk N/S). Hole ≈ bin (±1.5).
     local floors = 0
     local rails = 0
     for dx = -3, 3 do
@@ -526,7 +418,6 @@ local function stampHybrid(ax, ay, az)
             end
         end
     end
-
     return {
         ok = posts > 0 and floors > 0,
         mode = "hybrid",
@@ -543,7 +434,6 @@ local function registerDevHook()
     if PzDevMcpHooks == nil or PzDevMcpHooks.register == nil then
         return
     end
-    -- Capture prior G3 placeHopper if present by wrapping.
     PzDevMcpHooks.register("DumpTruck.placeHopper", function(payload)
         local player = getPlayer()
         if player == nil then
@@ -559,7 +449,6 @@ local function registerDevHook()
             mode = payload.mode
         end
         if mode == "tiles" then
-            -- Place each listed sprite at its exact square: payload.tiles = { {x, y, z, sprite}, ... }.
             local placed = 0
             local failed = 0
             for _, t in ipairs(payload.tiles) do
@@ -573,7 +462,6 @@ local function registerDevHook()
             return { ok = failed == 0, mode = "tiles", placed = placed, failed = failed }
         end
         if mode == "removevehicles" then
-            -- Permanently remove every vehicle within payload.radius (default 20) of the player, except the one the player is in.
             local radius = payload.radius or 20
             local current = player:getVehicle()
             local vehicles = getCell():getVehicles()
@@ -593,7 +481,6 @@ local function registerDevHook()
             return { ok = true, mode = "removevehicles", removed = #targets, skippedPlayerVehicle = current ~= nil }
         end
         if mode == "untiles" then
-            -- Remove each listed sprite from its exact square: payload.tiles = { {x, y, z, sprite}, ... }.
             local removed = 0
             local missing = 0
             for _, t in ipairs(payload.tiles) do
@@ -604,10 +491,13 @@ local function registerDevHook()
                     for i = objs:size() - 1, 0, -1 do
                         local obj = objs:get(i)
                         if spriteName(obj) == t.sprite then
-                            sq:RemoveTileObject(obj)
+                            if sq.transmitRemoveItemFromSquare ~= nil then
+                                sq:transmitRemoveItemFromSquare(obj)
+                            else
+                                sq:RemoveTileObject(obj)
+                            end
                             hit = true
                         end
-                        -- Attached overlays (brush tool [ATTACHED]) live on the object's attached list.
                         local attached = obj:getAttachedAnimSprite()
                         if attached ~= nil then
                             for a = attached:size() - 1, 0, -1 do
@@ -629,7 +519,6 @@ local function registerDevHook()
             return { ok = missing == 0, mode = "untiles", removed = removed, missing = missing }
         end
         if mode == "clear" then
-            -- Remove hopper and proof sprites within payload.radius (default 20) of the player; place nothing.
             local radius = 20
             if payload ~= nil and payload.radius ~= nil then
                 radius = payload.radius
@@ -638,7 +527,6 @@ local function registerDevHook()
             return { ok = true, mode = "clear", x = ax, y = ay, z = 0, radius = radius }
         end
         if mode == "preset" then
-            -- Full preset site (flood + optional drive). payload.x/y override player square.
             if payload ~= nil and payload.x ~= nil and payload.y ~= nil then
                 ax, ay = math.floor(payload.x), math.floor(payload.y)
             end
@@ -651,7 +539,6 @@ local function registerDevHook()
             or mode == "flood" or mode == "hybrid"
             or mode == "calib" or mode == "dig1" or mode == "dig2" or mode == "dig3"
             or mode == "fixture" or mode == "floorpath" then
-            -- Multi-floor stamps use dz offsets from ground; keep anchor at z=0.
             az = 0
             clearArea(ax, ay, az, 20)
             if mode == "proof1" then
@@ -675,211 +562,24 @@ local function registerDevHook()
             elseif mode == "floorpath" then
                 return stampFloorPath(ax, ay, az)
             end
-            return placeFlood(ax, ay, az)
+            if DumpTruck.floodAt ~= nil then
+                return DumpTruck.floodAt(ax, ay)
+            end
+            return { ok = false, error = "floodAt missing" }
         end
-        -- Default: G3 3D stamp (same as LoadingHopperBind).
         clearArea(ax, ay, az, 20)
         local ANCHOR = "loading_hopper_0"
         local obj = IsoObject.new(getCell(), square, ANCHOR)
-        square:AddTileObject(obj)
+        if square.transmitAddObjectToSquare ~= nil then
+            square:transmitAddObjectToSquare(obj, -1)
+        else
+            square:AddTileObject(obj)
+        end
         if DumpTruck.bindHopperModel ~= nil then
             DumpTruck.bindHopperModel(obj, ANCHOR)
         end
-        -- Trigger existing stamp via OnObjectAdded path: place then let Bind stamp.
-        -- Force stamp by placing anchor; Bind's consider/stamp runs on add.
         return { ok = true, mode = "g3", x = ax, y = ay, z = az, note = "anchor placed; Bind stamps PIECES" }
     end)
-end
-
--- Shared entry for preset towers: clear the square area, then place the flood tower on ground z=0.
-DumpTruck.floodAt = function(ax, ay)
-    clearArea(ax, ay, 0, 20)
-    return placeFlood(ax, ay, 0)
-end
-
-local function removeSpriteAt(x, y, z, name)
-    local sq = squareAt(x, y, z)
-    if sq == nil then
-        return false
-    end
-    local hit = false
-    local objs = sq:getObjects()
-    for i = objs:size() - 1, 0, -1 do
-        local obj = objs:get(i)
-        if spriteName(obj) == name then
-            sq:RemoveTileObject(obj)
-            hit = true
-        end
-        local attached = obj:getAttachedAnimSprite()
-        if attached ~= nil then
-            for a = attached:size() - 1, 0, -1 do
-                local parent = attached:get(a):getParentSprite()
-                if parent ~= nil and parent:getName() == name then
-                    obj:RemoveAttachedAnim(a)
-                    hit = true
-                end
-            end
-        end
-    end
-    return hit
-end
-
--- Same flags as ISRemoveGrass (canBeRemoved) and ISRemoveBush (canBeCut).
-local function spriteHasMowFlag(sprite)
-    if sprite == nil then
-        return false
-    end
-    local props = sprite:getProperties()
-    if props == nil then
-        return false
-    end
-    return props:has(IsoFlagType.canBeRemoved) or props:has(IsoFlagType.canBeCut)
-end
-
-local function isDriveFloorToClear(name)
-    if name == nil then
-        return false
-    end
-    -- Dirt/grass floor under the drive; gravel replaces it.
-    return string.sub(name, 1, 16) == "blends_natural_"
-end
-
--- Strip grass/bush objects (vanilla remove-grass/bush flags), grassy floor, and flagged attached overlays.
-local function mowSquare(x, y, z)
-    local sq = squareAt(x, y, z)
-    if sq == nil then
-        return 0
-    end
-    local removed = 0
-    local objs = sq:getObjects()
-    for i = objs:size() - 1, 0, -1 do
-        local obj = objs:get(i)
-        local attached = obj:getAttachedAnimSprite()
-        if attached ~= nil then
-            for a = attached:size() - 1, 0, -1 do
-                local parent = attached:get(a):getParentSprite()
-                local pname = parent ~= nil and parent:getName() or nil
-                if spriteHasMowFlag(parent) or isDriveFloorToClear(pname) then
-                    obj:RemoveAttachedAnim(a)
-                    removed = removed + 1
-                end
-            end
-        end
-        local spr = obj:getSprite()
-        local name = spriteName(obj)
-        if spriteHasMowFlag(spr) or isDriveFloorToClear(name) then
-            sq:RemoveTileObject(obj)
-            removed = removed + 1
-        end
-    end
-    return removed
-end
-
--- Preset site at hopper anchor (ax, ay). opts from PresetTowerSites:
---   drive ~= false → mow, gravel, junction cuts, side blends (Muldraugh road site)
---   drive == false → hopper flood only
---   clear = { { dx, dy, sprite }, ... } removed before flood (map coords = anchor + offset)
--- Layout is recorded in docs/design-notes.md (Preset tower site).
-DumpTruck.placePresetSite = function(ax, ay, opts)
-    opts = opts or {}
-
-    local cleared = 0
-    if opts.clear ~= nil then
-        for _, c in ipairs(opts.clear) do
-            if removeSpriteAt(ax + c.dx, ay + c.dy, 0, c.sprite) then
-                cleared = cleared + 1
-            end
-        end
-    end
-
-    local flood = DumpTruck.floodAt(ax, ay)
-    if flood == nil or flood.ok ~= true then
-        return { ok = false, step = "flood", flood = flood, cleared = cleared }
-    end
-
-    if opts.drive == false then
-        return {
-            ok = true,
-            flood = flood,
-            cleared = cleared,
-            mowed = 0,
-            gravelPlaced = 0,
-            gravelFailed = 0,
-            junctionRemoved = 0,
-            junctionMissing = 0,
-            sidePlaced = 0,
-            sideFailed = 0,
-            x = ax,
-            y = ay,
-        }
-    end
-
-    local mowed = 0
-    for x = ax - 2, ax + 1 do
-        for y = ay - 8, ay + 3 do
-            mowed = mowed + mowSquare(x, y, 0)
-        end
-    end
-
-    local gravelPlaced = 0
-    local gravelFailed = 0
-    for x = ax - 2, ax + 1 do
-        for y = ay - 8, ay + 3 do
-            if placeSprite(x, y, 0, 0, 0, 0, "blends_street_01_48") then
-                gravelPlaced = gravelPlaced + 1
-            else
-                gravelFailed = gravelFailed + 1
-            end
-        end
-    end
-
-    local junction = {
-        { x = ax - 2, y = ay - 9, sprite = "blends_natural_01_59" },
-        { x = ax - 1, y = ay - 9, sprite = "blends_natural_01_63" },
-        { x = ax, y = ay - 9, sprite = "blends_natural_01_59" },
-        { x = ax + 1, y = ay - 9, sprite = "blends_natural_01_63" },
-    }
-    local junctionRemoved = 0
-    local junctionMissing = 0
-    for _, t in ipairs(junction) do
-        if removeSpriteAt(t.x, t.y, 0, t.sprite) then
-            junctionRemoved = junctionRemoved + 1
-        else
-            junctionMissing = junctionMissing + 1
-        end
-    end
-
-    local sidePlaced = 0
-    local sideFailed = 0
-    for y = ay - 8, ay + 3 do
-        if placeSprite(ax - 2, y, 0, 0, 0, 0, "blends_natural_01_57") then
-            sidePlaced = sidePlaced + 1
-        else
-            sideFailed = sideFailed + 1
-        end
-        if placeSprite(ax + 1, y, 0, 0, 0, 0, "blends_natural_01_58") then
-            sidePlaced = sidePlaced + 1
-        else
-            sideFailed = sideFailed + 1
-        end
-    end
-
-    -- Junction overlays may already be absent (prior place, or not present on this load).
-    -- Missing ones do not fail the site; gravel and side blends still must place.
-    return {
-        ok = gravelFailed == 0 and sideFailed == 0,
-        flood = flood,
-        cleared = cleared,
-        mowed = mowed,
-        gravelPlaced = gravelPlaced,
-        gravelFailed = gravelFailed,
-        junctionRemoved = junctionRemoved,
-        junctionMissing = junctionMissing,
-        sidePlaced = sidePlaced,
-        sideFailed = sideFailed,
-        x = ax,
-        y = ay,
-    }
 end
 
 Events.OnGameStart.Add(registerDevHook)

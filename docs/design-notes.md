@@ -512,7 +512,7 @@ Vanilla's shovel restores the ground under one square and clears that square's o
 
 ## Preset tower sites — placement record (map coordinates, z 0)
 
-Single-player inject: when the player walks within 60 squares of a site in `DumpTruck.PresetTowerSites`, `PresetTowers.lua` calls `DumpTruck.placePresetSite` once per save (ModData key `DumpTruckPresetTowers`).
+World-owner inject (SP and dedicated): when a player walks within 60 squares of a site in `DumpTruck.PresetTowerSites`, shared `PresetTowers.lua` calls `DumpTruck.placePresetSite` once per world (ModData key `DumpTruckPresetTowers`). MP clients never place. Shared `LoadingHopper2dCells.lua` sets `Hopper2dAnchorSprite` so fill recognizes the flood anchor on the dedicated server. Placement waits until ground squares for the hopper/drive footprint already exist (`getGridSquare`), then marks the flooded key only on success.
 
 | Anchor | Layout |
 |--------|--------|
@@ -523,11 +523,11 @@ Single-player inject: when the player walks within 60 squares of a site in `Dump
 
 1. **Hopper.** Flood from the anchor. Places 243 `hopper_2d_*` tiles (and clears prior hopper/proof sprites in a 20-square radius).
 2. **Mow drive.** On the gravel footprint, remove objects (and attached overlays) whose sprites have `IsoFlagType.canBeRemoved` or `canBeCut` — same flags as vanilla `ISRemoveGrass` / `ISRemoveBush` — plus grassy `blends_natural_*` floor so gravel can replace it.
-3. **Gravel drive.** 48 squares of `blends_street_01_48` at x 11603–11606 and y 10001–10012 (4 × 12, z 0).
-4. **Junction removal.** 4 attached overlays on the road edge at y 10000:
+3. **Gravel drive.** 48 squares of `blends_street_01_48` via `addFloor` at x 11603–11606 and y 10001–10012 (4 × 12, z 0); each square gets `disableErosion` (and `disableErosionAt` on dedicated).
+4. **Junction removal.** 4 attached overlays on the road edge at y 10000, then `transmitUpdatedSpriteToClients` on dedicated:
    - `blends_natural_01_59` at (11603, 10000) and (11605, 10000)
    - `blends_natural_01_63` at (11604, 10000) and (11606, 10000)
-5. **Side edge blends.** 24 squares down the full gravel drive:
+5. **Side edge blends.** 24 squares down the full gravel drive via `transmitAddObjectToSquare`:
    - `blends_natural_01_57` at x 11603, y 10001–10012
    - `blends_natural_01_58` at x 11606, y 10001–10012
 
@@ -536,11 +536,11 @@ Relative to anchor `(ax, ay)`: gravel x `ax-2`..`ax+1`, y `ay-8`..`ay+3`; juncti
 ### How each step is applied
 
 - Optional `clear` entries remove named sprites at `anchor + (dx, dy)` before flood.
-- Hopper flood uses `DumpTruck.floodAt` / `placeFlood` (floor kind via `addFloor`; edge cells ensure a square below).
+- Hopper flood uses `DumpTruck.floodAt` in `DumpTruckPresetSite.lua` (floor kind via `addFloor`; objects via `transmitAddObjectToSquare`; edge cells ensure a square below).
 - Sites with `drive = false` stop after flood.
-- Mow removes `canBeRemoved` / `canBeCut` objects and attached overlays on the drive footprint (plus `blends_natural_*` floor) before gravel.
-- Gravel and side blends use `placeSprite` on each square.
-- Junction removals walk each object's attached list and call `RemoveAttachedAnim` (same path as the `untiles` dev-hook mode).
+- Mow uses `transmitRemoveItemFromSquare` for objects; attached overlay edits sync with `transmitUpdatedSpriteToClients` on dedicated.
+- Place steps skip a square that already carries the target sprite (idempotent retries).
+- Implementation: `shared/DumpTruck/DumpTruckPresetSite.lua`, `shared/DumpTruck/PresetTowers.lua`, `shared/DumpTruck/LoadingHopper2dCells.lua`.
 
 ### Verified
 

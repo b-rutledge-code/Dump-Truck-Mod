@@ -37,7 +37,7 @@ import pz_iso  # noqa: E402
 
 REPO = os.path.normpath(os.path.join(HERE, "../../Contents/mods/DumpTruckGravelMod/42.20"))
 PACKED_DIR = os.path.join(REPO, "media/texturepacks_src/hopper_2d")
-CELLS_LUA = os.path.join(REPO, "media/lua/client/DumpTruck/LoadingHopper2dCells.lua")
+CELLS_LUA = os.path.join(REPO, "media/lua/shared/DumpTruck/LoadingHopper2dCells.lua")
 REPROJECT_MAX_PX = 0.5
 LIGHT_TOL = 2
 LIGHT_MIN = 0.995

@@ -43,7 +43,7 @@ local function spriteName(obj)
 end
 
 -- Anchor sprite: the mesh stamp's loading_hopper_0, or the flood stamp's invisible
--- tile (DumpTruck.Hopper2dAnchorSprite, set by the client-side generated cell list).
+-- tile (DumpTruck.Hopper2dAnchorSprite, set by shared LoadingHopper2dCells.lua).
 local function isAnchorName(name)
     if name == nil then
         return false
