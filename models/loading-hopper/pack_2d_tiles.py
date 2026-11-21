@@ -27,6 +27,14 @@ PACK_PATH = os.path.join(REPO, "media/texturepacks/DumpTruckGravelMod.pack")
 TILES_PATH = os.path.join(REPO, "media/hopper_2d.tiles")
 LUA_PATH = os.path.join(REPO, "media/lua/client/DumpTruck/LoadingHopper2dCells.lua")
 GRATE_PATH = os.path.join(HERE, "grate_industry_01_37_blue.png")
+# Vanilla overlay_grime_wall_01_* — multiply-baked into fz=0 object sprites.
+VANILLA_GRIME_DIR = os.path.join(HERE, "_vanilla_grime")
+# Base wash / streak multiply amounts (overlay alpha is a strength map only).
+GRIME_WASH = 0.70
+GRIME_STREAK = 0.65
+# Concrete pads: soft even stain — no stretched wall-face blotches.
+GRIME_CONCRETE_WASH = 0.28
+GRIME_CONCRETE_NOISE = 0.12
 # Diamond top row of the vanilla industry_01_37 floor frame (frame_offset 0,192).
 GRATE_TOP = 192
 PZ_PACK = os.path.normpath(
@@ -200,25 +208,59 @@ def floor_sprite(gx: int, gy: int, render):
     }
 
 
-def grate_floor_sprite(walk: Image.Image, metrics) -> Image.Image:
-    """Full-diamond interior walkway: vanilla industry_01_37 grate, tinted blue.
+def grate_floor_sprite(walk: Image.Image, metrics):
+    """Interior walkway: blue industry_01_37 grate on the baked walk footprint.
 
-    The grate's diamond top sits at GRATE_TOP in its 128x256 frame. Each cell's
-    deck diamond top is measured from the render, so the grate lines up per cell.
-    Only pixels the walkway covered keep grate alpha; grate holes stay see-through.
+    Bars come from the same full-frame grate stamp on every cell so neighbours
+    meet. Opaque underlay fills grate holes only on the walk. The stamp is then
+    masked to the walk (grown one pixel) so mouth-ring cells do not paint over
+    the bin opening.
     """
+    bx0, by0, walk_w, walk_h = metrics["trim"]
+    walk_arr = np.array(walk.convert("RGBA"))
+    walk_opaque = walk_arr[..., 3] > 0
+    if np.any(walk_opaque):
+        under = walk_arr[walk_opaque][:, :3].mean(axis=0).astype(np.uint8)
+    else:
+        under = np.array([26, 45, 68], dtype=np.uint8)
+
     grate = np.array(Image.open(GRATE_PATH).convert("RGBA"))
-    bx0, by0, bw, bh = metrics["trim"]
-    shift = int(round(GRATE_TOP - metrics["diamond_top"]))
-    rows = np.arange(by0, by0 + bh) + shift
-    cols = np.arange(bx0, bx0 + bw)
-    src = np.zeros((bh, bw, 4), dtype=np.uint8)
-    valid = (rows >= 0) & (rows < grate.shape[0])
-    src[valid] = grate[rows[valid]][:, cols]
-    walk_alpha = np.array(walk.getchannel("A")) > 0
-    out = src.copy()
-    out[..., 3] = np.where(walk_alpha, src[..., 3], 0)
-    return Image.fromarray(out, "RGBA")
+    bh = pz_iso.TILE_H - GRATE_TOP
+    bw = pz_iso.TILE_W
+    diamond = grate[GRATE_TOP : GRATE_TOP + bh, 0:bw].copy()
+    hull = Image.new("L", (bw, bh), 0)
+    ImageDraw.Draw(hull).polygon(
+        [(64, 0), (bw, bh // 2), (64, bh), (0, bh // 2)],
+        fill=255,
+    )
+    hull = hull.filter(ImageFilter.MaxFilter(3))
+    in_diamond = np.array(hull) > 0
+    holes = in_diamond & (diamond[..., 3] < 8)
+    diamond[holes, 0:3] = under
+    diamond[holes, 3] = 255
+
+    frame = np.zeros((pz_iso.TILE_H, pz_iso.TILE_W, 4), dtype=np.uint8)
+    frame[GRATE_TOP : GRATE_TOP + bh, 0:bw] = diamond
+
+    walk_mask = Image.new("L", (pz_iso.TILE_W, pz_iso.TILE_H), 0)
+    walk_mask.paste(
+        Image.fromarray((walk_opaque.astype(np.uint8) * 255), "L"),
+        (bx0, by0),
+    )
+    walk_mask = walk_mask.filter(ImageFilter.MaxFilter(3))
+    keep = np.array(walk_mask) > 0
+    frame[~keep, 3] = 0
+
+    ys, xs = np.nonzero(frame[..., 3] > 0)
+    if len(xs) == 0:
+        raise RuntimeError("grate walkway has no opaque pixels")
+    tx0, ty0 = int(xs.min()), int(ys.min())
+    tx1, ty1 = int(xs.max()) + 1, int(ys.max()) + 1
+    clipped = frame[ty0:ty1, tx0:tx1]
+    metrics["trim"] = (tx0, ty0, tx1 - tx0, ty1 - ty0)
+    metrics["opaque_after"] = int(np.count_nonzero(clipped[..., 3] > 0))
+    metrics["diamond_top"] = float(GRATE_TOP)
+    return Image.fromarray(clipped, "RGBA"), metrics
 
 
 def pad_png(im: Image.Image) -> Image.Image:
@@ -229,6 +271,168 @@ def pad_png(im: Image.Image) -> Image.Image:
         canvas.paste(im, (0, pz_iso.TILE_H - pz_iso.TILE_W), im)
         return canvas
     return im.resize((pz_iso.TILE_W, pz_iso.TILE_H), Image.Resampling.NEAREST)
+
+
+def _grime_names():
+    if not os.path.isdir(VANILLA_GRIME_DIR):
+        return []
+    names = [
+        n
+        for n in os.listdir(VANILLA_GRIME_DIR)
+        if n.startswith("overlay_grime_wall_01_") and n.endswith(".png")
+    ]
+    names.sort(key=lambda s: int(s.rsplit("_", 1)[1].split(".", 1)[0]))
+    return names
+
+
+def _is_concrete_mask(hop: np.ndarray, opaque: np.ndarray) -> np.ndarray:
+    """Low-chroma mid/high-luma greys = concrete pads (vs blue metal)."""
+    rgb = hop[..., :3] / 255.0
+    chroma = rgb.max(axis=2) - rgb.min(axis=2)
+    lum = rgb.mean(axis=2)
+    return opaque & (chroma < 0.14) & (lum > 0.28) & (lum < 0.88)
+
+
+def apply_leg_grime(im: Image.Image, gx: int, gy: int) -> Image.Image:
+    """Multiply vanilla wall grime onto every opaque fz=0 pixel.
+
+    Metal: bottom-weighted wash + vertical rain-runoff streaks from tiled
+    overlay_grime. Concrete: soft even multiply stain (gentle noise only) so
+    pads stay readable. Overlay alpha is a strength map; sprite alpha stays hard.
+    """
+    names = _grime_names()
+    if not names:
+        print("WARN no vanilla grime in", VANILLA_GRIME_DIR)
+        return im
+    name = names[(gx + gy) % len(names)]
+    grime = np.array(
+        Image.open(os.path.join(VANILLA_GRIME_DIR, name)).convert("RGBA"),
+        dtype=np.float32,
+    )
+    hop = np.array(im, dtype=np.float32)
+    h, w = hop.shape[:2]
+    if grime.shape[0] != h or grime.shape[1] != w:
+        grime = np.array(
+            Image.fromarray(grime.astype(np.uint8), "RGBA").resize(
+                (w, h), Image.Resampling.BILINEAR
+            ),
+            dtype=np.float32,
+        )
+
+    opaque = hop[..., 3] > 8
+    if not np.any(opaque):
+        return im
+
+    concrete = _is_concrete_mask(hop, opaque)
+    metal = opaque & ~concrete
+
+    g_a = grime[..., 3] / 255.0
+    g_rgb = grime[..., :3] / 255.0
+    gmask = g_a > (8.0 / 255.0)
+    if np.any(gmask):
+        mean_rgb = g_rgb[gmask].mean(axis=0)
+        mean_a = float(g_a[gmask].mean())
+    else:
+        mean_rgb = np.array([25.0, 25.0, 25.0], dtype=np.float32) / 255.0
+        mean_a = 0.4
+
+    ys, xs = np.nonzero(opaque)
+    y0, y1 = int(ys.min()), int(ys.max()) + 1
+    x0, x1 = int(xs.min()), int(xs.max()) + 1
+    yy = np.arange(h, dtype=np.float32)[:, None]
+    bottom = np.clip((yy - y0) / max(y1 - y0 - 1, 1), 0.0, 1.0) ** 0.85
+    bottom_map = np.broadcast_to(bottom, (h, w)).copy()
+
+    out = hop.copy()
+
+    # --- Concrete: soft even stain (no stretched wall blotches) ---
+    if np.any(concrete):
+        # Fine stable noise from coordinates + cell seed (not wall UV).
+        seed = ((gx * 17 + gy * 31) & 0xFFFF) / 65535.0
+        yy_i = np.arange(h, dtype=np.float32)[:, None]
+        xx_i = np.arange(w, dtype=np.float32)[None, :]
+        noise = (
+            np.sin((xx_i * 0.37 + yy_i * 0.21 + seed * 40.0)) * 0.5
+            + np.sin((xx_i * 0.11 - yy_i * 0.29 + seed * 17.0)) * 0.5
+        )
+        noise = (noise + 1.0) * 0.5  # 0..1
+        c_str = GRIME_CONCRETE_WASH * (0.55 + 0.45 * bottom_map)
+        c_str = c_str * (1.0 - GRIME_CONCRETE_NOISE + GRIME_CONCRETE_NOISE * noise)
+        c_str = np.clip(c_str, 0.0, 1.0)
+        c_str = np.where(concrete, c_str, 0.0)
+        # Slightly warm mud grey for concrete (still dark).
+        c_rgb = mean_rgb * np.array([1.05, 0.95, 0.88], dtype=np.float32)
+        c_rgb = np.clip(c_rgb, 0.0, 1.0)
+        cs = c_str[..., None]
+        out[..., :3] = np.where(
+            concrete[..., None],
+            hop[..., :3] * (1.0 - cs + cs * c_rgb.reshape(1, 1, 3)),
+            out[..., :3],
+        )
+
+    # --- Metal: tiled wash + streak from vanilla grime ---
+    if np.any(metal) and np.any(gmask):
+        gys, gxs = np.nonzero(gmask)
+        gy0, gy1 = int(gys.min()), int(gys.max()) + 1
+        gx0, gx1 = int(gxs.min()), int(gxs.max()) + 1
+        tile_a = g_a[gy0:gy1, gx0:gx1]
+        tile_rgb = g_rgb[gy0:gy1, gx0:gx1]
+        bw, bh = max(x1 - x0, 1), max(y1 - y0, 1)
+        wash_a = np.array(
+            Image.fromarray((np.clip(tile_a, 0, 1) * 255).astype(np.uint8), "L").resize(
+                (bw, bh), Image.Resampling.BILINEAR
+            ),
+            dtype=np.float32,
+        ) / 255.0
+        wash_rgb = (
+            np.array(
+                Image.fromarray(
+                    (np.clip(tile_rgb, 0, 1) * 255).astype(np.uint8), "RGB"
+                ).resize((bw, bh), Image.Resampling.BILINEAR),
+                dtype=np.float32,
+            )
+            / 255.0
+        )
+        wash_a = np.maximum(wash_a, mean_a * 0.45)
+
+        wash_str = np.zeros((h, w), dtype=np.float32)
+        wash_rgb_full = np.zeros((h, w, 3), dtype=np.float32)
+        wash_str[y0:y1, x0:x1] = wash_a
+        wash_rgb_full[y0:y1, x0:x1] = wash_rgb
+        wash_str = wash_str * (0.40 + 0.60 * bottom_map)
+        wash_str = np.clip(wash_str * GRIME_WASH, 0.0, 1.0)
+        wash_str = np.where(metal, wash_str, 0.0)
+
+        s = wash_str[..., None]
+        out[..., :3] = np.where(
+            metal[..., None],
+            out[..., :3] * (1.0 - s + s * wash_rgb_full),
+            out[..., :3],
+        )
+
+        streak_str = np.clip(
+            wash_str / max(GRIME_WASH, 0.01) * GRIME_STREAK * (0.35 + 0.65 * bottom_map),
+            0.0,
+            1.0,
+        )
+        drip = np.zeros((h, w), dtype=np.float32)
+        drip[y0:y1, x0:x1] = np.clip((wash_a - wash_a.mean()) * 2.0 + 0.5, 0.0, 1.0)
+        streak_str = np.clip(streak_str * (0.55 + 0.7 * drip), 0.0, 1.0)
+        streak_str = np.where(metal, streak_str, 0.0)
+        ss = streak_str[..., None]
+        out[..., :3] = np.where(
+            metal[..., None],
+            out[..., :3] * (1.0 - ss + ss * wash_rgb_full),
+            out[..., :3],
+        )
+    elif np.any(metal):
+        # Fallback: even darken metal if no grime frames.
+        m_str = np.where(metal, GRIME_WASH * 0.45 * (0.4 + 0.6 * bottom_map), 0.0)
+        ms = m_str[..., None]
+        out[..., :3] = out[..., :3] * (1.0 - ms + ms * mean_rgb.reshape(1, 1, 3))
+
+    out[..., 3] = hop[..., 3]
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA")
 
 
 def write_tomls(n: int):
@@ -392,11 +596,13 @@ def main():
         if kind == "floor":
             clipped, metrics = floor_sprite(gx, gy, render)
             if not is_edge_cell(gx, gy):
-                clipped = grate_floor_sprite(clipped, metrics)
+                clipped, metrics = grate_floor_sprite(clipped, metrics)
             trims[i] = metrics["trim"]
         else:
             clipped, metrics = apply_ownership_clip(im, gx, gy, fz)
             clipped = harden_alpha(clipped)
+            if kind == "object" and fz == 0:
+                clipped = apply_leg_grime(clipped, gx, gy)
         role = metrics["role"]
         if metrics["outside_frac"] > 0.15:
             print(

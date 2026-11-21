@@ -209,6 +209,17 @@ function DumpTruckHopper.panelSquare(anchor)
     )
 end
 
+-- Same rule as a vanilla fuel pump: grid power, or an exterior generator covering the square.
+function DumpTruckHopper.hasPower(square)
+    if square == nil then
+        return false
+    end
+    if square:hasGridPower() then
+        return true
+    end
+    return SandboxVars.AllowExteriorGenerator == true and square:haveElectricity()
+end
+
 function DumpTruckHopper.truckInBay(anchor, vehicle)
     if anchor == nil or vehicle == nil then
         return false
@@ -375,6 +386,9 @@ function DumpTruckHopper.applyFill(player, vehicle, anchorX, anchorY, anchorZ, a
         return
     end
     if not nearPanel(player, anchorX, anchorY, anchorZ) then
+        return
+    end
+    if not DumpTruckHopper.hasPower(DumpTruckHopper.panelSquare(anchor)) then
         return
     end
     if not DumpTruckHopper.truckInBay(anchor, vehicle) then

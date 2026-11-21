@@ -510,11 +510,16 @@ Vanilla's shovel restores the ground under one square and clears that square's o
 - `ISShovelGroundDumpTruck.lua` (shared) — hooks `complete` after vanilla restore, then `healAfterShovel`.
 - `tests/shovel_heal_test.lua` — the heal over a fake world with real floor modData.
 
-## Preset tower site — placement record (map coordinates, z 0)
+## Preset tower sites — placement record (map coordinates, z 0)
 
-Single-player inject: when the player walks within 60 squares of a site in `DumpTruck.PresetTowerSites`, `PresetTowers.lua` calls `DumpTruck.placePresetSite` once per save (ModData key `DumpTruckPresetTowers`). First site anchor: (11605, 10009).
+Single-player inject: when the player walks within 60 squares of a site in `DumpTruck.PresetTowerSites`, `PresetTowers.lua` calls `DumpTruck.placePresetSite` once per save (ModData key `DumpTruckPresetTowers`).
 
-### Placement sequence (in order)
+| Anchor | Layout |
+|--------|--------|
+| (11605, 10009) | Road site: hopper + mow + gravel drive + junction + sides |
+| (2114, 6655) | Road site: hopper + mow + gravel drive + junction + sides |
+
+### Road site sequence (in order)
 
 1. **Hopper.** Flood from the anchor. Places 243 `hopper_2d_*` tiles (and clears prior hopper/proof sprites in a 20-square radius).
 2. **Mow drive.** On the gravel footprint, remove objects (and attached overlays) whose sprites have `IsoFlagType.canBeRemoved` or `canBeCut` — same flags as vanilla `ISRemoveGrass` / `ISRemoveBush` — plus grassy `blends_natural_*` floor so gravel can replace it.
@@ -530,12 +535,14 @@ Relative to anchor `(ax, ay)`: gravel x `ax-2`..`ax+1`, y `ay-8`..`ay+3`; juncti
 
 ### How each step is applied
 
+- Optional `clear` entries remove named sprites at `anchor + (dx, dy)` before flood.
 - Hopper flood uses `DumpTruck.floodAt` / `placeFlood` (floor kind via `addFloor`; edge cells ensure a square below).
+- Sites with `drive = false` stop after flood.
 - Mow removes `canBeRemoved` / `canBeCut` objects and attached overlays on the drive footprint (plus `blends_natural_*` floor) before gravel.
 - Gravel and side blends use `placeSprite` on each square.
 - Junction removals walk each object's attached list and call `RemoveAttachedAnim` (same path as the `untiles` dev-hook mode).
 
 ### Verified
 
-- Manual new-world placement (dev hook) matched the layout above; the user confirmed the 4 × 12 drive and full-length side blends on screen.
+- Manual new-world placement (dev hook) matched the Muldraugh road layout; the user confirmed the 4 × 12 drive and full-length side blends on screen.
 - Attached overlays do not show in `world_query`; junction removal is checked by remove counts.

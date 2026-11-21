@@ -36,6 +36,10 @@ local function isHopperSprite(name)
     return name ~= nil and string.sub(name, 1, 15) == "loading_hopper_"
 end
 
+local function isGrimeSprite(name)
+    return name ~= nil and string.sub(name, 1, 19) == "overlay_grime_wall_"
+end
+
 local function clearArea(ax, ay, az, radius)
     local cell = getCell()
     for dx = -radius, radius do
@@ -47,7 +51,7 @@ local function clearArea(ax, ay, az, radius)
                     for i = objs:size() - 1, 0, -1 do
                         local obj = objs:get(i)
                         local name = spriteName(obj)
-                        if isProofSprite(name) or isHopperSprite(name) then
+                        if isProofSprite(name) or isHopperSprite(name) or isGrimeSprite(name) then
                             sq:RemoveTileObject(obj)
                         end
                     end
@@ -60,7 +64,7 @@ end
 local function placeSprite(ax, ay, az, dx, dy, dz, name)
     local dest = squareAt(ax + dx, ay + dy, az + dz)
     if dest == nil then
-        return false
+        return nil
     end
     local obj = IsoObject.new(getCell(), dest, name)
     dest:AddTileObject(obj)
@@ -70,7 +74,7 @@ local function placeSprite(ax, ay, az, dx, dy, dz, name)
     if dest.RecalcAllWithNeighbours ~= nil then
         dest:RecalcAllWithNeighbours(true)
     end
-    return true
+    return obj
 end
 
 local function placeFloor(ax, ay, az, dx, dy, dz, name)
@@ -171,7 +175,9 @@ local function placeCell(ax, ay, az, c)
         -- transparentFloor needs a square below it, or the engine culls the square as covering.
         squareAt(ax + c.gx, ay + c.gy, az + c.fz - 1)
     end
-    return placeByKind(ax, ay, az, c.gx, c.gy, c.fz, c.sprite, c.kind or "object")
+    local kind = c.kind or "object"
+    local placed = placeByKind(ax, ay, az, c.gx, c.gy, c.fz, c.sprite, kind)
+    return placed and true or false
 end
 
 local function findCell(gx, gy, fz, kind)
@@ -631,6 +637,16 @@ local function registerDevHook()
             clearArea(ax, ay, 0, radius)
             return { ok = true, mode = "clear", x = ax, y = ay, z = 0, radius = radius }
         end
+        if mode == "preset" then
+            -- Full preset site (flood + optional drive). payload.x/y override player square.
+            if payload ~= nil and payload.x ~= nil and payload.y ~= nil then
+                ax, ay = math.floor(payload.x), math.floor(payload.y)
+            end
+            if DumpTruck.placePresetSite == nil then
+                return { ok = false, error = "placePresetSite missing" }
+            end
+            return DumpTruck.placePresetSite(ax, ay, payload)
+        end
         if mode == "proof1" or mode == "proof2" or mode == "proof3"
             or mode == "flood" or mode == "hybrid"
             or mode == "calib" or mode == "dig1" or mode == "dig2" or mode == "dig3"
@@ -759,12 +775,43 @@ local function mowSquare(x, y, z)
     return removed
 end
 
--- Full preset site at hopper anchor (ax, ay): flood, mow drive, gravel, junction removals, side blends.
+-- Preset site at hopper anchor (ax, ay). opts from PresetTowerSites:
+--   drive ~= false → mow, gravel, junction cuts, side blends (Muldraugh road site)
+--   drive == false → hopper flood only
+--   clear = { { dx, dy, sprite }, ... } removed before flood (map coords = anchor + offset)
 -- Layout is recorded in docs/design-notes.md (Preset tower site).
-DumpTruck.placePresetSite = function(ax, ay)
+DumpTruck.placePresetSite = function(ax, ay, opts)
+    opts = opts or {}
+
+    local cleared = 0
+    if opts.clear ~= nil then
+        for _, c in ipairs(opts.clear) do
+            if removeSpriteAt(ax + c.dx, ay + c.dy, 0, c.sprite) then
+                cleared = cleared + 1
+            end
+        end
+    end
+
     local flood = DumpTruck.floodAt(ax, ay)
     if flood == nil or flood.ok ~= true then
-        return { ok = false, step = "flood", flood = flood }
+        return { ok = false, step = "flood", flood = flood, cleared = cleared }
+    end
+
+    if opts.drive == false then
+        return {
+            ok = true,
+            flood = flood,
+            cleared = cleared,
+            mowed = 0,
+            gravelPlaced = 0,
+            gravelFailed = 0,
+            junctionRemoved = 0,
+            junctionMissing = 0,
+            sidePlaced = 0,
+            sideFailed = 0,
+            x = ax,
+            y = ay,
+        }
     end
 
     local mowed = 0
@@ -822,6 +869,7 @@ DumpTruck.placePresetSite = function(ax, ay)
     return {
         ok = gravelFailed == 0 and sideFailed == 0,
         flood = flood,
+        cleared = cleared,
         mowed = mowed,
         gravelPlaced = gravelPlaced,
         gravelFailed = gravelFailed,

@@ -1,14 +1,14 @@
 -- Preset loading hoppers on the vanilla map. Each site is placed once per save when the
 -- player walks within TRIGGER_RADIUS. Single-player only until multiplayer placement is designed.
 --
--- Site layout (relative to hopper anchor): gravel 4x12 under the hopper, junction overlay
--- removals on the road edge north of the drive, side blends down both edges of the drive.
--- See docs/design-notes.md (Preset tower site).
+-- Site fields: x, y; optional drive=false (hopper only); optional clear={ {dx,dy,sprite}, ... }.
+-- Road site layout: gravel 4x12, junction removals, side blends — docs/design-notes.md.
 
 DumpTruck = DumpTruck or {}
 
 DumpTruck.PresetTowerSites = {
     { x = 11605, y = 10009 },
+    { x = 2114, y = 6655 },
 }
 
 local MODDATA_KEY = "DumpTruckPresetTowers"
@@ -42,19 +42,27 @@ local function placeNearbySites()
     for _, site in ipairs(DumpTruck.PresetTowerSites) do
         local key = siteKey(site)
         if data.flooded[key] ~= true and isNear(site, px, py) then
-            local result = DumpTruck.placePresetSite(site.x, site.y)
+            local result = DumpTruck.placePresetSite(site.x, site.y, site)
             if result ~= nil and result.ok == true then
                 data.flooded[key] = true
                 print(string.format(
-                    "[DumpTruck] preset site %s placed (mowed=%d gravel=%d junction=%d side=%d)",
-                    key, result.mowed or 0, result.gravelPlaced, result.junctionRemoved, result.sidePlaced
+                    "[DumpTruck] preset site %s placed (cleared=%d mowed=%d gravel=%d junction=%d side=%d)",
+                    key,
+                    result.cleared or 0,
+                    result.mowed or 0,
+                    result.gravelPlaced or 0,
+                    result.junctionRemoved or 0,
+                    result.sidePlaced or 0
                 ))
             else
                 local detail = "nil"
                 if result ~= nil then
                     detail = string.format(
-                        "gravelFail=%s junctionMissing=%s sideFail=%s",
-                        tostring(result.gravelFailed), tostring(result.junctionMissing), tostring(result.sideFailed)
+                        "step=%s gravelFail=%s junctionMissing=%s sideFail=%s",
+                        tostring(result.step),
+                        tostring(result.gravelFailed),
+                        tostring(result.junctionMissing),
+                        tostring(result.sideFailed)
                     )
                 end
                 print(string.format("[DumpTruck] preset site %s place failed (%s)", key, detail))

@@ -62,6 +62,9 @@ function ISFillHopper:isValid()
     if DumpTruckHopper.getStock(anchor) < 1 then
         return false
     end
+    if not DumpTruckHopper.hasPower(DumpTruckHopper.panelSquare(anchor)) then
+        return false
+    end
     return withinPanelReach(self.character, self.anchorX, self.anchorY, self.anchorZ)
 end
 
@@ -231,6 +234,11 @@ local function fillMenu(playerNum, context, worldobjects, test)
     local bags = math.min(stock, room)
     if test then
         return true
+    end
+    if not DumpTruckHopper.hasPower(panel) then
+        local opt = context:addOption("Fill bed (no power)", nil, nil)
+        opt.notAvailable = true
+        return
     end
     if bags < 1 then
         local reason = "bed full"
