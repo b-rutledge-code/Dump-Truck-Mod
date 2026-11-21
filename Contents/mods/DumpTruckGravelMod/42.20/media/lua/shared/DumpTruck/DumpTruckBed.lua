@@ -13,6 +13,7 @@ local HINGE_Y = 0.424840
 local HINGE_Z = -1.150195
 local LIVE_BED = "BedLive"
 local LIVE_GRAVEL = {
+    GravelBrim = "GravelBrimLive",
     GravelFull = "GravelFullLive",
     Gravel3_4 = "Gravel3_4Live",
     Gravel1_2 = "Gravel1_2Live",
@@ -20,6 +21,7 @@ local LIVE_GRAVEL = {
 }
 local REST_BED = "Bed_0"
 local REST_GRAVEL = {
+    GravelBrim = "GravelBrim_0",
     GravelFull = "GravelFull_0",
     Gravel3_4 = "Gravel3_4_0",
     Gravel1_2 = "Gravel1_2_0",
@@ -33,6 +35,7 @@ local BURY_Y = -100
 local SHIFT_SUFFIX = { "", "_s1", "_s2", "_s3" }
 local GRAVEL_SHIFT_SECONDS = 0.15
 local FILL_PREFIX = {
+    GravelBrim = "GravelBrim",
     GravelFull = "GravelFull",
     Gravel3_4 = "Gravel3_4_",
     Gravel1_2 = "Gravel1_2_",
@@ -102,7 +105,9 @@ local function gravelLevelFor(part)
     local full = getFullBedUses(part)
     if full <= 0 then return "Gravel1_4" end
     local frac = remaining / full
-    if frac > 0.75 then
+    if frac > 0.90 then
+        return "GravelBrim"
+    elseif frac > 0.75 then
         return "GravelFull"
     elseif frac > 0.5 then
         return "Gravel3_4"
