@@ -1,5 +1,5 @@
 [hopper_2d_219]
 pos = [0, 0]
-size = [21, 12]
-frame_offset = [101, 216]
+size = [23, 16]
+frame_offset = [105, 212]
 frame_size = [128, 256]

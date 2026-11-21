@@ -21,10 +21,52 @@ module Base
 		invertX = TRUE,
 		scale = 0.59,
 	}
+	model VolvoFE6Dump_GravelFull_s1
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravelFull,
+		texture = vehicles/vehicle_FE6Dump_gravel_s1,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_GravelFull_s2
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravelFull,
+		texture = vehicles/vehicle_FE6Dump_gravel_s2,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_GravelFull_s3
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravelFull,
+		texture = vehicles/vehicle_FE6Dump_gravel_s3,
+		invertX = TRUE,
+		scale = 0.59,
+	}
 	model VolvoFE6Dump_Gravel3_4
 	{
 		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel3_4,
 		texture = vehicles/vehicle_FE6Dump_gravel,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel3_4_s1
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel3_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s1,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel3_4_s2
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel3_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s2,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel3_4_s3
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel3_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s3,
 		invertX = TRUE,
 		scale = 0.59,
 	}
@@ -35,10 +77,52 @@ module Base
 		invertX = TRUE,
 		scale = 0.59,
 	}
+	model VolvoFE6Dump_Gravel1_2_s1
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_2,
+		texture = vehicles/vehicle_FE6Dump_gravel_s1,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel1_2_s2
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_2,
+		texture = vehicles/vehicle_FE6Dump_gravel_s2,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel1_2_s3
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_2,
+		texture = vehicles/vehicle_FE6Dump_gravel_s3,
+		invertX = TRUE,
+		scale = 0.59,
+	}
 	model VolvoFE6Dump_Gravel1_4
 	{
 		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_4,
 		texture = vehicles/vehicle_FE6Dump_gravel,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel1_4_s1
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s1,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel1_4_s2
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s2,
+		invertX = TRUE,
+		scale = 0.59,
+	}
+	model VolvoFE6Dump_Gravel1_4_s3
+	{
+		mesh = vehicles/vehicle_FE6DumpGravel|fhqFE6DumpGravel1_4,
+		texture = vehicles/vehicle_FE6Dump_gravel_s3,
 		invertX = TRUE,
 		scale = 0.59,
 	}
@@ -1811,9 +1895,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull01_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_01
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1825,9 +1951,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_01
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1846,9 +2014,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull02_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_02
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1860,9 +2070,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_02
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1881,9 +2133,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull03_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_03
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1895,9 +2189,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_03
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1916,9 +2252,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull04_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_04
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1930,9 +2308,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_04
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1951,9 +2371,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull05_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_05
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1965,9 +2427,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_05
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -1986,9 +2490,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull06_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_06
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2000,9 +2546,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_06
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2021,9 +2609,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull07_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_07
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2035,9 +2665,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_07
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2056,9 +2728,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull08_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_08
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2070,9 +2784,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_08
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2091,9 +2847,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull09_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_09
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2105,9 +2903,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_09
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2126,9 +2966,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull10_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_10
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2140,9 +3022,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_10
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2161,9 +3085,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull11_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_11
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2175,9 +3141,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_11
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2196,9 +3204,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull12_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_12
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2210,9 +3260,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_12
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2231,9 +3323,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull13_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_13
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2245,9 +3379,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_13
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2266,9 +3442,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull14_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_14
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2280,9 +3498,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_14
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2301,9 +3561,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull15_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_15
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2315,9 +3617,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_15
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2336,9 +3680,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull16_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_16
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2350,9 +3736,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_16
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2371,9 +3799,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull17_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_17
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2385,9 +3855,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_17
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2406,9 +3918,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull18_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_18
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2420,9 +3974,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_18
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2441,9 +4037,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull19_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_19
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2455,9 +4093,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_19
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2476,9 +4156,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull20_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_20
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2490,9 +4212,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_20
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2511,9 +4275,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull21_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_21
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2525,9 +4331,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_21
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2546,9 +4394,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull22_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_22
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2560,9 +4450,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_22
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2581,9 +4513,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull23_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_23
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2595,9 +4569,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_23
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2616,9 +4632,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull24_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_24
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2630,9 +4688,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_24
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2651,9 +4751,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull25_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_25
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2665,9 +4807,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_25
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2693,9 +4877,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull01_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_01
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2707,9 +4933,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_01
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2728,9 +4996,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull02_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_02
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2742,9 +5052,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_02
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2763,9 +5115,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull03_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_03
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2777,9 +5171,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_03
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2798,9 +5234,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull04_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_04
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2812,9 +5290,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_04
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2833,9 +5353,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull05_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_05
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2847,9 +5409,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_05
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2868,9 +5472,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull06_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_06
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2882,9 +5528,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_06
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2903,9 +5591,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull07_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_07
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2917,9 +5647,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_07
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2938,9 +5710,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull08_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_08
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2952,9 +5766,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_08
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2973,9 +5829,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull09_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_09
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -2987,9 +5885,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_09
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3008,9 +5948,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull10_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_10
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3022,9 +6004,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_10
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3043,9 +6067,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull11_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_11
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3057,9 +6123,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_11
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3078,9 +6186,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull12_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_12
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3092,9 +6242,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_12
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3113,9 +6305,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull13_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_13
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3127,9 +6361,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_13
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3148,9 +6424,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull14_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_14
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3162,9 +6480,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_14
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3183,9 +6543,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull15_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_15
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3197,9 +6599,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_15
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3218,9 +6662,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull16_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_16
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3232,9 +6718,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_16
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3253,9 +6781,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull17_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_17
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3267,9 +6837,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_17
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3288,9 +6900,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull18_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_18
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3302,9 +6956,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_18
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3323,9 +7019,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull19_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_19
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3337,9 +7075,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_19
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3358,9 +7138,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull20_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_20
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3372,9 +7194,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_20
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3393,9 +7257,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull21_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_21
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3407,9 +7313,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_21
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3428,9 +7376,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull22_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_22
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3442,9 +7432,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_22
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3463,9 +7495,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull23_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_23
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3477,9 +7551,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_23
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3498,9 +7614,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull24_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_24
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3512,9 +7670,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_24
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3533,9 +7733,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull25_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_25
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3547,9 +7789,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_25
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3575,9 +7859,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull01_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull01_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_01
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3589,9 +7915,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_01
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_01_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3610,9 +7978,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull02_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull02_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_02
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3624,9 +8034,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_02
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_02_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3645,9 +8097,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull03_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull03_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_03
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3659,9 +8153,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_03
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_03_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3680,9 +8216,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull04_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull04_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_04
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3694,9 +8272,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_04
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_04_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3715,9 +8335,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull05_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull05_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_05
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3729,9 +8391,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_05
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_05_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3750,9 +8454,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull06_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull06_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_06
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3764,9 +8510,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_06
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_06_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3785,9 +8573,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull07_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull07_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_07
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3799,9 +8629,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_07
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_07_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3820,9 +8692,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull08_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull08_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_08
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3834,9 +8748,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_08
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_08_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3855,9 +8811,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull09_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull09_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_09
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3869,9 +8867,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_09
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_09_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3890,9 +8930,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull10_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull10_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_10
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3904,9 +8986,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_10
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_10_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3925,9 +9049,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull11_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull11_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_11
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3939,9 +9105,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_11
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_11_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3960,9 +9168,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull12_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull12_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_12
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3974,9 +9224,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_12
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_12_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -3995,9 +9287,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull13_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull13_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_13
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4009,9 +9343,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_13
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_13_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4030,9 +9406,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull14_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull14_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_14
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4044,9 +9462,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_14
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_14_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4065,9 +9525,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull15_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull15_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_15
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4079,9 +9581,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_15
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_15_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4100,9 +9644,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull16_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull16_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_16
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4114,9 +9700,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_16
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_16_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4135,9 +9763,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull17_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull17_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_17
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4149,9 +9819,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_17
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_17_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4170,9 +9882,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull18_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull18_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_18
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4184,9 +9938,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_18
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_18_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4205,9 +10001,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull19_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull19_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_19
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4219,9 +10057,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_19
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_19_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4240,9 +10120,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull20_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull20_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_20
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4254,9 +10176,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_20
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_20_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4275,9 +10239,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull21_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull21_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_21
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4289,9 +10295,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_21
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_21_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4310,9 +10358,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull22_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull22_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_22
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4324,9 +10414,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_22
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_22_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4345,9 +10477,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull23_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull23_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_23
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4359,9 +10533,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_23
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_23_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4380,9 +10596,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull24_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull24_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_24
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4394,9 +10652,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_24
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_24_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4415,9 +10715,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model GravelFull25_s1
+			{
+				file = VolvoFE6Dump_GravelFull_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s2
+			{
+				file = VolvoFE6Dump_GravelFull_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model GravelFull25_s3
+			{
+				file = VolvoFE6Dump_GravelFull_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel3_4_25
 			{
 				file = VolvoFE6Dump_Gravel3_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel3_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel3_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel3_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel3_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}
@@ -4429,9 +10771,51 @@ module Base
 				rotate = 0.0000 0.0000 0.0000,
 			}
 
+			model Gravel1_2_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_2_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_2_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_2_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_2_s3,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
 			model Gravel1_4_25
 			{
 				file = VolvoFE6Dump_Gravel1_4,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s1
+			{
+				file = VolvoFE6Dump_Gravel1_4_s1,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s2
+			{
+				file = VolvoFE6Dump_Gravel1_4_s2,
+				offset = 0.000000 0.000000 0.000000,
+				rotate = 0.0000 0.0000 0.0000,
+			}
+
+			model Gravel1_4_25_s3
+			{
+				file = VolvoFE6Dump_Gravel1_4_s3,
 				offset = 0.000000 0.000000 0.000000,
 				rotate = 0.0000 0.0000 0.0000,
 			}

@@ -345,7 +345,7 @@ def export_fbx(obj):
         axis_up="Y",
         bake_space_transform=False,
         add_leaf_bones=False,
-        mesh_smooth_type="FACE",
+        mesh_smooth_type="OFF",
         use_triangles=True,
         path_mode="AUTO",
         embed_textures=False,

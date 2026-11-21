@@ -41,6 +41,11 @@ BEAM_TF = 0.048
 DECK_Z = 7.40
 WALK = 0.82
 RAIL_H = 1.05
+RAIL_RADIUS = 0.032
+RAIL_KICK_H = 0.03
+KICK_RADIUS = 0.02
+BALUSTER_RADIUS = 0.016
+RAIL_BALUSTER_SPACING = 0.6
 
 HOPPER_W = 2.95
 HOPPER_D = 3.35
@@ -73,6 +78,8 @@ class Mesh:
     def __init__(self):
         self.verts = []
         self.tris = []
+        # Vertex index → unit normal for smooth-shaded tube sides. Other verts use the face normal.
+        self.smooth = {}
 
     def face4(self, pts, mat, group):
         idx = []
@@ -140,6 +147,51 @@ class Mesh:
         ]
         for pts, direction in quads:
             self.quad_dir(pts, direction, mat, group)
+
+    def smooth_quad(self, pts, normals, direction, mat, group):
+        """Quad whose four corners carry their own unit normals, for smooth round shading."""
+        p = [np.asarray(x, float) for x in pts]
+        nn = [np.asarray(x, float) for x in normals]
+        n = np.cross(p[1] - p[0], p[2] - p[0])
+        if np.linalg.norm(n) < 1e-10:
+            return
+        if np.dot(n, np.asarray(direction, float)) < 0:
+            p = [p[0], p[3], p[2], p[1]]
+            nn = [nn[0], nn[3], nn[2], nn[1]]
+        start = len(self.verts)
+        self.face4(p, mat, group)
+        for k in range(4):
+            self.smooth[start + k] = nn[k]
+
+    def cylinder(self, a, b, radius, mat, group, sides=12):
+        """Round tube from a→b with flat end caps. Sides are smooth-shaded."""
+        a = np.asarray(a, float)
+        b = np.asarray(b, float)
+        d = b - a
+        length = np.linalg.norm(d)
+        if length < 1e-4:
+            return
+        x = d / length
+        helper = np.array([0.0, 0.0, 1.0])
+        if abs(np.dot(x, helper)) > 0.92:
+            helper = np.array([0.0, 1.0, 0.0])
+        y = np.cross(helper, x)
+        y /= np.linalg.norm(y)
+        z = np.cross(x, y)
+        angles = [2.0 * np.pi * i / sides for i in range(sides + 1)]
+        ring = [np.cos(t) * y + np.sin(t) * z for t in angles]
+        for i in range(sides):
+            r0 = ring[i] * radius
+            r1 = ring[i + 1] * radius
+            outward = ring[i] + ring[i + 1]
+            pts = [a + r0, a + r1, b + r1, b + r0]
+            normals = [ring[i], ring[i + 1], ring[i + 1], ring[i]]
+            self.smooth_quad(pts, normals, outward, mat, group)
+        for i in range(sides):
+            r0 = ring[i] * radius
+            r1 = ring[i + 1] * radius
+            self.quad_dir([a, a + r1, a + r0, a], -x, mat, group)
+            self.quad_dir([b, b + r0, b + r1, b], x, mat, group)
 
     def ibeam(self, a, b, depth, width, tw, tf, mat, group):
         """I-section from a→b. depth = flange-to-flange, width = flange width."""
@@ -280,40 +332,28 @@ def add_rail_run(mesh, a, b, deck_z, group):
     if length < 0.2:
         return
     direction = d / length
-    mesh.beam(
-        (a[0], a[1], deck_z + 0.06),
-        (b[0], b[1], deck_z + 0.06),
-        0.025,
-        0.12,
+    # Round kick rail, round top rail, round balusters at RAIL_BALUSTER_SPACING (68-71 vanilla steel rail style).
+    mesh.cylinder(
+        (a[0], a[1], deck_z + RAIL_KICK_H),
+        (b[0], b[1], deck_z + RAIL_KICK_H),
+        KICK_RADIUS,
         "galvanized",
         group,
     )
-    mesh.beam(
-        (a[0], a[1], deck_z + 0.52),
-        (b[0], b[1], deck_z + 0.52),
-        0.04,
-        0.04,
-        "galvanized",
-        group,
-    )
-    mesh.beam(
+    mesh.cylinder(
         (a[0], a[1], deck_z + RAIL_H),
         (b[0], b[1], deck_z + RAIL_H),
-        0.045,
-        0.045,
+        RAIL_RADIUS,
         "galvanized",
         group,
     )
-    n_posts = max(2, int(round(length / 1.15)) + 1)
+    n_posts = max(2, int(round(length / RAIL_BALUSTER_SPACING)) + 1)
     for i in range(n_posts):
         p = a + direction * (length * i / (n_posts - 1))
-        mesh.box(
-            p[0] - 0.03,
-            p[1] - 0.03,
-            deck_z,
-            p[0] + 0.03,
-            p[1] + 0.03,
-            deck_z + RAIL_H,
+        mesh.cylinder(
+            (p[0], p[1], deck_z),
+            (p[0], p[1], deck_z + RAIL_H),
+            BALUSTER_RADIUS,
             "galvanized",
             group,
         )
@@ -497,52 +537,36 @@ def write_obj(mesh, path):
             order.append(group)
         groups[group].append(tri)
 
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# Aggregate loading hopper\n")
-        f.write("# units: meters\n")
-        f.write("# up: +Z    truck faces: +Y    origin: ground center of the bay\n")
-        f.write(f"mtllib {mtl_name}\n")
-        for v in mesh.verts:
-            f.write(f"v {v[0]:.4f} {v[1]:.4f} {v[2]:.4f}\n")
-        normal_index = {}
-        normals = []
-
-        def vn(i, j, k):
-            a = np.array(mesh.verts[i])
-            b = np.array(mesh.verts[j])
-            c = np.array(mesh.verts[k])
-            n = np.cross(b - a, c - a)
-            ln = np.linalg.norm(n)
-            if ln < 1e-12:
-                n = np.array([0.0, 0.0, 1.0])
-            else:
-                n = n / ln
-            key = tuple(np.round(n, 5))
-            if key not in normal_index:
-                normal_index[key] = len(normals) + 1
-                normals.append(n)
-                f.write(f"vn {n[0]:.5f} {n[1]:.5f} {n[2]:.5f}\n")
-            return normal_index[key]
-
-        # Normals must be written before faces. Collect first.
-    # Rewrite with a two-pass so vn comes before f. Verts are already known.
-    pending = []
     normal_index = {}
     normals = []
+
+    def normal_id(n):
+        n = np.asarray(n, float)
+        key = tuple(np.round(n, 5))
+        if key not in normal_index:
+            normal_index[key] = len(normals) + 1
+            normals.append(n)
+        return normal_index[key]
+
+    def flat_normal(i, j, k):
+        a = np.array(mesh.verts[i])
+        b = np.array(mesh.verts[j])
+        c = np.array(mesh.verts[k])
+        n = np.cross(b - a, c - a)
+        ln = np.linalg.norm(n)
+        return np.array([0.0, 0.0, 1.0]) if ln < 1e-12 else n / ln
+
+    # Collect normals first so every vn line precedes the faces that use it.
+    pending = []
     for group in order:
         for tri in groups[group]:
             _, mat, i, j, k = tri
-            a = np.array(mesh.verts[i])
-            b = np.array(mesh.verts[j])
-            c = np.array(mesh.verts[k])
-            n = np.cross(b - a, c - a)
-            ln = np.linalg.norm(n)
-            n = np.array([0.0, 0.0, 1.0]) if ln < 1e-12 else n / ln
-            key = tuple(np.round(n, 5))
-            if key not in normal_index:
-                normal_index[key] = len(normals) + 1
-                normals.append(n)
-            pending.append((group, mat, i, j, k, normal_index[key]))
+            flat = normal_id(flat_normal(i, j, k))
+            corners = [
+                normal_id(mesh.smooth[v]) if v in mesh.smooth else flat
+                for v in (i, j, k)
+            ]
+            pending.append((group, mat, i, j, k, corners))
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("# Aggregate loading hopper\n")
@@ -555,14 +579,14 @@ def write_obj(mesh, path):
             f.write(f"vn {n[0]:.5f} {n[1]:.5f} {n[2]:.5f}\n")
         current_g = None
         current_m = None
-        for group, mat, i, j, k, ni in pending:
+        for group, mat, i, j, k, (ni, nj, nk) in pending:
             if group != current_g:
                 f.write(f"g {group}\n")
                 current_g = group
             if mat != current_m:
                 f.write(f"usemtl {mat}\n")
                 current_m = mat
-            f.write(f"f {i+1}//{ni} {j+1}//{ni} {k+1}//{ni}\n")
+            f.write(f"f {i+1}//{ni} {j+1}//{nj} {k+1}//{nk}\n")
 
     mtl_path = os.path.splitext(path)[0] + ".mtl"
     with open(mtl_path, "w", encoding="utf-8") as f:

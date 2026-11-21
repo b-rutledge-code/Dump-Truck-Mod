@@ -29,6 +29,15 @@ local POOL_LISTS = 3
 local SETS_PER_LIST = 25
 local POOL_SIZE = POOL_LISTS * SETS_PER_LIST
 local BURY_Y = -100
+-- Four rolls across the gravel photo, 60px apart. 60 * 4 = 240, the texture width, so the cycle meets.
+local SHIFT_SUFFIX = { "", "_s1", "_s2", "_s3" }
+local GRAVEL_SHIFT_SECONDS = 0.45
+local FILL_PREFIX = {
+    GravelFull = "GravelFull",
+    Gravel3_4 = "Gravel3_4_",
+    Gravel1_2 = "Gravel1_2_",
+    Gravel1_4 = "Gravel1_4_",
+}
 
 local SETS = {}
 for listIndex = 1, POOL_LISTS do
@@ -36,15 +45,18 @@ for listIndex = 1, POOL_LISTS do
     for slot = 1, SETS_PER_LIST do
         local setId = (listIndex - 1) * SETS_PER_LIST + slot
         local suffix = string.format("%02d", slot)
+        local gravel = {}
+        for key, prefix in pairs(FILL_PREFIX) do
+            local ids = {}
+            for shift = 1, #SHIFT_SUFFIX do
+                ids[shift] = prefix .. suffix .. SHIFT_SUFFIX[shift]
+            end
+            gravel[key] = ids
+        end
         SETS[setId] = {
             partId = partId,
             bedId = "Bed" .. suffix,
-            gravel = {
-                GravelFull = "GravelFull" .. suffix,
-                Gravel3_4 = "Gravel3_4_" .. suffix,
-                Gravel1_2 = "Gravel1_2_" .. suffix,
-                Gravel1_4 = "Gravel1_4_" .. suffix,
-            },
+            gravel = gravel,
         }
     end
 end
@@ -130,6 +142,8 @@ local function poseFor(vehicle)
             bedShown = false,
             restShown = false,
             gravelKey = nil,
+            shift = 1,
+            shiftTime = 0,
         }
         poseByVehicle[vehicle] = pose
     end
@@ -182,12 +196,14 @@ local function hideSetModels(vehicle, setId)
     local part = vehicle:getPartById(set.partId)
     if not part then return end
     part:setModelVisible(set.bedId, false)
-    for _, modelId in pairs(set.gravel) do
-        part:setModelVisible(modelId, false)
+    for _, ids in pairs(set.gravel) do
+        for _, modelId in ipairs(ids) do
+            part:setModelVisible(modelId, false)
+        end
     end
 end
 
-local function writeSetAngle(vehicle, setId, angle, activeGravelKey)
+local function writeSetAngle(vehicle, setId, angle, activeGravelKey, activeShift)
     local set = SETS[setId]
     if not set then return end
     local part = vehicle:getPartById(set.partId)
@@ -195,23 +211,29 @@ local function writeSetAngle(vehicle, setId, angle, activeGravelKey)
     local scriptPart = part:getScriptPart()
     local oy, oz = hingeOffset(angle)
     writeModelAngle(scriptPart, set.bedId, angle, oy, oz)
-    for key, modelId in pairs(set.gravel) do
-        if key == activeGravelKey then
-            writeModelAngle(scriptPart, modelId, angle, oy, oz)
-        else
-            writeModelAngle(scriptPart, modelId, 0, BURY_Y, 0)
+    activeShift = activeShift or 1
+    for key, ids in pairs(set.gravel) do
+        for shift, modelId in ipairs(ids) do
+            if key == activeGravelKey and shift == activeShift then
+                writeModelAngle(scriptPart, modelId, angle, oy, oz)
+            else
+                writeModelAngle(scriptPart, modelId, 0, BURY_Y, 0)
+            end
         end
     end
 end
 
-local function showSetModels(vehicle, setId)
+local function showSetModels(vehicle, setId, activeGravelKey)
     local set = SETS[setId]
     if not set then return end
     local part = vehicle:getPartById(set.partId)
     if not part then return end
     part:setModelVisible(set.bedId, true)
-    for _, modelId in pairs(set.gravel) do
-        part:setModelVisible(modelId, true)
+    for key, ids in pairs(set.gravel) do
+        local show = key == activeGravelKey
+        for _, modelId in ipairs(ids) do
+            part:setModelVisible(modelId, show)
+        end
     end
 end
 
@@ -294,10 +316,10 @@ local function applyShown(vehicle, pose, force)
         hideRestModels(truckBed)
         pose.restShown = false
         if force or not pose.bedShown or pose.gravelKey ~= level then
-            showSetModels(vehicle, pose.setId)
+            showSetModels(vehicle, pose.setId, level)
             pose.bedShown = true
         end
-        writeSetAngle(vehicle, pose.setId, pose.angle, level)
+        writeSetAngle(vehicle, pose.setId, pose.angle, level, pose.shift)
         pose.gravelKey = level
         return
     end
@@ -383,6 +405,20 @@ function DumpTruck_part.ApplyRemoteBedPose(vehicle, setId, angle, target)
     applyShown(vehicle, pose, true)
 end
 
+local function advanceGravelShift(pose, dt)
+    if pose.angle == 0 and pose.target == 0 then
+        pose.shift = 1
+        pose.shiftTime = 0
+        return
+    end
+    pose.shift = pose.shift or 1
+    pose.shiftTime = (pose.shiftTime or 0) + dt
+    while pose.shiftTime >= GRAVEL_SHIFT_SECONDS do
+        pose.shiftTime = pose.shiftTime - GRAVEL_SHIFT_SECONDS
+        pose.shift = pose.shift % #SHIFT_SUFFIX + 1
+    end
+end
+
 function DumpTruck_part.UpdateBedPose(dt)
     if not dt or dt <= 0 then return end
     local rate = math.abs(BED_ANGLE_RAISED) / BED_TRAVEL_SECONDS
@@ -394,6 +430,7 @@ function DumpTruck_part.UpdateBedPose(dt)
                 pose.angle = math.min(pose.target, pose.angle + rate * dt)
             end
         end
+        advanceGravelShift(pose, dt)
         applyShown(vehicle, pose, false)
     end
 end
