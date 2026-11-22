@@ -4,8 +4,14 @@ title=Road Builder
 description=[b]Supports Multiplayer[/b]
 description=Build gravel roads to connect your base to town or carve routes through the wilderness. Keep full engine power and normal traction with smooth edge blending, erosion prevention, and perfectly straight lines when you need them.
 description=
+description=[h2]What's New — 1.10.0[/h2]
+description=[b]Drive-under loading hopper[/b]
+description=- Drive-under hoppers in the Muldraugh and Brandenburg train yards — fill the dump bed from the control panel
+description=- Hopper holds 600 bags (three full beds)
+description=
 description=[h2]Features[/h2]
 description=- Volvo FE6 dump truck model (courtesy of [b]fhqwhgads[/b] from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2791656602]Motorious Zone[/url]!)
+description=- Drive-under loading hopper with visible bin stock and fill controls
 description=- Animated dump bed with a visible load that decreases as material is unloaded
 description=- Erosion prevention: gravel roads won't grow grass or trees over time
 description=- Automatic edge blending: gravel roads blend smoothly with grass and terrain
