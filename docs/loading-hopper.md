@@ -36,6 +36,10 @@ Fill needs power on the panel square — the same rule as a fuel pump: `hasGridP
 
 The hopper holds 600 gravel bags on the anchor (`modData.hopperBags`). A full truck bed is 200 bags, so the stock covers three full refills. Each pour fills empty sacks in the bed first, then adds new gravel bags into leftover weight room. It moves `min(those slots, bags left in the hopper)`. When the stock is empty, Fill bed is not offered. Restocking is out of scope; an empty hopper stays empty.
 
+### Mouth gravel indicator
+
+Stock drives a thin gravel surface inside the bin cavity. Bag-count bands pick the plane: `>400` high, `>200` mid, `>100` low, `>0` very-low (funnel), `0` empty. Each plane is a set of per-cell `hopper_gravel_*` objects at `fz=2`, baked from a gravel disc inside the hopper mesh so the rim and near walls cut the silhouette. Cell layout lives in `LoadingHopperGravelCells.lua` (from `pack_gravel_planes.py`). `DumpTruckHopper.syncGravelVisual` places or clears those objects after stock writes and after a flood stamp, and leaves them alone when the plane is unchanged.
+
 Stepping away, the truck leaving the bay, lost power, a full bed, or an empty hopper stops the pour. Bags already loaded stay in the bed. Fill sound is `DumpTruckHopper.FILL_SOUND` (nil until a clip is chosen).
 
 Interior deck floors are a blue `industry_01_37` grate on the baked walk footprint, with an opaque underlay in the grate holes so elevated tiles meet; the stamp stays inside the walk so the bin mouth stays open. Outer-ring edge squares keep the trimmed painted walkway.

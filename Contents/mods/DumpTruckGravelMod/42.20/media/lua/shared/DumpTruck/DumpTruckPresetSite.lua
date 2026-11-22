@@ -79,6 +79,7 @@ end
 local function isProofSprite(name)
     return name == PROOF_FLOOR or name == PROOF_POST or name == PROOF_RAIL
         or (name ~= nil and string.sub(name, 1, 10) == "hopper_2d_")
+        or (name ~= nil and string.sub(name, 1, 14) == "hopper_gravel_")
 end
 
 local function isHopperSprite(name)
@@ -373,7 +374,14 @@ DumpTruck.hopperSpriteName = spriteName
 
 DumpTruck.floodAt = function(ax, ay)
     clearArea(ax, ay, 0, 20)
-    return placeFlood(ax, ay, 0)
+    local result = placeFlood(ax, ay, 0)
+    if result ~= nil and result.ok == true then
+        local DumpTruckHopper = require("DumpTruck/DumpTruckHopper")
+        local cell = getCell()
+        local anchor = cell ~= nil and cell:getGridSquare(ax, ay, 0) or nil
+        result.gravel = DumpTruckHopper.syncGravelVisual(anchor)
+    end
+    return result
 end
 
 -- Preset site at hopper anchor (ax, ay). opts from PresetTowerSites:

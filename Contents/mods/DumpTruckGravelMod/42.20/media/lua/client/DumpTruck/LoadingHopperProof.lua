@@ -448,6 +448,104 @@ local function registerDevHook()
         if payload ~= nil and payload.mode ~= nil then
             mode = payload.mode
         end
+        if mode == "setBags" then
+            local DumpTruckHopper = require("DumpTruck/DumpTruckHopper")
+            local anchor = nil
+            if payload ~= nil and payload.x ~= nil and payload.y ~= nil then
+                local cell = getCell()
+                if cell ~= nil then
+                    local at = cell:getGridSquare(
+                        math.floor(payload.x),
+                        math.floor(payload.y),
+                        math.floor(tonumber(payload.z) or 0)
+                    )
+                    if at ~= nil then
+                        anchor = DumpTruckHopper.anchorNear(at, 8)
+                    end
+                end
+            end
+            if anchor == nil then
+                anchor = DumpTruckHopper.anchorNear(square, 8)
+            end
+            if anchor == nil then
+                return { ok = false, error = "no hopper anchor near player" }
+            end
+            local bags = 600
+            if payload ~= nil and payload.bags ~= nil then
+                bags = math.floor(tonumber(payload.bags) or 0)
+            end
+            if bags < 0 then
+                bags = 0
+            end
+            if bags > DumpTruckHopper.CAPACITY then
+                bags = DumpTruckHopper.CAPACITY
+            end
+            local objs = anchor:getObjects()
+            local obj = nil
+            for i = 0, objs:size() - 1 do
+                local o = objs:get(i)
+                local spr = o:getSprite()
+                local name = spr ~= nil and spr:getName() or nil
+                if name == DumpTruck.Hopper2dAnchorSprite or name == DumpTruckHopper.ANCHOR then
+                    obj = o
+                    break
+                end
+            end
+            if obj == nil then
+                return { ok = false, error = "no anchor object" }
+            end
+            obj:getModData().hopperBags = bags
+            if isServer() and obj.transmitModData ~= nil then
+                obj:transmitModData()
+            end
+            local gravel = DumpTruckHopper.syncGravelVisual(anchor)
+            return { ok = true, mode = "setBags", bags = bags, gravel = gravel }
+        end
+        if mode == "fill" then
+            local DumpTruckHopper = require("DumpTruck/DumpTruckHopper")
+            local square = player:getCurrentSquare()
+            local anchor = DumpTruckHopper.anchorFrom(square)
+            if anchor == nil and payload ~= nil and payload.x ~= nil and payload.y ~= nil then
+                local cell = getCell()
+                if cell ~= nil then
+                    anchor = DumpTruckHopper.anchorFrom(
+                        cell:getGridSquare(math.floor(payload.x), math.floor(payload.y), tonumber(payload.z) or 0)
+                    )
+                end
+            end
+            if anchor == nil then
+                return { ok = false, error = "no hopper anchor near player" }
+            end
+            local vehicle = DumpTruckHopper.findTruck(anchor)
+            if vehicle == nil then
+                return { ok = false, error = "no truck in bay" }
+            end
+            local bags = math.min(DumpTruckHopper.getStock(anchor), DumpTruckHopper.bagsThatFit(vehicle))
+            if bags < 1 then
+                return { ok = false, error = "no bags to fill", stock = DumpTruckHopper.getStock(anchor), room = DumpTruckHopper.bagsThatFit(vehicle) }
+            end
+            if not DumpTruckHopper.hasPower(DumpTruckHopper.panelSquare(anchor)) then
+                return { ok = false, error = "no power" }
+            end
+            ISTimedActionQueue.clear(player)
+            ISTimedActionQueue.add(ISFillHopper:new(
+                player,
+                vehicle,
+                anchor:getX(),
+                anchor:getY(),
+                anchor:getZ(),
+                bags,
+                DumpTruckHopper.nextActionId()
+            ))
+            return {
+                ok = true,
+                mode = "fill",
+                bags = bags,
+                x = anchor:getX(),
+                y = anchor:getY(),
+                z = anchor:getZ(),
+            }
+        end
         if mode == "tiles" then
             local placed = 0
             local failed = 0

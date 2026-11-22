@@ -9,3 +9,4 @@ versionMin=42.20
 pack=DumpTruckGravelMod
 tiledef=loading_hopper 4731
 tiledef=hopper_2d 4732
+tiledef=hopper_gravel 4733

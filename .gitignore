@@ -52,3 +52,11 @@ reference/
 
 # Cursor files
 .cursor/
+
+# Hopper bake / art scratch (regenerated or one-off comps)
+models/loading-hopper/_pack_work/
+models/loading-hopper/_pack_work_gravel/
+models/loading-hopper/gravel_tiles/_render/
+models/loading-hopper/composite_test/
+models/vehicle_textures/
+docs/Untitled-*
