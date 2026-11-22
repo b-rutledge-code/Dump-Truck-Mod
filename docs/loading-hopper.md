@@ -38,7 +38,9 @@ The hopper holds 600 gravel bags on the anchor (`modData.hopperBags`). A full tr
 
 ### Mouth gravel indicator
 
-Stock drives a thin gravel surface inside the bin cavity. Bag-count bands pick the plane: `>400` high, `>200` mid, `>100` low, `>0` very-low (funnel), `0` empty. Each plane is a set of per-cell `hopper_gravel_*` objects at `fz=2`, baked from a gravel disc inside the hopper mesh so the rim and near walls cut the silhouette. Cell layout lives in `LoadingHopperGravelCells.lua` (from `pack_gravel_planes.py`). `DumpTruckHopper.syncGravelVisual` places or clears those objects after stock writes and after a flood stamp, and leaves them alone when the plane is unchanged.
+Stock drives a thin gravel surface inside the bin cavity. Bag-count bands pick the plane: `>400` high (~67%+), `>200` mid (~34%), `>100` low (~17%), `>0` very-low (funnel), `0` empty. Each plane is a set of per-cell `hopper_gravel_*` objects at `fz=2`, baked from a gravel disc inside the hopper mesh so the rim and near walls cut the silhouette. Cell layout and shimmer frames live in `LoadingHopperGravelCells.lua` (from `pack_gravel_planes.py`). `DumpTruckHopper.syncGravelVisual` places or clears those objects after stock writes and after a flood stamp, and leaves them alone when the plane is unchanged.
+
+While stock is changing (and for a few seconds after), the client cycles three frames per cell. High is a center-weighted UV noise crawl; mid and low add light inward circular ripples on top of that noise. Very-low stays visual-only with no ripple treatment.
 
 Stepping away, the truck leaving the bay, lost power, a full bed, or an empty hopper stops the pour. Bags already loaded stay in the bed. Fill sound is `DumpTruckHopper.FILL_SOUND` (nil until a clip is chosen).
 

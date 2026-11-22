@@ -182,8 +182,19 @@ def position_material(bmin, size, name: str):
     return mat
 
 
-def gravel_material(uv_shift=(0.0, 0.0), name="gravel_mat", cavity_w=2.77, cavity_d=3.17):
-    """Cool gray stone with UV shift strongest toward the outlet (world origin)."""
+def gravel_material(
+    uv_shift=(0.0, 0.0),
+    name="gravel_mat",
+    cavity_w=2.77,
+    cavity_d=3.17,
+    ripple=False,
+    ripple_phase=0.0,
+):
+    """Cool gray stone with UV shift strongest toward the outlet (world origin).
+
+    When ripple=True, light concentric rings expand with ripple_phase (0..1
+    across shimmer frames) on top of the gravel noise.
+    """
     if not os.path.isfile(GRAVEL_TEX):
         raise RuntimeError("missing gravel texture %s" % GRAVEL_TEX)
     img = bpy.data.images.load(GRAVEL_TEX)
@@ -260,11 +271,57 @@ def gravel_material(uv_shift=(0.0, 0.0), name="gravel_mat", cavity_w=2.77, cavit
     links.new(bright.outputs["Color"], mix.inputs["Color1"])
     links.new(rgb.outputs[0], mix.inputs["Color2"])
 
+    color_out = mix.outputs["Color"]
+    if ripple:
+        # Light rings: sin(2π (r / wavelength − phase)), phase advances per frame
+        # so rings read as expanding outward. Soften with radial falloff.
+        wavelength_m = 0.42
+        amp = 0.11
+        r_over_wl = nodes.new("ShaderNodeMath")
+        r_over_wl.operation = "DIVIDE"
+        r_over_wl.inputs[1].default_value = max(wavelength_m, 1e-3)
+        links.new(length.outputs["Value"], r_over_wl.inputs[0])
+        # Add phase (not subtract) so advancing frames pull rings inward.
+        phase_add = nodes.new("ShaderNodeMath")
+        phase_add.operation = "ADD"
+        phase_add.inputs[1].default_value = float(ripple_phase)
+        links.new(r_over_wl.outputs[0], phase_add.inputs[0])
+        two_pi = nodes.new("ShaderNodeMath")
+        two_pi.operation = "MULTIPLY"
+        two_pi.inputs[1].default_value = 2.0 * math.pi
+        links.new(phase_add.outputs[0], two_pi.inputs[0])
+        sine = nodes.new("ShaderNodeMath")
+        sine.operation = "SINE"
+        links.new(two_pi.outputs[0], sine.inputs[0])
+        # Map −1..1 → 0..1
+        sine01 = nodes.new("ShaderNodeMath")
+        sine01.operation = "MULTIPLY_ADD"
+        sine01.inputs[1].default_value = 0.5
+        sine01.inputs[2].default_value = 0.5
+        links.new(sine.outputs[0], sine01.inputs[0])
+        # Fac = amp * sine01 * radial_weight (stronger near outlet)
+        fac_amp = nodes.new("ShaderNodeMath")
+        fac_amp.operation = "MULTIPLY"
+        fac_amp.inputs[1].default_value = amp
+        links.new(sine01.outputs[0], fac_amp.inputs[0])
+        fac = nodes.new("ShaderNodeMath")
+        fac.operation = "MULTIPLY"
+        links.new(fac_amp.outputs[0], fac.inputs[0])
+        links.new(power.outputs[0], fac.inputs[1])
+        light = nodes.new("ShaderNodeRGB")
+        light.outputs[0].default_value = (1.0, 0.98, 0.92, 1.0)
+        ripple_mix = nodes.new("ShaderNodeMixRGB")
+        ripple_mix.blend_type = "MIX"
+        links.new(fac.outputs[0], ripple_mix.inputs["Fac"])
+        links.new(mix.outputs["Color"], ripple_mix.inputs["Color1"])
+        links.new(light.outputs[0], ripple_mix.inputs["Color2"])
+        color_out = ripple_mix.outputs["Color"]
+
     bsdf = nodes.new("ShaderNodeBsdfPrincipled")
     bsdf.inputs["Roughness"].default_value = 0.92
     if "Specular IOR Level" in bsdf.inputs:
         bsdf.inputs["Specular IOR Level"].default_value = 0.08
-    links.new(mix.outputs["Color"], bsdf.inputs["Base Color"])
+    links.new(color_out, bsdf.inputs["Base Color"])
     out = nodes.new("ShaderNodeOutputMaterial")
     links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
     return mat
@@ -495,6 +552,9 @@ def main():
                 name="gravel_%s_%d" % (plane, frame),
                 cavity_w=cw,
                 cavity_d=cd,
+                # Mid + lo: light circular ripples (inward) across shimmer frames.
+                ripple=(plane == "mid" or plane == "lo"),
+                ripple_phase=(frame / float(max(n_frames, 1))),
             )
             add_gravel_plane(z, mat, cw, cd)
 

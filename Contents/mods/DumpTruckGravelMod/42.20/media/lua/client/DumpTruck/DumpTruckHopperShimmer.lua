@@ -4,7 +4,8 @@
 local DumpTruckHopper = require("DumpTruck/DumpTruckHopper")
 
 local POLL_SECONDS = 0.5
-local FRAME_SECONDS = 0.15
+-- 0.15 * 3/2: one-third slower frame swaps (ripples read clearer).
+local FRAME_SECONDS = 0.225
 local HOLD_SECONDS = 4.0
 local SEARCH_RADIUS = 12
 
